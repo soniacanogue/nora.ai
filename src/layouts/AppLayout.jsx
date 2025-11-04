@@ -24,7 +24,7 @@ const AppLayout = ({ children }) => {
               <NavLink 
                 to="/" 
                 className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}
-                end // La prop 'end' asegura que solo esté activo en la ruta exacta "/"
+                end
               >
                 Dashboard
               </NavLink>
@@ -35,6 +35,15 @@ const AppLayout = ({ children }) => {
                 className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}
               >
                 Tickets
+              </NavLink>
+            </li>
+            {/* 👇 AQUÍ ESTÁ EL NUEVO ENLACE INTEGRADO 👇 */}
+            <li>
+              <NavLink 
+                to="/import" 
+                className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}
+              >
+                Importar
               </NavLink>
             </li>
           </ul>

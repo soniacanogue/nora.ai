@@ -1,0 +1,6 @@
+ID de Pedido,Correo Cliente,Estado del Pedido,Numero de Guia,Transportista,Fecha Creacion
+GUP-00789,ana.perez@example.com,en_transito,XYZ12345,FastShip,2025-10-25
+GUP-00790,luis.garcia@example.com,entregado,ABC98765,CityExpress,2025-10-22
+GUP-00791,marta.j@example.com,procesando,,FastShip,2025-10-28
+GUP-00792,carlos.rojas@example.com,pendiente,DEF45678,CityExpress,2025-10-28
+GUP-00793,ana.perez@example.com,en_transito,GHI32109,FastShip,2025-10-27

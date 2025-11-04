@@ -7,6 +7,7 @@ import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TicketListPage from './pages/tickets/TicketListPage';
 import TicketDetailPage from './pages/tickets/TicketDetailPage';
+import ImportOrdersPage from './pages/ImportOrdersPage'; // <-- 1. AÑADIR ESTA IMPORTACIÓN
 
 // Importación de la página Pública
 import NewTicketPage from './pages/public/NewTicketPage';
@@ -42,6 +43,10 @@ function App() {
         <Route 
           path="/tickets/:ticketId"
           element={<ProtectedRoute><TicketDetailPage /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/import"
+          element={<ProtectedRoute><ImportOrdersPage /></ProtectedRoute>} // <-- 2. AÑADIR ESTA RUTA
         />
 
         {/* RUTA POR DEFECTO */}
