@@ -1,7 +1,7 @@
 // src/components/tickets/TicketRow.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. IMPORTAR HOOK
 
-// Un pequeño componente para las "píldoras" de estado y etiquetas
 const Badge = ({ text, color }) => (
   <span className={`px-2 py-1 text-xs font-bold rounded-full ${color}`}>
     {text}
@@ -9,6 +9,13 @@ const Badge = ({ text, color }) => (
 );
 
 const TicketRow = ({ ticket }) => {
+  const navigate = useNavigate(); // 2. INICIALIZAR HOOK
+
+  // 3. CREAR FUNCIÓN DE NAVEGACIÓN
+  const handleRowClick = () => {
+    navigate(`/tickets/${ticket.id}`); // Navega a una URL como "/tickets/TKT-001"
+  };
+
   const statusConfig = {
     sugerido: { text: 'SUGERIDO', color: 'bg-green-500 text-white' },
     escalado: { text: 'ESCALADO', color: 'bg-yellow-500 text-black' },
@@ -17,7 +24,8 @@ const TicketRow = ({ ticket }) => {
   };
 
   return (
-    <tr className="border-b border-secondary hover:bg-secondary cursor-pointer">
+    // 4. AÑADIR EL EVENTO ONCLICK
+    <tr onClick={handleRowClick} className="border-b border-secondary hover:bg-secondary cursor-pointer transition-colors duration-150">
       <td className="p-4">
         <div className="font-bold text-foreground">{ticket.subject}</div>
         <div className="text-sm text-subtle">{ticket.client.name}</div>

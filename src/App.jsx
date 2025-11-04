@@ -4,12 +4,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import TicketListPage from './pages/tickets/TicketListPage'; // <-- 1. IMPORTAR
+import TicketListPage from './pages/tickets/TicketListPage';
+import TicketDetailPage from './pages/tickets/TicketDetailPage'; // 1. IMPORTAR
 
-// Variable de simulación (nuestra "llave maestra")
 const isAuthenticated = true;
 
-// Componente para proteger rutas
 const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
@@ -30,7 +29,11 @@ function App() {
         />
         <Route 
           path="/tickets" 
-          element={<ProtectedRoute><TicketListPage /></ProtectedRoute>} // <-- 2. AÑADIR RUTA
+          element={<ProtectedRoute><TicketListPage /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/tickets/:ticketId" // 2. AÑADIR RUTA DINÁMICA
+          element={<ProtectedRoute><TicketDetailPage /></ProtectedRoute>} 
         />
 
         <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
