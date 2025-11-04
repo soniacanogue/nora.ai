@@ -2,7 +2,6 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
-// Clases de CSS para los enlaces para mantener el código limpio
 const navLinkClasses = "flex items-center px-4 py-2 text-subtle rounded-md hover:bg-secondary hover:text-foreground transition-colors";
 const activeNavLinkClasses = "bg-secondary text-foreground";
 
@@ -11,7 +10,6 @@ const AppLayout = ({ children }) => {
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
       <aside className="w-64 bg-primary p-4 border-r border-secondary flex flex-col">
-        {/* Logo/Branding */}
         <div className="mb-8">
           <Link to="/" className="text-foreground text-xl font-bold">Nora AI</Link>
           <p className="text-subtle text-sm">para GearUp Gadgets</p>
@@ -21,29 +19,24 @@ const AppLayout = ({ children }) => {
         <nav>
           <ul className="space-y-2">
             <li>
-              <NavLink 
-                to="/" 
-                className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}
-                end
-              >
+              <NavLink to="/" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses} end>
                 Dashboard
               </NavLink>
             </li>
             <li>
-              <NavLink 
-                to="/tickets" 
-                className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}
-              >
+              <NavLink to="/tickets" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>
                 Tickets
               </NavLink>
             </li>
-            {/* 👇 AQUÍ ESTÁ EL NUEVO ENLACE INTEGRADO 👇 */}
             <li>
-              <NavLink 
-                to="/import" 
-                className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}
-              >
+              <NavLink to="/import" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>
                 Importar
+              </NavLink>
+            </li>
+            {/* 👇 AQUÍ ESTÁ EL NUEVO ENLACE A "ÓRDENES" 👇 */}
+            <li>
+              <NavLink to="/orders" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>
+                Órdenes
               </NavLink>
             </li>
           </ul>

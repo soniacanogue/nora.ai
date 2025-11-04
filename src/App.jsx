@@ -7,7 +7,8 @@ import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TicketListPage from './pages/tickets/TicketListPage';
 import TicketDetailPage from './pages/tickets/TicketDetailPage';
-import ImportOrdersPage from './pages/ImportOrdersPage'; // <-- 1. AÑADIR ESTA IMPORTACIÓN
+import ImportOrdersPage from './pages/ImportOrdersPage';
+import OrderListPage from './pages/OrderListPage'; // <-- 1. IMPORTAR LA NUEVA PÁGINA
 
 // Importación de la página Pública
 import NewTicketPage from './pages/public/NewTicketPage';
@@ -32,22 +33,13 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
 
         {/* RUTAS PROTEGIDAS DE AGENTE */}
-        <Route 
-          path="/" 
-          element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/tickets" 
-          element={<ProtectedRoute><TicketListPage /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/tickets/:ticketId"
-          element={<ProtectedRoute><TicketDetailPage /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/import"
-          element={<ProtectedRoute><ImportOrdersPage /></ProtectedRoute>} // <-- 2. AÑADIR ESTA RUTA
-        />
+        <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/tickets" element={<ProtectedRoute><TicketListPage /></ProtectedRoute>} />
+        <Route path="/tickets/:ticketId" element={<ProtectedRoute><TicketDetailPage /></ProtectedRoute>} />
+        <Route path="/import" element={<ProtectedRoute><ImportOrdersPage /></ProtectedRoute>} />
+        
+        {/* 👇 2. AÑADIR LA NUEVA RUTA PARA "ÓRDENES" 👇 */}
+        <Route path="/orders" element={<ProtectedRoute><OrderListPage /></ProtectedRoute>} />
 
         {/* RUTA POR DEFECTO */}
         <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
