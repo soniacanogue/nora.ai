@@ -11,24 +11,31 @@ import {
 
 const SimpleBarChart = ({
   data = [
-    { name: "Triaje", count: 15 },
-    { name: "En Progreso", count: 8 },
-    { name: "Esperando Cliente", count: 12 },
-    { name: "Escalados", count: 5 },
-    { name: "Reabiertos", count: 2 },
+    { status: "ia_sugerido", count: 15 },
+    { status: "en_progreso", count: 8 },
+    { status: "esperando_cliente", count: 12 },
+    { status: "escalado_nivel_2", count: 5 },
+    { status: "reabierto", count: 2 },
   ],
+  title = "Distribución de Tickets por Estado",
 }) => {
+  // Transform the data to have a readable name
+  const chartData = data.map((item) => ({
+    name: item.status || item.name || "Unknown",
+    count: item.count,
+  }));
+
   return (
     <div
       className="bg-primary p-6 rounded-lg border border-secondary"
       style={{ height: "320px" }}
     >
       <h3 className="text-lg font-bold text-foreground mb-4">
-        Distribución de Tickets (Hoy)
+        {title}
       </h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart
-          data={data}
+          data={chartData}
           margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#21262D" />

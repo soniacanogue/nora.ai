@@ -26,6 +26,42 @@ const generateAgentDashboardData = (agentId) => {
     const customerRepliedCount = mockTickets.filter((t) => t.assigneeId === agentId && t.estado === "respuesta_cliente").length;
     const waitingForCustomerCount = mockTickets.filter((t) => t.assigneeId === agentId && t.estado === "esperando_cliente").length;
 
+    // Aggregate tickets by status for the agent
+    const myTicketsByStatus = mockTickets
+        .filter((t) => t.assigneeId === agentId && t.estado !== "cerrado" && t.estado !== "fusionado")
+        .reduce((acc, ticket) => {
+            const status = ticket.estado;
+            const existing = acc.find((item) => item.status === status);
+            if (existing) {
+                existing.count++;
+            } else {
+                acc.push({ status, count: 1 });
+            }
+            return acc;
+        }, []);
+
+    // Generate recent activity from agent's tickets
+    const agentTickets = mockTickets.filter((t) => t.assigneeId === agentId);
+    const recentActivity = agentTickets
+        .slice(0, 5)
+        .map((ticket, index) => {
+            let message = "";
+            if (ticket.estado === "respuesta_cliente") {
+                message = `Cliente respondió en Ticket #${ticket.id}`;
+            } else if (ticket.sugerenciaFusionId) {
+                message = `Sugerencia de Fusión lista en Ticket #${ticket.id}`;
+            } else if (ticket.estado === "ia_sugerido") {
+                message = `Ticket #${ticket.id} listo para triaje`;
+            } else {
+                message = `Ticket #${ticket.id} asignado a ti`;
+            }
+            return {
+                eventId: `evt-${index}`,
+                message,
+                timestamp: ticket.creadoEn,
+            };
+        });
+
     return {
         myMetricsToday: {
             resolved: myResolvedToday,
@@ -39,10 +75,9 @@ const generateAgentDashboardData = (agentId) => {
             customerReplied: customerRepliedCount,
             waitingForCustomer: waitingForCustomerCount,
         },
-        recentActivity: [
-            { eventId: "evt-1", message: "Cliente respondió en Ticket #TICKET-006", timestamp: "2023-10-28T09:00:00Z" },
-            { eventId: "evt-2", message: "Sugerencia de Fusión lista en Ticket #TICKET-005", timestamp: "2023-10-27T14:01:00Z" },
-            { eventId: "evt-3", message: "Ticket #TICKET-004 asignado a ti", timestamp: "2023-10-25T09:15:00Z" },
+        myTicketsByStatus,
+        recentActivity: recentActivity.length > 0 ? recentActivity : [
+            { eventId: "evt-1", message: "No hay actividad reciente", timestamp: new Date().toISOString() },
         ],
     };
 };
