@@ -1,31 +1,28 @@
-// src/data/mockOrders.js
-export const mockOrders = [
+// src/data/mockOrdenes.js
+
+export const mockOrdenes = [
   {
-    orderId: 'GUP-00789',
-    clientEmail: 'ana.perez@example.com',
-    status: 'en_transito',
-    trackingNumber: 'XYZ12345',
-    carrier: 'FastShip',
+    id: "ORD-2023-001",
+    clienteId: "cli-002", // David Luna
+    estado: "en_transito",
+    numeroSeguimiento: "TRK123456789",
+    transportista: "DHL",
+    articulos: [{ sku: "HEAD-XT2", qty: 1, name: "Auriculares Pro XT2" }],
   },
   {
-    orderId: 'GUP-00790',
-    clientEmail: 'luis.garcia@example.com',
-    status: 'entregado',
-    trackingNumber: 'ABC98765',
-    carrier: 'CityExpress',
+    id: "ORD-2023-002",
+    clienteId: "cli-003", // Sofia Reyes
+    estado: "entregado",
+    numeroSeguimiento: "TRK987654321",
+    transportista: "FedEx",
+    articulos: [{ sku: "KB-MECH-01", qty: 1, name: "Teclado Mecánico RGB" }],
   },
   {
-    orderId: 'GUP-00791',
-    clientEmail: 'marta.j@example.com',
-    status: 'procesando',
-    trackingNumber: null,
-    carrier: 'FastShip',
-  },
-  {
-    orderId: 'GUP-00792',
-    clientEmail: 'carlos.rojas@example.com',
-    status: 'pendiente',
-    trackingNumber: 'DEF45678',
-    carrier: 'CityExpress',
+    id: "ORD-2023-003",
+    clienteId: "cli-001", // Ana Torres
+    estado: "entregado",
+    numeroSeguimiento: "TRK555555555",
+    transportista: "Estafeta",
+    articulos: [{ sku: "MOUSE-G502", qty: 1, name: "Mouse Gamer G502" }],
   },
 ];

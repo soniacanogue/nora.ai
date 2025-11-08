@@ -1,75 +1,86 @@
-// src/App.jsx
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
-// Importaciones de Páginas
-import LoginPage from './pages/auth/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import TicketListPage from './pages/tickets/TicketListPage';
-import TicketDetailPage from './pages/tickets/TicketDetailPage';
-import ImportOrdersPage from './pages/ImportOrdersPage';
-import OrderListPage from './pages/OrderListPage';
-import NewTicketPage from './pages/public/NewTicketPage';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage'; // 1. IMPORTAR PÁGINA DE ADMIN
+// --- Core Providers & Layouts ---
+import { AuthProvider } from "./shared/hooks/useAuth";
+import AppLayout from "./shared/components/layout/AppLayout";
+import ProtectedRoute from "./shared/components/ProtectedRoute";
 
-// --- SIMULACIÓN DE AUTENTICACIÓN Y ROL ---
-const isAuthenticated = true;
-const userRole = 'admin'; // <-- 2. AÑADIR SIMULACIÓN DE ROL (CAMBIA A 'agent' PARA PROBAR)
+// --- Page Components ---
+// Sugerencia: Mover HomePage a una carpeta más genérica como /src/pages
+import LoginPage from "./features/auth/pages/LoginPage";
+import TicketListPage from "./features/tickets/pages/TicketListPage";
+import TicketDetailPage from "./features/tickets/pages/TicketDetailPage";
+import ImportOrdersPage from "./features/orders/pages/ImportOrdersPage";
+import OrderListPage from "./features/orders/pages/OrderListPage";
+import NewTicketPage from "./features/tickets/pages/NewTicketPage";
+import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
+import HomePage from "./features/dashboard/pages/HomePAge";
 
-// --- COMPONENTE DE RUTA PROTEGIDA MEJORADO ---
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-  // 3. AÑADIR LÓGICA DE VERIFICACIÓN DE ROL
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
-    return <Navigate to="/" />; // Redirige a la página principal si no tiene el rol
-  }
-  return children;
-};
+// Componente simple para una página 404
+const NotFoundPage = () => (
+  <div className="flex h-screen flex-col items-center justify-center bg-background text-foreground">
+    <h1 className="text-4xl font-bold">404 - Página No Encontrada</h1>
+    <p className="mt-4 text-subtle">La página que buscas no existe.</p>
+  </div>
+);
 
 function App() {
   return (
-    <Router>
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          style: {
-            background: '#161B22',
-            color: '#FFFFFF',
-            border: '1px solid #21262D',
-          },
-        }}
-      />
-      <Routes>
-        {/* RUTA PÚBLICA */}
-        <Route path="/new-ticket" element={<NewTicketPage />} />
-
-        {/* RUTAS DE AGENTE (LOGIN) */}
-        <Route path="/login" element={<LoginPage />} />
-
-        {/* RUTAS PROTEGIDAS (PARA TODOS LOS USUARIOS LOGUEADOS) */}
-        <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/tickets" element={<ProtectedRoute><TicketListPage /></ProtectedRoute>} />
-        <Route path="/tickets/:ticketId" element={<ProtectedRoute><TicketDetailPage /></ProtectedRoute>} />
-        <Route path="/import" element={<ProtectedRoute><ImportOrdersPage /></ProtectedRoute>} />
-        <Route path="/orders" element={<ProtectedRoute><OrderListPage /></ProtectedRoute>} />
-        
-        {/* 4. AÑADIR RUTA PROTEGIDA SOLO PARA ADMIN */}
-        <Route 
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminDashboardPage />
-            </ProtectedRoute>
-          } 
+    <AuthProvider>
+      <BrowserRouter>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#161B22",
+              color: "#FFFFFF",
+              border: "1px solid #21262D",
+            },
+          }}
         />
-        
-        {/* RUTA POR DEFECTO */}
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
-      </Routes>
-    </Router>
+        <Routes>
+          {/* --- RUTAS PÚBLICAS --- */}
+          {/* Accesibles para todos, sin layout de la aplicación */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/new-ticket" element={<NewTicketPage />} />
+
+          {/* --- GRUPO DE RUTAS PROTEGIDAS --- */}
+          {/* Todas las rutas anidadas aquí requieren autenticación (AGENTE o ADMINISTRADOR) */}
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["ADMINISTRADOR", "AGENTE"]} />
+            }
+          >
+            {/* Todas las rutas anidadas aquí también obtienen el layout principal (sidebar, etc.) */}
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/tickets" element={<TicketListPage />} />
+              <Route path="/tickets/:ticketId" element={<TicketDetailPage />} />
+              <Route path="/import" element={<ImportOrdersPage />} />
+              <Route path="/orders" element={<OrderListPage />} />
+
+              {/* --- SUBGRUPO DE RUTAS SOLO PARA ADMIN --- */}
+              {/* Este grupo anidado añade una capa extra de seguridad. */}
+              {/* Requiere ser AGENTE/ADMIN (por la capa exterior) Y ADEMÁS ser ADMINISTRADOR (por esta capa) */}
+              <Route
+                element={<ProtectedRoute allowedRoles={["ADMINISTRADOR"]} />}
+              >
+                <Route
+                  path="/admin/dashboard"
+                  element={<AdminDashboardPage />}
+                />
+                {/* Otras rutas de admin irían aquí, ej: /admin/users */}
+              </Route>
+            </Route>
+          </Route>
+
+          {/* --- RUTA CATCH-ALL PARA PÁGINAS NO ENCONTRADAS --- */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
