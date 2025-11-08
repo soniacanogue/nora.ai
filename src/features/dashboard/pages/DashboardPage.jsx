@@ -45,7 +45,7 @@ const DashboardPage = () => {
   }
 
   // 4. Desestructuramos los datos para usarlos en el JSX
-  const { myMetricsToday, myQueues, recentActivity } = dashboardData;
+  const { myMetricsToday, myQueues, myTicketsByStatus, recentActivity } = dashboardData;
 
   return (
     <div>
@@ -79,7 +79,10 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="lg:col-span-2">
           <div className="mb-8">
-            <SimpleBarChart />
+            <SimpleBarChart 
+              data={myTicketsByStatus} 
+              title="Mis Tickets por Estado"
+            />
           </div>
 
           <h2 className="text-2xl font-bold text-foreground mb-4">

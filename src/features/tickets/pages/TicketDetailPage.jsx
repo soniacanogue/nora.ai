@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useTicket } from "../hooks/useTicket";
 import ConversationBubble from "../components/ConversationBubble";
 import SuggestionPanel from "../components/SuggestionPanel";
+import OrderInfoPanel from "../components/OrderInfoPanel";
 import Button from "src/shared/components/ui/Button";
 
 // El componente Skeleton es una excelente práctica, lo mantenemos.
@@ -106,20 +107,65 @@ const TicketDetailPage = () => {
         </p>
       </div>
 
+      {/* Merge Suggestion Banner */}
+      {ticket.sugerenciaFusionId && (
+        <div className="bg-purple-900 border border-purple-600 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="text-2xl">🔗</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-purple-200 mb-1">
+                Sugerencia de Fusión Detectada
+              </h3>
+              <p className="text-purple-300 text-sm mb-3">
+                Nora AI ha detectado que este ticket podría estar relacionado con el ticket{" "}
+                <Link
+                  to={`/tickets/${ticket.sugerenciaFusionId}`}
+                  className="font-bold underline hover:text-purple-100"
+                >
+                  #{ticket.sugerenciaFusionId}
+                </Link>
+                . Considera fusionarlos para evitar respuestas duplicadas.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  className="w-auto text-sm py-1 px-3"
+                  onClick={() => console.log("Fusionar tickets")}
+                >
+                  Ver y Fusionar
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-auto text-sm py-1 px-3"
+                  onClick={() => console.log("Descartar sugerencia")}
+                >
+                  Descartar Sugerencia
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-primary border border-secondary rounded-lg p-6">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            Historial de la Conversación
-          </h2>
-          <div className="space-y-6">
-            {adaptedConversation.map((msg, index) => (
-              <ConversationBubble key={index} message={msg} />
-            ))}
+        <div className="lg:col-span-2">
+          {/* Order Information Panel */}
+          {ticket.orden && <OrderInfoPanel order={ticket.orden} />}
+          
+          <div className="bg-primary border border-secondary rounded-lg p-6">
+            <h2 className="text-xl font-bold text-foreground mb-6">
+              Historial de la Conversación
+            </h2>
+            <div className="space-y-6">
+              {adaptedConversation.map((msg, index) => (
+                <ConversationBubble key={index} message={msg} />
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="lg:col-span-1">
-          <SuggestionPanel suggestion={aiSuggestion} />
+          <SuggestionPanel suggestion={aiSuggestion} ticketId={ticketId} />
         </div>
       </div>
     </div>

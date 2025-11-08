@@ -1,50 +1,109 @@
-import React from "react";
+import React, { useState } from "react";
 import StatCard from "../components/StatCard";
 import SimpleBarChart from "../components/SimpleBarChart";
+import TeamPerformanceTable from "../components/TeamPerformanceTable";
+import PieChart from "../components/PieChart";
+import DashboardSkeleton from "../components/DashboardSkeleton";
+import { useAdminDashboard } from "../hooks/useAdminDashboard";
 import AppLayout from "src/shared/components/layout/AppLayout";
 
-// Datos falsos para el dashboard del admin
-const globalMetrics = {
-  ticketsCreatedToday: 27,
-  ticketsResolvedToday: 21,
-  avgResolutionTime: "2h 15m",
-};
-
 const AdminDashboardPage = () => {
+  const [timeRange, setTimeRange] = useState("today"); // 'today' or 'last7Days'
+  const { dashboardData, isLoading, error } = useAdminDashboard();
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500 p-4">
+        <strong>Error al cargar el dashboard:</strong> {error}
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return <div>No se encontraron datos para el dashboard.</div>;
+  }
+
+  const { kpis, workload, teamPerformance, distribution } = dashboardData;
+  const currentKpis = timeRange === "today" ? kpis.today : kpis.last7Days;
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-foreground mb-6">
         Dashboard del Administrador
       </h1>
 
+      {/* Time Range Selector */}
+      <div className="mb-6 flex gap-2">
+        <button
+          onClick={() => setTimeRange("today")}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            timeRange === "today"
+              ? "bg-accent text-foreground font-semibold"
+              : "bg-primary text-subtle hover:bg-secondary"
+          }`}
+        >
+          Hoy
+        </button>
+        <button
+          onClick={() => setTimeRange("last7Days")}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            timeRange === "last7Days"
+              ? "bg-accent text-foreground font-semibold"
+              : "bg-primary text-subtle hover:bg-secondary"
+          }`}
+        >
+          Últimos 7 Días
+        </button>
+      </div>
+
       {/* Métricas Globales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Tickets Creados (Hoy)"
-          value={globalMetrics.ticketsCreatedToday}
+          title="Tickets Creados"
+          value={currentKpis.created}
           icon="📈"
         />
         <StatCard
-          title="Tickets Resueltos (Hoy)"
-          value={globalMetrics.ticketsResolvedToday}
+          title="Tickets Resueltos"
+          value={currentKpis.resolved}
           icon="✔️"
         />
         <StatCard
-          title="Tiempo Medio de Resolución"
-          value={globalMetrics.avgResolutionTime}
+          title="Tiempo Promedio Primera Respuesta"
+          value={`${currentKpis.avgFirstResponseTime}m`}
+          icon="⏱️"
+        />
+        <StatCard
+          title="Tiempo Promedio de Resolución"
+          value={`${currentKpis.avgResolutionTime}m`}
           icon="⏳"
         />
       </div>
 
-      {/* Gráficos */}
+      {/* Gráficos - Primera Fila */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <SimpleBarChart data={workload} />
+        <TeamPerformanceTable teamPerformance={teamPerformance} />
+      </div>
+
+      {/* Gráficos - Segunda Fila: Distribuciones */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SimpleBarChart />
-        <div className="bg-primary p-6 rounded-lg border border-secondary">
-          <h3 className="text-lg font-bold text-foreground mb-4">
-            Distribución por Canal
-          </h3>
-          <p className="text-subtle">Próximamente: Gráfico de Pastel...</p>
-        </div>
+        <PieChart
+          data={distribution.byChannel}
+          title="Distribución por Canal"
+          dataKey="count"
+          nameKey="channel"
+        />
+        <PieChart
+          data={distribution.byTag}
+          title="Distribución por Etiqueta"
+          dataKey="count"
+          nameKey="tag"
+        />
       </div>
     </div>
   );

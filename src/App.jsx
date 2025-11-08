@@ -16,7 +16,7 @@ import ImportOrdersPage from "./features/orders/pages/ImportOrdersPage";
 import OrderListPage from "./features/orders/pages/OrderListPage";
 import NewTicketPage from "./features/tickets/pages/NewTicketPage";
 import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
-import HomePage from "./features/dashboard/pages/HomePAge";
+import HomePage from "./features/dashboard/pages/HomePage";
 
 // Componente simple para una página 404
 const NotFoundPage = () => (
