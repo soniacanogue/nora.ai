@@ -60,19 +60,6 @@ function App() {
               <Route path="/tickets/:ticketId" element={<TicketDetailPage />} />
               <Route path="/import" element={<ImportOrdersPage />} />
               <Route path="/orders" element={<OrderListPage />} />
-
-              {/* --- SUBGRUPO DE RUTAS SOLO PARA ADMIN --- */}
-              {/* Este grupo anidado añade una capa extra de seguridad. */}
-              {/* Requiere ser AGENTE/ADMIN (por la capa exterior) Y ADEMÁS ser ADMINISTRADOR (por esta capa) */}
-              <Route
-                element={<ProtectedRoute allowedRoles={["ADMINISTRADOR"]} />}
-              >
-                <Route
-                  path="/admin/dashboard"
-                  element={<AdminDashboardPage />}
-                />
-                {/* Otras rutas de admin irían aquí, ej: /admin/users */}
-              </Route>
             </Route>
           </Route>
 

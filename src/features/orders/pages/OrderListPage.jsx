@@ -1,24 +1,36 @@
 import React, { useState, useMemo } from "react";
-import { mockOrdenes } from "@/data/mockOrders";
-import AppLayout from "src/shared/components/layout/AppLayout";
+import { Link } from "react-router-dom"; // Importar Link
+import { useOrders } from "../hooks/useOrders"; // 1. Usar el hook de datos
 import Input from "src/shared/components/ui/Input";
 
 const OrderListPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { orders, isLoading, error } = useOrders(); // 2. Obtener datos, loading y error
 
   const filteredOrders = useMemo(() => {
+    // 3. Usar `orders` del hook en lugar de `mockOrdenes`
     if (!searchTerm.trim()) {
-      return mockOrdenes;
+      return orders;
     }
     const lowercasedTerm = searchTerm.toLowerCase();
-    return mockOrdenes.filter(
+    // 4. Adaptar el filtro a la estructura de datos correcta
+    return orders.filter(
       (order) =>
-        order.orderId.toLowerCase().includes(lowercasedTerm) ||
-        order.clientEmail.toLowerCase().includes(lowercasedTerm) ||
-        (order.trackingNumber &&
-          order.trackingNumber.toLowerCase().includes(lowercasedTerm))
+        order.id.toLowerCase().includes(lowercasedTerm) ||
+        (order.cliente?.correo &&
+          order.cliente.correo.toLowerCase().includes(lowercasedTerm)) ||
+        (order.numeroSeguimiento &&
+          order.numeroSeguimiento.toLowerCase().includes(lowercasedTerm))
     );
-  }, [searchTerm]);
+  }, [searchTerm, orders]); // 5. Añadir `orders` a las dependencias
+
+  if (isLoading) {
+    return <div>Cargando órdenes...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div>
@@ -40,7 +52,6 @@ const OrderListPage = () => {
 
       <div className="bg-primary border border-secondary rounded-lg overflow-hidden">
         <table className="w-full">
-          {/* CÓDIGO DEL ENCABEZADO RESTAURADO */}
           <thead className="bg-secondary text-left text-subtle text-sm">
             <tr>
               <th className="p-4">ID de Orden</th>
@@ -50,20 +61,28 @@ const OrderListPage = () => {
               <th className="p-4">Transportista</th>
             </tr>
           </thead>
-          {/* CÓDIGO DEL CUERPO RESTAURADO */}
           <tbody>
             {filteredOrders.length > 0 ? (
               filteredOrders.map((order) => (
-                <tr key={order.orderId} className="border-b border-secondary">
+                <tr key={order.id} className="border-b border-secondary">
                   <td className="p-4 font-mono text-foreground">
-                    {order.orderId}
+                    {/* 6. Enlazar al detalle de la orden si existe */}
+                    <Link
+                      to={`/orders/${order.id}`}
+                      className="hover:underline"
+                    >
+                      {order.id}
+                    </Link>
                   </td>
-                  <td className="p-4 text-subtle">{order.clientEmail}</td>
-                  <td className="p-4 text-foreground">{order.status}</td>
+                  {/* 7. Usar la estructura correcta para el correo */}
+                  <td className="p-4 text-subtle">
+                    {order.cliente?.correo || "N/A"}
+                  </td>
+                  <td className="p-4 text-foreground">{order.estado}</td>
                   <td className="p-4 font-mono text-subtle">
-                    {order.trackingNumber || "N/A"}
+                    {order.numeroSeguimiento || "N/A"}
                   </td>
-                  <td className="p-4 text-foreground">{order.carrier}</td>
+                  <td className="p-4 text-foreground">{order.transportista}</td>
                 </tr>
               ))
             ) : (

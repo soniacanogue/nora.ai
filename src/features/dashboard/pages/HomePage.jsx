@@ -7,11 +7,14 @@ const HomePage = () => {
   const { currentUser } = useAuth();
 
   // Basado en el rol del usuario, renderiza el dashboard correspondiente
+  // Un administrador también es un "agente" y puede tener su propio dashboard operativo.
+  // La vista de "Admin" es una herramienta separada y estratégica.
   if (currentUser?.rol === "ADMINISTRADOR") {
+    // Para el MVP, el home de un admin será su dashboard estratégico.
     return <AdminDashboardPage />;
   }
 
-  // Por defecto, muestra el dashboard de agente
+  // Por defecto, todos los demás (Agentes) ven su dashboard personal.
   return <DashboardPage />;
 };
 

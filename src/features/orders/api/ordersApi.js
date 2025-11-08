@@ -11,6 +11,10 @@ import { mockTickets } from "@/data/mockTickets";
 export const getOrders = async (params = {}) => {
   console.log("Fetching MOCKED order list with params:", params);
   await new Promise((resolve) => setTimeout(resolve, 300));
+  mockOrdenes.map((order) => {
+    const cliente = mockClientes.find((c) => c.id === order.clienteId);
+    order.cliente = cliente || { nombre: "Cliente Desconocido", correo: "" };
+  });
   // Filtering logic would go here based on params
   return Promise.resolve(mockOrdenes);
 };

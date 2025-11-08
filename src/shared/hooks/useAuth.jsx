@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
       setTimeout(() => {
         // --- ¡AQUÍ PUEDES CAMBIAR EL USUARIO PARA PROBAR! ---
         // Cambia el índice [0] (Brenda), [1] (Carlos), o [2] (Admin)
-        const loggedInUser = mockUsuarios[2]; // <--- CAMBIA AQUÍ PARA PROBAR ROLES
+        const loggedInUser = mockUsuarios[0]; // <--- CAMBIA AQUÍ PARA PROBAR ROLES
 
         setCurrentUser(loggedInUser);
         setIsLoading(false);
