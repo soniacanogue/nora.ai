@@ -1,16 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { getAgentDashboardData } from "../api/getAgentDashboardData";
+// src/features/dashboard/pages/DashboardPage.jsx
+import { useAgentDashboard } from "../hooks/useAgentDashboard"; // 1. Importar el nuevo hook
 
-import AppLayout from "@/shared/components/layout/AppLayout";
 import StatCard from "../components/StatCard";
 import QueueLinkCard from "../components/QueueLinkCard";
 import RecentActivityFeed from "../components/RecentActivityFeed";
 import SimpleBarChart from "../components/SimpleBarChart";
 import DashboardSkeleton from "../components/DashboardSkeleton";
-import React, { useState, useEffect } from "react";
+import React from "react";
 
+// Hook mock de autenticación (sin cambios)
 const useAuth = () => ({
-  // Devolvería el usuario logueado. Para el mock, devolvemos a Brenda.
   currentUser: {
     id: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b",
     nombre: "Brenda Diaz",
@@ -21,45 +20,39 @@ const useAuth = () => ({
 
 const DashboardPage = () => {
   const { currentUser } = useAuth();
-  const [dashboardData, setDashboardData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // 2. Usar el hook para obtener los datos, el estado de carga y el error
+  const {
+    dashboardData,
+    isLoading,
+    error,
+  } = useAgentDashboard(currentUser?.id);
 
-  useEffect(() => {
-    if (!currentUser?.id) return;
-
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        // ¡Aquí está la clave! Pasamos el ID del usuario actual.
-        const data = await getAgentDashboardData(currentUser.id);
-        setDashboardData(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [currentUser]); // El efecto se ejecuta cuando cambia el usuario
-
+  // 3. La lógica de renderizado de estados (loading, error) permanece idéntica
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
   if (error) {
-    return <div className="text-red-500">Error: {error}</div>;
+    return (
+      <div className="text-red-500 p-4">
+        <strong>Error al cargar el dashboard:</strong> {error}
+      </div>
+    );
   }
 
   if (!dashboardData) {
-    return <div>No se encontraron datos.</div>;
+    return <div>No se encontraron datos para el dashboard.</div>;
   }
+
+  // 4. Desestructuramos los datos para usarlos en el JSX
+  const { myMetricsToday, myQueues, recentActivity } = dashboardData;
+
   return (
     <div>
-      {/* ... (sección de saludo y métricas sin cambios) */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Hola, Brenda 👋</h1>
+        <h1 className="text-3xl font-bold text-foreground">
+          Hola, {currentUser?.nombre} 👋
+        </h1>
         <p className="text-subtle mt-1">
           Este es el resumen de tu actividad de hoy.
         </p>
@@ -78,16 +71,13 @@ const DashboardPage = () => {
         />
         <StatCard
           title="Mi Tiempo Promedio de Respuesta"
-          value={myMetricsToday.avgResponseTime + "m"}
+          value={myMetricsToday.avgResponseTime} // Quitamos el "+ 'm'"
           icon="⏱️"
         />
       </div>
 
-      {/* Grid principal que divide el dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-        {/* Columna Izquierda (2/3 del ancho): Colas de Trabajo y Gráfica */}
         <div className="lg:col-span-2">
-          {/* Gráfica de distribución de tickets */}
           <div className="mb-8">
             <SimpleBarChart />
           </div>
@@ -96,7 +86,6 @@ const DashboardPage = () => {
             Mis Colas de Trabajo
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Tarjetas de alta prioridad */}
             <QueueLinkCard
               title="Tickets Reabiertos"
               count={myQueues.reopened}
@@ -109,7 +98,6 @@ const DashboardPage = () => {
               linkTo="/tickets?status=respuesta_cliente"
               description="Conversaciones activas que esperan tu respuesta."
             />
-            {/* Tarjetas de trabajo estándar */}
             <QueueLinkCard
               title="Tickets para Triaje"
               count={myQueues.forTriage}
@@ -125,7 +113,6 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Columna Derecha (1/3 del ancho): Actividad Reciente */}
         <div className="lg:col-span-1">
           <h2 className="text-2xl font-bold text-foreground mb-4">
             Actividad Reciente
