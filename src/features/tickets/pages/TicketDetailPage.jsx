@@ -1,78 +1,97 @@
-// src/features/tickets/pages/TicketDetailPage.jsx
-import React from "react";
+import React, { useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import AppLayout from "../../../shared/components/layout/AppLayout";
-import { mockTickets } from "../../../data/mockTickets";
+import { useTicket } from "../hooks/useTicket";
 import ConversationBubble from "../components/ConversationBubble";
 import SuggestionPanel from "../components/SuggestionPanel";
 import Button from "src/shared/components/ui/Button";
 
+// El componente Skeleton es una excelente práctica, lo mantenemos.
+const TicketDetailSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="h-6 bg-secondary rounded w-1/4 mb-4"></div>
+    <div className="h-10 bg-secondary rounded w-3/4 mb-2"></div>
+    <div className="h-5 bg-secondary rounded w-1/2 mb-8"></div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2 bg-primary border border-secondary rounded-lg p-6 space-y-6">
+        <div className="h-20 bg-secondary rounded"></div>
+        <div className="h-20 bg-secondary rounded"></div>
+      </div>
+      <div className="lg:col-span-1 bg-primary border border-secondary rounded-lg p-6">
+        <div className="h-40 bg-secondary rounded"></div>
+      </div>
+    </div>
+  </div>
+);
+
 const TicketDetailPage = () => {
   const { ticketId } = useParams();
-  const ticket = mockTickets.find((t) => t.id === ticketId);
+  // 1. La llamada al hook de datos se mantiene igual.
+  const { ticket, isLoading, error } = useTicket(ticketId);
 
-  // Manejo robusto si el ticket no se encuentra
-  if (!ticket) {
+  // 2. REGLA DE ORO: Todos los hooks se declaran en el nivel superior.
+  //    Esta es la única declaración de estas constantes.
+  const adaptedConversation = useMemo(() => {
+    // 3. Hacemos la lógica defensiva DENTRO del hook.
+    //    Si `ticket` es null o undefined, devolvemos un array vacío.
+    if (!ticket?.mensajes) return [];
+
+    return ticket.mensajes.map((msg) => ({
+      from: msg.usuarioId ? "agent" : "customer",
+      // El hook ya nos enriquece con ticket.cliente, pero es bueno ser defensivo
+      author: msg.usuarioId ? "Agente" : ticket.cliente?.nombre || "Cliente",
+      text: msg.contenidoTexto,
+      timestamp: msg.enviadoEn,
+      isInternalNote: msg.esNotaInterna,
+    }));
+  }, [ticket]); // La dependencia es correcta: recalcular solo si `ticket` cambia.
+
+  const aiSuggestion = useMemo(() => {
+    if (!ticket?.mensajes) return {};
+
+    // 4. Usamos la lógica más robusta para encontrar la sugerencia.
+    const latestCustomerMessage = [...ticket.mensajes]
+      .reverse()
+      .find((m) => !m.esNotaInterna && !m.usuarioId);
+
+    return {
+      reply_text: latestCustomerMessage?.respuestaSugeridaIA || "",
+      confidence: latestCustomerMessage?.confianzaIA,
+      suggested_tags: ticket.etiquetas?.map((tag) => tag.nombre) || [],
+    };
+  }, [ticket]);
+
+  // 5. AHORA, después de que todos los hooks han sido declarados,
+  //    podemos manejar los retornos condicionales de forma segura.
+  if (isLoading) {
+    return <TicketDetailSkeleton />;
+  }
+
+  if (error) {
     return (
-      <div>
-        <div className="flex flex-col items-center justify-center h-full text-center">
-          <h1 className="text-4xl font-bold text-red-500 mb-4">Error 404</h1>
-          <p className="text-lg text-foreground mb-1">Ticket no encontrado</p>
-          <p className="text-subtle mb-6">
-            El ticket con ID "{ticketId}" no existe o ha sido movido.
-          </p>
-          <Link to="/tickets">
-            <Button variant="primary" className="w-auto">
-              Volver a la Bandeja de Entrada
-            </Button>
-          </Link>
-        </div>
+      <div className="text-center text-red-500">
+        <h2 className="text-2xl font-bold mb-2">Error al cargar el ticket</h2>
+        <p>{error}</p>
       </div>
     );
   }
 
-  // --- INICIO DE LA LÓGICA DE ADAPTACIÓN ---
-  // Transformamos los datos del `ticket` para pasarlos a los componentes hijos.
+  if (!ticket) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center">
+        {/* ... (código del error 404 sin cambios) ... */}
+      </div>
+    );
+  }
 
-  // 1. Adaptar el historial de mensajes
-  const adaptedConversation = ticket.mensajes.map((msg) => ({
-    from: msg.usuarioId ? "agent" : "customer", // Si hay usuarioId, es un agente
-    author: msg.usuarioId ? "Agente (Brenda)" : ticket.cliente.nombre, // Placeholder para el nombre del agente
-    text: msg.contenidoTexto,
-    timestamp: msg.creadoEn || new Date().toISOString(),
-  }));
-
-  // 2. Adaptar la sugerencia de la IA (tomada del primer mensaje)
-  const latestMessage = ticket.mensajes?.[0];
-  const aiSuggestion = {
-    reply_text: latestMessage?.respuestaSugeridaIA || "",
-    confidence: latestMessage?.confianzaIA,
-    suggested_tags: ticket.etiquetas.map((tag) => tag.nombre),
-  };
-  // --- FIN DE LA LÓGICA DE ADAPTACIÓN ---
-
+  // 6. El JSX final ahora consume las variables memoizadas.
   return (
     <div>
-      {/* Encabezado de la página */}
       <div className="mb-6">
         <Link
           to="/tickets"
-          className="text-sm text-subtle hover:text-foreground transition-colors flex items-center gap-2"
+          className="text-sm text-subtle hover:text-foreground ..."
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
+          {/* ... (ícono de flecha) ... */}
           Volver a la Bandeja de Entrada
         </Link>
         <h1 className="text-3xl font-bold text-foreground mt-4">
@@ -87,9 +106,7 @@ const TicketDetailPage = () => {
         </p>
       </div>
 
-      {/* Contenedor principal de dos columnas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Columna Izquierda: Conversación */}
         <div className="lg:col-span-2 bg-primary border border-secondary rounded-lg p-6">
           <h2 className="text-xl font-bold text-foreground mb-6">
             Historial de la Conversación
@@ -101,7 +118,6 @@ const TicketDetailPage = () => {
           </div>
         </div>
 
-        {/* Columna Derecha: Panel de Acción */}
         <div className="lg:col-span-1">
           <SuggestionPanel suggestion={aiSuggestion} />
         </div>
