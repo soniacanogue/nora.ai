@@ -1,7 +1,13 @@
-// src/features/tickets/components/SuggestionPanel.jsx
+// tickets/components/SuggestionPanel.jsx
 import React, { useState, useEffect } from "react";
 import Button from "src/shared/components/ui/Button";
+import toast from "react-hot-toast";
+
+// --- CORRECCIONES AÑADIDAS ---
 import { useApproveTicket } from "../hooks/useApproveTicket";
+import { escalateTicket, reassignTicket } from "../api/ticketsApi"; // Importar nuevas acciones
+import ReassignTicketModal from "./ReassignTicketModal"; // Importar el nuevo modal
+// --- FIN DE LAS CORRECCIONES ---
 
 const getConfidenceColor = (confidence) => {
   if (confidence === null || confidence === undefined) return "text-gray-500";
@@ -11,130 +17,158 @@ const getConfidenceColor = (confidence) => {
 };
 
 const SuggestionPanel = ({ suggestion, ticketId }) => {
-  // Estado local para que el texto de la sugerencia sea editable
   const [editedReply, setEditedReply] = useState(suggestion.reply_text || "");
   const { approve, isApproving } = useApproveTicket();
 
-  // Sincronizar el estado si la sugerencia cambia (ej. al navegar entre tickets)
+  // --- CORRECCIONES AÑADIDAS ---
+  const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false); // Estado de carga para otras acciones
+  // --- FIN DE LAS CORRECCIONES ---
+
   useEffect(() => {
     setEditedReply(suggestion.reply_text || "");
   }, [suggestion.reply_text]);
 
   const handleApproveAndSend = async () => {
-    if (!ticketId) {
-      console.error("No ticket ID provided");
-      return;
-    }
+    if (!ticketId) return toast.error("No hay ID de ticket.");
     try {
       await approve(ticketId, editedReply);
-      // Optionally redirect or refresh the page after approval
+      // Aquí podrías redirigir o mostrar un estado de éxito permanente
     } catch (err) {
-      // Error is already handled by the hook with toast
-      console.error("Error approving ticket:", err);
+      // El error ya es manejado por el hook `useApproveTicket`
     }
   };
 
-  const handleEditAndSend = () => {
-    console.log("Editar y enviar:", editedReply);
-    // This would open a more detailed editor or modal
+  // --- LÓGICA DE LAS NUEVAS ACCIONES ---
+  const handleEscalate = async () => {
+    if (!ticketId) return toast.error("No hay ID de ticket.");
+    setIsActionLoading(true);
+    try {
+      await escalateTicket(ticketId);
+      toast.success("Ticket escalado a Nivel 2.");
+      // Opcional: Redirigir o refrescar para que el ticket desaparezca de la cola actual
+    } catch (err) {
+      toast.error(err.message || "No se pudo escalar el ticket.");
+    } finally {
+      setIsActionLoading(false);
+    }
   };
 
-  const handleEscalate = () => {
-    console.log("Escalando ticket a Nivel 2");
-    // This would call an API to escalate the ticket
+  const handleReassign = async (newAssigneeId) => {
+    if (!ticketId) return toast.error("No hay ID de ticket.");
+    setIsActionLoading(true);
+    try {
+      await reassignTicket(ticketId, newAssigneeId);
+      toast.success("Ticket reasignado correctamente.");
+      setIsReassignModalOpen(false);
+    } catch (err) {
+      toast.error(err.message || "No se pudo reasignar el ticket.");
+    } finally {
+      setIsActionLoading(false);
+    }
   };
+  // --- FIN DE LA LÓGICA ---
 
-  const handleReassign = () => {
-    console.log("Reasignando ticket");
-    // This would open a modal to select a new assignee
-  };
+  const isLoading = isApproving || isActionLoading;
 
   return (
-    <div className="bg-primary border border-secondary rounded-lg p-6 sticky top-24">
-      <h2 className="text-xl font-bold text-foreground mb-4">
-        Sugerencia de Nora AI
-      </h2>
+    <>
+      <div className="bg-primary border border-secondary rounded-lg p-6 sticky top-24">
+        <h2 className="text-xl font-bold text-foreground mb-4">
+          Sugerencia de Nora AI
+        </h2>
 
-      <div className="mb-4">
-        <label className="text-sm font-medium text-subtle">Confianza</label>
-        <p
-          className={`text-2xl font-bold ${getConfidenceColor(
-            suggestion.confidence
-          )}`}
-        >
-          {suggestion.confidence
-            ? `${(suggestion.confidence * 100).toFixed(0)}%`
-            : "N/A"}
-        </p>
-      </div>
+        <div className="mb-4">
+          <label className="text-sm font-medium text-subtle">Confianza</label>
+          <p
+            className={`text-2xl font-bold ${getConfidenceColor(
+              suggestion.confidence
+            )}`}
+          >
+            {suggestion.confidence
+              ? `${(suggestion.confidence * 100).toFixed(0)}%`
+              : "N/A"}
+          </p>
+        </div>
 
-      <div className="mb-4">
-        <label
-          htmlFor="suggested-reply"
-          className="text-sm font-medium text-subtle"
-        >
-          Respuesta Sugerida
-        </label>
-        <textarea
-          id="suggested-reply"
-          value={editedReply}
-          onChange={(e) => setEditedReply(e.target.value)}
-          rows={8}
-          className="w-full mt-1 p-3 bg-background border border-secondary rounded-md text-foreground text-sm"
-        />
-      </div>
+        <div className="mb-4">
+          <label
+            htmlFor="suggested-reply"
+            className="text-sm font-medium text-subtle"
+          >
+            Respuesta Sugerida
+          </label>
+          <textarea
+            id="suggested-reply"
+            value={editedReply}
+            onChange={(e) => setEditedReply(e.target.value)}
+            rows={8}
+            className="w-full mt-1 p-3 bg-background border border-secondary rounded-md text-foreground text-sm"
+          />
+        </div>
 
-      <div className="mb-6">
-        <label className="text-sm font-medium text-subtle">
-          Etiquetas Sugeridas
-        </label>
-        <div className="flex flex-wrap gap-2 mt-1">
-          {suggestion.suggested_tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
-            >
-              {tag}
-            </span>
-          ))}
+        <div className="mb-6">
+          <label className="text-sm font-medium text-subtle">
+            Etiquetas Sugeridas
+          </label>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {suggestion.suggested_tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            variant="primary"
+            className="w-full"
+            onClick={handleApproveAndSend}
+            disabled={isLoading}
+          >
+            {isApproving ? "Aprobando..." : "✅ Aprobar y Enviar"}
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => toast.info("Funcionalidad no implementada")}
+            disabled={isLoading}
+          >
+            ✏️ Editar y Enviar
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={handleEscalate}
+            disabled={isLoading}
+          >
+            {isLoading && !isApproving
+              ? "Escalando..."
+              : "➡️ Escalar a Nivel 2"}
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => setIsReassignModalOpen(true)}
+            disabled={isLoading}
+          >
+            👤 Reasignar
+          </Button>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Button
-          variant="primary"
-          className="w-full"
-          onClick={handleApproveAndSend}
-          disabled={isApproving}
-        >
-          {isApproving ? "Aprobando..." : "Aprobar y Enviar"}
-        </Button>
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={handleEditAndSend}
-          disabled={isApproving}
-        >
-          Editar y Enviar
-        </Button>
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={handleEscalate}
-          disabled={isApproving}
-        >
-          Escalar a Nivel 2
-        </Button>
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={handleReassign}
-          disabled={isApproving}
-        >
-          Reasignar
-        </Button>
-      </div>
-    </div>
+      {/* --- INCLUSIÓN DEL MODAL --- */}
+      <ReassignTicketModal
+        isOpen={isReassignModalOpen}
+        onClose={() => setIsReassignModalOpen(false)}
+        onConfirm={handleReassign}
+        isReassigning={isActionLoading}
+      />
+    </>
   );
 };
 

@@ -20,14 +20,10 @@ const useAuth = () => ({
 
 const DashboardPage = () => {
   const { currentUser } = useAuth();
-  // 2. Usar el hook para obtener los datos, el estado de carga y el error
-  const {
-    dashboardData,
-    isLoading,
-    error,
-  } = useAgentDashboard(currentUser?.id);
+  const { dashboardData, isLoading, error } = useAgentDashboard(
+    currentUser?.id
+  );
 
-  // 3. La lógica de renderizado de estados (loading, error) permanece idéntica
   if (isLoading) {
     return <DashboardSkeleton />;
   }
@@ -44,8 +40,8 @@ const DashboardPage = () => {
     return <div>No se encontraron datos para el dashboard.</div>;
   }
 
-  // 4. Desestructuramos los datos para usarlos en el JSX
-  const { myMetricsToday, myQueues, myTicketsByStatus, recentActivity } = dashboardData;
+  const { myMetricsToday, myQueues, myTicketsByStatus, recentActivity } =
+    dashboardData;
 
   return (
     <div>
@@ -71,7 +67,7 @@ const DashboardPage = () => {
         />
         <StatCard
           title="Mi Tiempo Promedio de Respuesta"
-          value={myMetricsToday.avgResponseTime} // Quitamos el "+ 'm'"
+          value={myMetricsToday.avgResponseTime}
           icon="⏱️"
         />
       </div>
@@ -79,8 +75,8 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="lg:col-span-2">
           <div className="mb-8">
-            <SimpleBarChart 
-              data={myTicketsByStatus} 
+            <SimpleBarChart
+              data={myTicketsByStatus}
               title="Mis Tickets por Estado"
             />
           </div>
@@ -113,6 +109,14 @@ const DashboardPage = () => {
               linkTo="/tickets?status=escalado_nivel_2&assignee=me"
               description="Casos complejos que requieren tu atención manual."
             />
+            {/* --- CORRECCIÓN AÑADIDA --- */}
+            <QueueLinkCard
+              title="Esperando Respuesta del Cliente"
+              count={myQueues.waitingForCustomer}
+              linkTo="/tickets?status=esperando_cliente"
+              description="Tickets en los que has respondido y se espera acción del cliente."
+            />
+            {/* --- FIN DE LA CORRECCIÓN --- */}
           </div>
         </div>
 

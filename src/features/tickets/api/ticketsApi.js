@@ -62,4 +62,39 @@ export const approveTicket = async (ticketId, payload) => {
   return Promise.resolve({ success: true, ticketId });
 };
 
-// ... aquí añadirías `escalateTicket`, `reassignTicket`, `createTicketMessage`, etc.
+// --- CORRECCIONES AÑADIDAS ---
+
+/**
+ * Simula la escalada de un ticket a Nivel 2.
+ * @param {string} ticketId - El ID del ticket.
+ * @returns {Promise<object>}
+ */
+export const escalateTicket = async (ticketId) => {
+  console.log(`Executing MOCKED action 'escalate' on ticket ${ticketId}`);
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  // Aquí, la lógica del backend cambiaría el estado del ticket a 'escalado_nivel_2'.
+  return Promise.resolve({
+    success: true,
+    message: `Ticket ${ticketId} escalado.`,
+  });
+};
+
+/**
+ * Simula la reasignación de un ticket a otro agente.
+ * @param {string} ticketId - El ID del ticket.
+ * @param {string} newAssigneeId - El ID del nuevo agente.
+ * @returns {Promise<object>}
+ */
+export const reassignTicket = async (ticketId, newAssigneeId) => {
+  console.log(
+    `Executing MOCKED action 'reassign' on ticket ${ticketId} to agent ${newAssigneeId}`
+  );
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  // Aquí, la lógica del backend cambiaría el 'assigneeId' del ticket.
+  return Promise.resolve({
+    success: true,
+    message: `Ticket ${ticketId} reasignado.`,
+  });
+};
+
+// --- FIN DE LAS CORRECCIONES ---
