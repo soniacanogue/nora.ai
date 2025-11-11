@@ -1,30 +1,37 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import StatCard from "../components/StatCard";
 import SimpleBarChart from "../components/SimpleBarChart";
 import TeamPerformanceTable from "../components/TeamPerformanceTable";
 import PieChart from "../components/PieChart";
-import DashboardSkeleton from "../components/DashboardSkeleton";
-import { useAdminDashboard } from "../hooks/useAdminDashboard";
-import AppLayout from "src/shared/components/layout/AppLayout";
+import { AdminDashboardSkeleton } from "../components/DashboardSkeleton";
+import { getAdminDashboardData } from "../api/dashboardApi";
+import ErrorState from "src/shared/components/ui/ErrorState";
+import EmptyState from "src/shared/components/ui/EmptyState";
 
 const AdminDashboardPage = () => {
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'last7Days'
-  const { dashboardData, isLoading, error } = useAdminDashboard();
+  
+  const { data: dashboardData, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['adminDashboard'],
+    queryFn: getAdminDashboardData,
+  });
 
   if (isLoading) {
-    return <DashboardSkeleton />;
+    return <AdminDashboardSkeleton />;
   }
 
-  if (error) {
+  if (isError) {
     return (
-      <div className="text-red-500 p-4">
-        <strong>Error al cargar el dashboard:</strong> {error}
-      </div>
+      <ErrorState 
+        message={error?.message || "Error al cargar el dashboard del administrador."} 
+        onRetry={refetch} 
+      />
     );
   }
 
   if (!dashboardData) {
-    return <div>No se encontraron datos para el dashboard.</div>;
+    return <EmptyState message="No se encontraron datos para el dashboard del administrador." />;
   }
 
   const { kpis, workload, teamPerformance, distribution } = dashboardData;

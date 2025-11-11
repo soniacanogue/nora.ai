@@ -20,6 +20,10 @@ const generateAgentDashboardData = (agentId) => {
             t.estado !== "fusionado"
     ).length;
 
+    // Calculate metrics for "this week" (mock - using same data with slight variation)
+    const myResolvedThisWeek = Math.floor(myResolvedToday * 1.5);
+    const myAssignedThisWeek = Math.floor(myAssigned * 1.2);
+
     const forTriageCount = mockTickets.filter((t) => t.estado === "ia_sugerido").length;
     const myEscalatedCount = mockTickets.filter((t) => t.assigneeId === agentId && t.estado === "en_progreso_nivel_2").length;
     const reopenedCount = mockTickets.filter((t) => t.assigneeId === agentId && t.estado === "reabierto").length;
@@ -57,12 +61,27 @@ const generateAgentDashboardData = (agentId) => {
             }
             return {
                 eventId: `evt-${index}`,
+                ticketId: ticket.id, // Added ticketId for linking
                 message,
                 timestamp: ticket.creadoEn,
             };
         });
 
     return {
+        // Updated structure with nested today/thisWeek
+        myMetrics: {
+            today: {
+                resolved: myResolvedToday,
+                assigned: myAssigned,
+                avgResponseTime: "18m 25s",
+            },
+            thisWeek: {
+                resolved: myResolvedThisWeek,
+                assigned: myAssignedThisWeek,
+                avgResponseTime: "22m 10s",
+            },
+        },
+        // Keep old structure for backward compatibility during transition
         myMetricsToday: {
             resolved: myResolvedToday,
             assigned: myAssigned,
@@ -77,7 +96,7 @@ const generateAgentDashboardData = (agentId) => {
         },
         myTicketsByStatus,
         recentActivity: recentActivity.length > 0 ? recentActivity : [
-            { eventId: "evt-1", message: "No hay actividad reciente", timestamp: new Date().toISOString() },
+            { eventId: "evt-1", ticketId: null, message: "No hay actividad reciente", timestamp: new Date().toISOString() },
         ],
     };
 };
