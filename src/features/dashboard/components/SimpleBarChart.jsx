@@ -30,9 +30,7 @@ const SimpleBarChart = ({
       className="bg-primary p-6 rounded-lg border border-secondary"
       style={{ height: "320px" }}
     >
-      <h3 className="text-lg font-bold text-foreground mb-4">
-        {title}
-      </h3>
+      <h3 className="text-lg font-bold text-foreground mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart
           data={chartData}

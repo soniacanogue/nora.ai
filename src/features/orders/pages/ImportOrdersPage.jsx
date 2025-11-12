@@ -1,160 +1,173 @@
-import React, { useState } from "react";
-import AppLayout from "../../../shared/components/layout/AppLayout";
-import Button from "../../../shared/components/ui/Button";
-import Papa from "papaparse";
+// src/features/orders/pages/ImportOrdersPage.jsx
+
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import {
+  useUploadCsv,
+  useStartImport,
+  useImportJob,
+  useCancelImportJob,
+} from "../hooks/useImport";
+import Button from "src/shared/components/ui/Button";
+import { useQueryClient } from "@tanstack/react-query";
+// Importaríamos un nuevo componente de Drag and Drop
+// import DragAndDropArea from "src/shared/components/ui/DragAndDropArea";
 
-const REQUIRED_FIELDS = ["orderId", "clientEmail", "status", "trackingNumber"];
+const REQUIRED_FIELDS = ["orderId", "clientEmail", "status"];
 
+// Componente principal
 const ImportOrdersPage = () => {
-  const [step, setStep] = useState(1);
-  const [csvFile, setCsvFile] = useState(null);
-  const [csvHeaders, setCsvHeaders] = useState([]);
+  const [jobId, setJobId] = useState(null);
+  const [headers, setHeaders] = useState([]);
   const [mapping, setMapping] = useState({});
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [importSummary, setImportSummary] = useState(null);
-  const [validationErrors, setValidationErrors] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.name.endsWith('.csv')) {
-        toast.error("Por favor selecciona un archivo CSV válido");
-        return;
-      }
-      setCsvFile(file);
-      Papa.parse(file, {
-        header: true,
-        preview: 1,
-        complete: (results) => {
-          if (results.meta.fields && results.meta.fields.length > 0) {
-            setCsvHeaders(results.meta.fields);
-            setStep(2);
-          } else {
-            toast.error("El archivo CSV está vacío o tiene un formato inválido");
-          }
-        },
-        error: (error) => {
-          toast.error(`Error al leer el archivo: ${error.message}`);
-        }
-      });
-    }
-  };
+  // --- HOOKS ---
+  const {
+    data: job,
+    isLoading: isLoadingJob,
+    refetch: refetchJob,
+  } = useImportJob(jobId);
 
-  const handleMappingChange = (dbField, csvHeader) => {
-    setMapping((prev) => ({ ...prev, [dbField]: csvHeader }));
-  };
-
-  const validateMapping = () => {
-    const errors = [];
-    REQUIRED_FIELDS.forEach((field) => {
-      if (!mapping[field]) {
-        errors.push(`El campo "${field}" es requerido y debe ser mapeado`);
-      }
+  // Debug log to track job changes
+  useEffect(() => {
+    console.log("🔍 Job data updated:", {
+      jobId,
+      hasJob: !!job,
+      status: job?.status,
+      progress: job?.progress,
+      isLoading: isLoadingJob,
+      timestamp: new Date().toLocaleTimeString(),
     });
-    return errors;
-  };
+  }, [job, jobId, isLoadingJob]);
 
-  const validateRow = (row, rowIndex) => {
-    const errors = [];
-    
-    REQUIRED_FIELDS.forEach((field) => {
-      const csvColumn = mapping[field];
-      const value = row[csvColumn];
-      
-      if (!value || value.trim() === "") {
-        errors.push(`Fila ${rowIndex + 1}: El campo "${field}" está vacío`);
-      }
-    });
+  const { mutate: uploadFile, isPending: isUploading } = useUploadCsv({
+    onSuccess: (data) => {
+      setJobId(data.jobId);
+      setHeaders(data.headers);
+      toast.success("Archivo subido. Ahora mapea las columnas.");
+    },
+    onError: (error) => toast.error(`Error al subir: ${error.message}`),
+  });
 
-    // Validate email format
-    const emailColumn = mapping["clientEmail"];
-    if (emailColumn && row[emailColumn]) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(row[emailColumn])) {
-        errors.push(`Fila ${rowIndex + 1}: Email inválido "${row[emailColumn]}"`);
+  const { mutate: startImport, isPending: isStarting } = useStartImport({
+    onSuccess: () => toast.success("Iniciando procesamiento..."),
+    onError: (error) => toast.error(`Error al iniciar: ${error.message}`),
+  });
+
+  const { mutate: cancelImport, isPending: isCancelling } =
+    useCancelImportJob();
+
+  // Add useEffect to monitor job status changes and force refresh if needed
+  useEffect(() => {
+    if (job) {
+      // If the job is completed but we don't see it in the UI, force a refresh
+      if (job.status === "completed" && job.summary) {
+        queryClient.invalidateQueries({ queryKey: ["importJob", jobId] });
       }
     }
+  }, [job?.status, job?.progress, job?.summary, queryClient, jobId]);
 
-    return errors;
-  };
-
-  const handleImport = async () => {
-    // Validate mapping
-    const mappingErrors = validateMapping();
-    if (mappingErrors.length > 0) {
-      setValidationErrors(mappingErrors);
-      toast.error("Por favor completa todos los campos requeridos");
+  // --- MANEJADORES DE EVENTOS ---
+  const handleFileSelect = (file) => {
+    if (!file.name.endsWith(".csv")) {
+      toast.error("Por favor selecciona un archivo CSV válido");
       return;
     }
-
-    setIsProcessing(true);
-    setProgress(0);
-    setValidationErrors([]);
-
-    // Parse the complete CSV file
-    Papa.parse(csvFile, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const rows = results.data;
-        let imported = 0;
-        let skipped = 0;
-        const errors = [];
-
-        // Simulate processing with progress
-        for (let i = 0; i < rows.length; i++) {
-          const row = rows[i];
-          const rowErrors = validateRow(row, i);
-          
-          if (rowErrors.length > 0) {
-            errors.push(...rowErrors);
-            skipped++;
-          } else {
-            imported++;
-          }
-
-          // Update progress
-          const progressPercent = Math.round(((i + 1) / rows.length) * 100);
-          setProgress(progressPercent);
-          
-          // Simulate async processing delay
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        }
-
-        setImportSummary({
-          total: rows.length,
-          imported,
-          skipped,
-          errors: errors.slice(0, 10), // Only show first 10 errors
-        });
-
-        setIsProcessing(false);
-        setStep(3);
-        
-        if (imported > 0) {
-          toast.success(`${imported} órdenes importadas exitosamente`);
-        }
-        if (skipped > 0) {
-          toast.error(`${skipped} órdenes omitidas debido a errores`);
-        }
-      },
-      error: (error) => {
-        setIsProcessing(false);
-        toast.error(`Error al procesar el archivo: ${error.message}`);
-      }
-    });
+    if (file.size > 10 * 1024 * 1024) {
+      // 10MB
+      toast.error("El archivo no puede superar los 10MB.");
+      return;
+    }
+    uploadFile(file);
   };
 
-  const resetImport = () => {
-    setStep(1);
-    setCsvFile(null);
-    setCsvHeaders([]);
+  const handleConfirmMapping = () => {
+    // Validación de mapeo
+    if (REQUIRED_FIELDS.some((field) => !mapping[field])) {
+      toast.error("Por favor mapea todos los campos requeridos.");
+      return;
+    }
+    startImport({ jobId, mapping });
+  };
+
+  const handleCancel = () => {
+    if (job?.status === "processing") {
+      cancelImport(jobId);
+    } else {
+      resetState();
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+
+    try {
+      // Force invalidate and refetch
+
+      await queryClient.invalidateQueries({ queryKey: ["importJob", jobId] });
+
+      const result = await refetchJob();
+    } catch (error) {
+      console.error("❌ Error refreshing job status:", error);
+      toast.error("Error al actualizar el estado");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const resetState = () => {
+    setJobId(null);
+    setHeaders([]);
     setMapping({});
-    setProgress(0);
-    setImportSummary(null);
-    setValidationErrors([]);
+  };
+
+  // --- RENDERIZADO CONDICIONAL POR PASOS ---
+  const renderContent = () => {
+    if (!jobId || !job) {
+      return (
+        <Step1Upload
+          onFileSelect={handleFileSelect}
+          isUploading={isUploading}
+        />
+      );
+    }
+
+    switch (job.status) {
+      case "pending_mapping":
+        return (
+          <Step2Mapping
+            headers={headers}
+            mapping={mapping}
+            setMapping={setMapping}
+            onConfirm={handleConfirmMapping}
+            onCancel={handleCancel}
+            isStarting={isStarting}
+          />
+        );
+      case "processing":
+        return (
+          <Step3Progress
+            progress={job.progress}
+            onCancel={handleCancel}
+            isCancelling={isCancelling}
+          />
+        );
+      case "completed":
+        return <Step4Summary summary={job.summary} onReset={resetState} />;
+      case "cancelled":
+        return (
+          <div className="text-center">
+            <p className="text-yellow-400 font-bold">Importación Cancelada.</p>
+            <Button onClick={resetState} className="w-auto mt-4">
+              Empezar de Nuevo
+            </Button>
+          </div>
+        );
+      default:
+        return <div>Estado desconocido.</div>;
+    }
   };
 
   return (
@@ -162,155 +175,190 @@ const ImportOrdersPage = () => {
       <h1 className="text-3xl font-bold text-foreground mb-6">
         Importar Órdenes desde CSV
       </h1>
-
-      <div className="bg-primary p-8 rounded-lg border border-secondary">
-        {step === 1 && (
-          <div>
-            <h2 className="text-xl font-bold text-foreground mb-4">
-              Paso 1: Selecciona tu archivo CSV
-            </h2>
-            <p className="text-subtle mb-4">
-              El archivo debe contener las siguientes columnas: orderId, clientEmail, status, trackingNumber
-            </p>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="text-subtle file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-foreground hover:file:bg-accent-hover"
-            />
-          </div>
-        )}
-
-        {step === 2 && (
-          <div>
-            <h2 className="text-xl font-bold text-foreground mb-4">
-              Paso 2: Mapea las columnas
-            </h2>
-            <p className="text-subtle mb-6">
-              Asigna las columnas de tu archivo CSV a los campos requeridos por
-              Nora AI.
-            </p>
-            
-            {validationErrors.length > 0 && (
-              <div className="bg-red-900 border border-red-600 rounded-lg p-4 mb-6">
-                <h3 className="font-bold text-red-200 mb-2">Errores de validación:</h3>
-                <ul className="list-disc list-inside text-red-300 text-sm">
-                  {validationErrors.map((error, idx) => (
-                    <li key={idx}>{error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              {REQUIRED_FIELDS.map((field) => (
-                <div
-                  key={field}
-                  className="grid grid-cols-2 gap-4 items-center"
-                >
-                  <label className="font-bold text-foreground">
-                    {field} <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    value={mapping[field] || ""}
-                    onChange={(e) => handleMappingChange(field, e.target.value)}
-                    className="bg-background border border-secondary rounded-md p-2 w-full"
-                  >
-                    <option value="">Selecciona una columna...</option>
-                    {csvHeaders.map((header) => (
-                      <option key={header} value={header}>
-                        {header}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 flex justify-between">
-              <Button 
-                variant="secondary" 
-                onClick={resetImport} 
-                className="w-auto"
-                disabled={isProcessing}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleImport} 
-                className="w-auto"
-                disabled={isProcessing}
-              >
-                {isProcessing ? "Procesando..." : "Confirmar e Importar"}
-              </Button>
-            </div>
-
-            {/* Progress Bar */}
-            {isProcessing && (
-              <div className="mt-6">
-                <div className="flex justify-between text-sm text-subtle mb-2">
-                  <span>Procesando archivo...</span>
-                  <span>{progress}%</span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-accent h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {step === 3 && importSummary && (
-          <div className="text-center">
-            <h2 className={`text-2xl font-bold mb-4 ${
-              importSummary.skipped === 0 ? "text-green-400" : "text-yellow-400"
-            }`}>
-              {importSummary.skipped === 0 ? "¡Importación Exitosa!" : "Importación Completada con Advertencias"}
-            </h2>
-            
-            <div className="bg-background rounded-lg p-6 mb-6 text-left">
-              <div className="grid grid-cols-3 gap-4 text-center mb-4">
-                <div>
-                  <div className="text-3xl font-bold text-foreground">{importSummary.total}</div>
-                  <div className="text-sm text-subtle">Total de Filas</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-green-400">{importSummary.imported}</div>
-                  <div className="text-sm text-subtle">Importadas</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-red-400">{importSummary.skipped}</div>
-                  <div className="text-sm text-subtle">Omitidas</div>
-                </div>
-              </div>
-
-              {importSummary.errors.length > 0 && (
-                <div className="border-t border-secondary pt-4">
-                  <h3 className="font-bold text-foreground mb-2">Errores Encontrados:</h3>
-                  <ul className="list-disc list-inside text-sm text-subtle max-h-40 overflow-y-auto">
-                    {importSummary.errors.map((error, idx) => (
-                      <li key={idx}>{error}</li>
-                    ))}
-                  </ul>
-                  {importSummary.skipped > importSummary.errors.length && (
-                    <p className="text-xs text-subtle mt-2">
-                      ...y {importSummary.skipped - importSummary.errors.length} errores más
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <Button onClick={resetImport} className="w-auto">
-              Importar Otro Archivo
-            </Button>
-          </div>
+      <div className="bg-primary p-8 rounded-lg border border-secondary min-h-[300px]">
+        {isLoadingJob && !job ? (
+          <p>Cargando estado del job...</p>
+        ) : (
+          renderContent()
         )}
       </div>
     </div>
   );
 };
+
+// Step Components
+const Step1Upload = ({ onFileSelect, isUploading }) => (
+  <div>
+    <h2 className="text-xl font-bold text-foreground mb-4">
+      Paso 1: Selecciona tu archivo CSV
+    </h2>
+    <p className="text-subtle mb-4">
+      El archivo debe contener las siguientes columnas: orderId, clientEmail,
+      status
+    </p>
+    <input
+      type="file"
+      accept=".csv"
+      onChange={(e) => e.target.files[0] && onFileSelect(e.target.files[0])}
+      className="text-subtle file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-foreground hover:file:bg-accent-hover"
+      disabled={isUploading}
+    />
+    {isUploading && <p className="mt-2 text-subtle">Subiendo archivo...</p>}
+  </div>
+);
+
+const Step2Mapping = ({
+  headers,
+  mapping,
+  setMapping,
+  onConfirm,
+  onCancel,
+  isStarting,
+}) => (
+  <div>
+    <h2 className="text-xl font-bold text-foreground mb-4">
+      Paso 2: Mapea las columnas
+    </h2>
+    <p className="text-subtle mb-6">
+      Asigna las columnas de tu archivo CSV a los campos requeridos por Nora AI.
+    </p>
+
+    <div className="space-y-4">
+      {REQUIRED_FIELDS.map((field) => (
+        <div key={field} className="grid grid-cols-2 gap-4 items-center">
+          <label className="font-bold text-foreground">
+            {field} <span className="text-red-400">*</span>
+          </label>
+          <select
+            value={mapping[field] || ""}
+            onChange={(e) =>
+              setMapping((prev) => ({ ...prev, [field]: e.target.value }))
+            }
+            className="bg-background border border-secondary rounded-md p-2 w-full"
+          >
+            <option value="">Selecciona una columna...</option>
+            {headers.map((header) => (
+              <option key={header} value={header}>
+                {header}
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
+    </div>
+
+    <div className="mt-8 flex justify-between">
+      <Button
+        variant="secondary"
+        onClick={onCancel}
+        className="w-auto"
+        disabled={isStarting}
+      >
+        Cancelar
+      </Button>
+      <Button onClick={onConfirm} className="w-auto" disabled={isStarting}>
+        {isStarting ? "Procesando..." : "Confirmar e Importar"}
+      </Button>
+    </div>
+  </div>
+);
+
+const Step3Progress = ({ progress, onCancel, isCancelling }) => {
+  const progressValue = progress?.percentage || progress || 0;
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-foreground mb-4">
+        Paso 3: Procesando archivo
+      </h2>
+      <div className="flex justify-between text-sm text-subtle mb-2">
+        <span className="flex items-center">
+          Procesando archivo...
+          <span className="inline-block ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        </span>
+        <span className="font-mono">{progressValue}%</span>
+      </div>
+      <div className="w-full bg-secondary rounded-full h-3 mb-6 overflow-hidden">
+        <div
+          className="bg-gradient-to-r from-accent to-green-400 h-3 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${progressValue}%` }}
+        />
+      </div>
+      <div className="text-center">
+        <Button
+          variant="secondary"
+          onClick={onCancel}
+          disabled={isCancelling}
+          className="w-auto"
+        >
+          {isCancelling ? "Cancelando..." : "Cancelar Importación"}
+        </Button>
+      </div>
+      <div className="mt-4 text-xs text-subtle text-center">
+        ⏱️ Actualizando automáticamente cada 2 segundos • Progreso:{" "}
+        {progressValue}%
+      </div>
+    </div>
+  );
+};
+
+const Step4Summary = ({ summary, onReset }) => (
+  <div className="text-center">
+    <h2
+      className={`text-2xl font-bold mb-4 ${
+        summary.errors?.length === 0 ? "text-green-400" : "text-yellow-400"
+      }`}
+    >
+      {summary.errors?.length === 0
+        ? "¡Importación Exitosa!"
+        : "Importación Completada con Advertencias"}
+    </h2>
+
+    <div className="bg-background rounded-lg p-6 mb-6 text-left">
+      <div className="grid grid-cols-3 gap-4 text-center mb-4">
+        <div>
+          <div className="text-3xl font-bold text-foreground">
+            {summary.total || 0}
+          </div>
+          <div className="text-sm text-subtle">Total de Filas</div>
+        </div>
+        <div>
+          <div className="text-3xl font-bold text-green-400">
+            {summary.imported || 0}
+          </div>
+          <div className="text-sm text-subtle">Importadas</div>
+        </div>
+        <div>
+          <div className="text-3xl font-bold text-red-400">
+            {summary.failed || 0}
+          </div>
+          <div className="text-sm text-subtle">Fallidas</div>
+        </div>
+      </div>
+
+      {summary.errors && summary.errors.length > 0 && (
+        <div className="border-t border-secondary pt-4">
+          <h3 className="font-bold text-foreground mb-2">
+            Errores Encontrados:
+          </h3>
+          <ul className="list-disc list-inside text-sm text-subtle max-h-40 overflow-y-auto">
+            {summary.errors.slice(0, 10).map((error, idx) => (
+              <li key={idx}>{error}</li>
+            ))}
+          </ul>
+          {summary.errors.length > 10 && (
+            <p className="text-xs text-subtle mt-2">
+              ...y {summary.errors.length - 10} errores más
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+
+    <Button onClick={onReset} className="w-auto">
+      Importar Otro Archivo
+    </Button>
+  </div>
+);
 
 export default ImportOrdersPage;

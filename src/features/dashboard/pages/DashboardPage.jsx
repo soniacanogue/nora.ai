@@ -1,12 +1,15 @@
 // src/features/dashboard/pages/DashboardPage.jsx
-import { useAgentDashboard } from "../hooks/useAgentDashboard"; // 1. Importar el nuevo hook
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getAgentDashboardData } from "../api/dashboardApi";
 
 import StatCard from "../components/StatCard";
 import QueueLinkCard from "../components/QueueLinkCard";
 import RecentActivityFeed from "../components/RecentActivityFeed";
 import SimpleBarChart from "../components/SimpleBarChart";
 import DashboardSkeleton from "../components/DashboardSkeleton";
-import React from "react";
+import ErrorState from "src/shared/components/ui/ErrorState";
+import EmptyState from "src/shared/components/ui/EmptyState";
 
 // Hook mock de autenticación (sin cambios)
 const useAuth = () => ({
@@ -20,28 +23,48 @@ const useAuth = () => ({
 
 const DashboardPage = () => {
   const { currentUser } = useAuth();
-  const { dashboardData, isLoading, error } = useAgentDashboard(
-    currentUser?.id
-  );
+  const [timeRange, setTimeRange] = useState("today"); // 'today' or 'thisWeek'
+
+  const {
+    data: dashboardData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["agentDashboard", currentUser?.id],
+    queryFn: () => getAgentDashboardData(currentUser?.id),
+    enabled: !!currentUser?.id,
+  });
 
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
-  if (error) {
+  if (isError) {
     return (
-      <div className="text-red-500 p-4">
-        <strong>Error al cargar el dashboard:</strong> {error}
-      </div>
+      <ErrorState
+        message={error?.message || "Error al cargar el dashboard del agente."}
+        onRetry={refetch}
+      />
     );
   }
 
   if (!dashboardData) {
-    return <div>No se encontraron datos para el dashboard.</div>;
+    return (
+      <EmptyState
+        message="No se encontraron datos para el dashboard del agente."
+        icon="📭"
+      />
+    );
   }
 
-  const { myMetricsToday, myQueues, myTicketsByStatus, recentActivity } =
+  const { myMetrics, myQueues, myTicketsByStatus, recentActivity } =
     dashboardData;
+
+  // Select metrics based on time range
+  const currentMetrics =
+    timeRange === "today" ? myMetrics.today : myMetrics.thisWeek;
 
   return (
     <div>
@@ -49,25 +72,47 @@ const DashboardPage = () => {
         <h1 className="text-3xl font-bold text-foreground">
           Hola, {currentUser?.nombre} 👋
         </h1>
-        <p className="text-subtle mt-1">
-          Este es el resumen de tu actividad de hoy.
-        </p>
+        <p className="text-subtle mt-1">Este es el resumen de tu actividad.</p>
+      </div>
+
+      {/* Time Range Selector for Metrics */}
+      <div className="mb-6 flex gap-2">
+        <button
+          onClick={() => setTimeRange("today")}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            timeRange === "today"
+              ? "bg-accent text-foreground font-semibold"
+              : "bg-primary text-subtle hover:bg-secondary"
+          }`}
+        >
+          Hoy
+        </button>
+        <button
+          onClick={() => setTimeRange("thisWeek")}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            timeRange === "thisWeek"
+              ? "bg-accent text-foreground font-semibold"
+              : "bg-primary text-subtle hover:bg-secondary"
+          }`}
+        >
+          Esta Semana
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatCard
-          title="Mis Tickets Resueltos (Hoy)"
-          value={myMetricsToday.resolved}
+          title={`Mis Tickets Resueltos${timeRange === "today" ? " (Hoy)" : " (Esta Semana)"}`}
+          value={currentMetrics.resolved}
           icon="✅"
         />
         <StatCard
           title="Mis Tickets Asignados"
-          value={myMetricsToday.assigned}
+          value={currentMetrics.assigned}
           icon="📁"
         />
         <StatCard
           title="Mi Tiempo Promedio de Respuesta"
-          value={myMetricsToday.avgResponseTime}
+          value={currentMetrics.avgResponseTime}
           icon="⏱️"
         />
       </div>

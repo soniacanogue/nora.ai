@@ -29,7 +29,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         <div>{children}</div>
       </div>
     </>,
-    document.getElementById("modal-root") // Necesitaremos añadir este div en index.html
+    document.getElementById("modal-root"), // Necesitaremos añadir este div en index.html
   );
 };
 

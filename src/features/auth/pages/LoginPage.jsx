@@ -58,7 +58,7 @@ const LoginPage = () => {
             required
             disabled={loading}
           />
-          <Button type="submit" variant="primary" disabled={loading}>
+          <Button type="submit" variant="primary" disabled={loading} onClick={handleSubmit}>
             {loading ? "Ingresando..." : "Iniciar Sesión"}
           </Button>
         </form>

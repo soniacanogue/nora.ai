@@ -1,11 +1,13 @@
 // tickets/components/SuggestionPanel.jsx
 import React, { useState, useEffect } from "react";
 import Button from "src/shared/components/ui/Button";
+import Modal from "src/shared/components/ui/Modal";
 import toast from "react-hot-toast";
 
 // --- CORRECCIONES AÑADIDAS ---
 import { useApproveTicket } from "../hooks/useApproveTicket";
-import { escalateTicket, reassignTicket } from "../api/ticketsApi"; // Importar nuevas acciones
+import { useEscalateTicket } from "../hooks/useEscalateTicket";
+import { useReassignTicket } from "../hooks/useReassignTicket";
 import ReassignTicketModal from "./ReassignTicketModal"; // Importar el nuevo modal
 // --- FIN DE LAS CORRECCIONES ---
 
@@ -16,64 +18,60 @@ const getConfidenceColor = (confidence) => {
   return "text-orange-500";
 };
 
-const SuggestionPanel = ({ suggestion, ticketId }) => {
+const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
   const [editedReply, setEditedReply] = useState(suggestion.reply_text || "");
-  const { approve, isApproving } = useApproveTicket();
 
-  // --- CORRECCIONES AÑADIDAS ---
+  // Usamos los hooks de mutación
+  const { mutate: approve, isLoading: isApproving } = useApproveTicket({
+    onSuccess: onApprovalSuccess, // El callback de éxito se pasa aquí
+  });
+  const { mutate: escalate, isLoading: isEscalating } = useEscalateTicket();
+  const { mutate: reassign, isLoading: isReassigning } = useReassignTicket();
+
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
-  const [isActionLoading, setIsActionLoading] = useState(false); // Estado de carga para otras acciones
-  // --- FIN DE LAS CORRECCIONES ---
+  const [escalationNote, setEscalationNote] = useState("");
+  const [isEscalateModalOpen, setIsEscalateModalOpen] = useState(false);
 
   useEffect(() => {
     setEditedReply(suggestion.reply_text || "");
   }, [suggestion.reply_text]);
 
-  const handleApproveAndSend = async () => {
-    if (!ticketId) return toast.error("No hay ID de ticket.");
-    try {
-      await approve(ticketId, editedReply);
-      // Aquí podrías redirigir o mostrar un estado de éxito permanente
-    } catch (err) {
-      // El error ya es manejado por el hook `useApproveTicket`
-    }
+  const handleApproveAndSend = () => {
+    approve({ ticketId, editedBody: editedReply });
   };
 
-  // --- LÓGICA DE LAS NUEVAS ACCIONES ---
-  const handleEscalate = async () => {
-    if (!ticketId) return toast.error("No hay ID de ticket.");
-    setIsActionLoading(true);
-    try {
-      await escalateTicket(ticketId);
-      toast.success("Ticket escalado a Nivel 2.");
-      // Opcional: Redirigir o refrescar para que el ticket desaparezca de la cola actual
-    } catch (err) {
-      toast.error(err.message || "No se pudo escalar el ticket.");
-    } finally {
-      setIsActionLoading(false);
-    }
+  const handleEscalateConfirm = () => {
+    escalate(
+      { ticketId, note: escalationNote },
+      {
+        onSuccess: () => {
+          setIsEscalateModalOpen(false);
+          setEscalationNote("");
+          // La navegación la manejaría el componente padre si el ticket desaparece de la cola
+          onApprovalSuccess();
+        },
+      },
+    );
   };
 
-  const handleReassign = async (newAssigneeId) => {
-    if (!ticketId) return toast.error("No hay ID de ticket.");
-    setIsActionLoading(true);
-    try {
-      await reassignTicket(ticketId, newAssigneeId);
-      toast.success("Ticket reasignado correctamente.");
-      setIsReassignModalOpen(false);
-    } catch (err) {
-      toast.error(err.message || "No se pudo reasignar el ticket.");
-    } finally {
-      setIsActionLoading(false);
-    }
+  const handleReassignConfirm = (newAssigneeId) => {
+    reassign(
+      { ticketId, newAssigneeId },
+      {
+        onSuccess: () => {
+          setIsReassignModalOpen(false);
+          onApprovalSuccess();
+        },
+      },
+    );
   };
-  // --- FIN DE LA LÓGICA ---
 
-  const isLoading = isApproving || isActionLoading;
+  // Estado de carga unificado
+  const isLoading = isApproving || isEscalating || isReassigning;
 
   return (
     <>
-      <div className="bg-primary border border-secondary rounded-lg p-6 sticky top-24">
+      <div className="bg-primary border border-secondary rounded-lg p-6">
         <h2 className="text-xl font-bold text-foreground mb-4">
           Sugerencia de Nora AI
         </h2>
@@ -81,9 +79,7 @@ const SuggestionPanel = ({ suggestion, ticketId }) => {
         <div className="mb-4">
           <label className="text-sm font-medium text-subtle">Confianza</label>
           <p
-            className={`text-2xl font-bold ${getConfidenceColor(
-              suggestion.confidence
-            )}`}
+            className={`text-2xl font-bold ${getConfidenceColor(suggestion.confidence)}`}
           >
             {suggestion.confidence
               ? `${(suggestion.confidence * 100).toFixed(0)}%`
@@ -122,8 +118,8 @@ const SuggestionPanel = ({ suggestion, ticketId }) => {
             ))}
           </div>
         </div>
-
-        <div className="space-y-3">
+        {/* --- SECCIÓN DE ACCIONES --- */}
+        <div className="space-y-3 border-t border-secondary pt-4 mt-4">
           <Button
             variant="primary"
             className="w-full"
@@ -135,20 +131,10 @@ const SuggestionPanel = ({ suggestion, ticketId }) => {
           <Button
             variant="secondary"
             className="w-full"
-            onClick={() => toast.info("Funcionalidad no implementada")}
+            onClick={() => setIsEscalateModalOpen(true)}
             disabled={isLoading}
           >
-            ✏️ Editar y Enviar
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={handleEscalate}
-            disabled={isLoading}
-          >
-            {isLoading && !isApproving
-              ? "Escalando..."
-              : "➡️ Escalar a Nivel 2"}
+            {isEscalating ? "Escalando..." : "➡️ Escalar a Nivel 2"}
           </Button>
           <Button
             variant="secondary"
@@ -156,18 +142,54 @@ const SuggestionPanel = ({ suggestion, ticketId }) => {
             onClick={() => setIsReassignModalOpen(true)}
             disabled={isLoading}
           >
-            👤 Reasignar
+            {isReassigning ? "Reasignando..." : "👤 Reasignar"}
           </Button>
         </div>
       </div>
 
-      {/* --- INCLUSIÓN DEL MODAL --- */}
+      {/* --- MODALES PARA LAS ACCIONES --- */}
       <ReassignTicketModal
         isOpen={isReassignModalOpen}
         onClose={() => setIsReassignModalOpen(false)}
-        onConfirm={handleReassign}
-        isReassigning={isActionLoading}
+        onConfirm={handleReassignConfirm}
+        isReassigning={isReassigning}
       />
+
+      {/* Modal para nota de escalación */}
+      <Modal
+        isOpen={isEscalateModalOpen}
+        onClose={() => setIsEscalateModalOpen(false)}
+        title="Escalar a Nivel 2"
+      >
+        <p className="text-subtle mb-4">
+          Añade una nota interna obligatoria para el especialista de Nivel 2.
+        </p>
+        <textarea
+          value={escalationNote}
+          onChange={(e) => setEscalationNote(e.target.value)}
+          rows={4}
+          className="w-full mt-1 p-3 bg-background border border-secondary rounded-md text-foreground text-sm"
+          placeholder="Ej: El cliente confirma que ha reiniciado el dispositivo. El problema parece ser de hardware."
+        />
+        <div className="flex justify-end gap-4 mt-4">
+          <Button
+            variant="secondary"
+            className="w-auto"
+            onClick={() => setIsEscalateModalOpen(false)}
+            disabled={isLoading}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            className="w-auto"
+            onClick={handleEscalateConfirm}
+            disabled={!escalationNote.trim() || isLoading}
+          >
+            {isEscalating ? "Escalando..." : "Confirmar Escalación"}
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 };
