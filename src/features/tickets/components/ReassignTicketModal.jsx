@@ -155,7 +155,8 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
           <Button
             type="button"
             variant="secondary"
-            className="w-auto"
+            size="md"
+            fullWidth={false}
             onClick={onClose}
             disabled={isReassigning}
           >
@@ -164,7 +165,8 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
           <Button
             type="button"
             variant="primary"
-            className="w-auto"
+            size="md"
+            fullWidth={false}
             onClick={handleConfirm}
             disabled={!selectedAgent || isReassigning}
           >

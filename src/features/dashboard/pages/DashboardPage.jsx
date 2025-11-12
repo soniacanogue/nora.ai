@@ -1,7 +1,9 @@
 // src/features/dashboard/pages/DashboardPage.jsx
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
 import { getAgentDashboardData } from "../api/dashboardApi";
+import { mockUsuarios } from "@/data/mockUsuarios";
 
 import StatCard from "../components/StatCard";
 import QueueLinkCard from "../components/QueueLinkCard";
@@ -10,6 +12,7 @@ import SimpleBarChart from "../components/SimpleBarChart";
 import DashboardSkeleton from "../components/DashboardSkeleton";
 import ErrorState from "src/shared/components/ui/ErrorState";
 import EmptyState from "src/shared/components/ui/EmptyState";
+import { formatTicketStatus } from "@/shared/utils/formatters";
 
 // Hook mock de autenticación (sin cambios)
 const useAuth = () => ({
@@ -23,6 +26,17 @@ const useAuth = () => ({
 
 const DashboardPage = () => {
   const { currentUser } = useAuth();
+  const { agentId } = useParams();
+  
+  // Si se proporciona agentId en la URL, usar ese agente; si no, usar el usuario actual
+  const targetAgentId = agentId || currentUser?.id;
+  
+  // Obtener datos del agente específico si se proporciona agentId
+  const targetAgent = agentId 
+    ? mockUsuarios.find(u => u.id === agentId) || 
+      { id: agentId, nombre: "Agente Desconocido", rol: "AGENTE" }
+    : currentUser;
+  
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'thisWeek'
 
   const {
@@ -32,9 +46,9 @@ const DashboardPage = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["agentDashboard", currentUser?.id],
-    queryFn: () => getAgentDashboardData(currentUser?.id),
-    enabled: !!currentUser?.id,
+    queryKey: ["agentDashboard", targetAgentId, timeRange],
+    queryFn: () => getAgentDashboardData(targetAgentId, timeRange),
+    enabled: !!targetAgentId,
   });
 
   if (isLoading) {
@@ -70,7 +84,7 @@ const DashboardPage = () => {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">
-          Hola, {currentUser?.nombre} 👋
+          Hola, {targetAgent?.nombre} 👋
         </h1>
         <p className="text-subtle mt-1">Este es el resumen de tu actividad.</p>
       </div>
@@ -123,6 +137,7 @@ const DashboardPage = () => {
             <SimpleBarChart
               data={myTicketsByStatus}
               title="Mis Tickets por Estado"
+              nameFormatter={formatTicketStatus}
             />
           </div>
 

@@ -103,7 +103,7 @@ const TicketListPage = () => {
         <h1 className="text-3xl font-bold text-foreground">
           Tickets de Nivel 2
         </h1>
-        <Button variant="secondary" className="w-auto" onClick={openModal}>
+        <Button variant="secondary" size="md" fullWidth={false} onClick={openModal}>
           Crear Ticket
         </Button>
       </div>
@@ -164,7 +164,8 @@ const TicketListPage = () => {
                   {!ticket.assigneeId && (
                     <Button
                       variant="primary"
-                      className="w-auto text-xs py-1 px-2"
+                      size="sm"
+                      fullWidth={false}
                       onClick={() =>
                         claim({ ticketId: ticket.id, agentId: currentUser?.id })
                       }
@@ -234,7 +235,8 @@ const TicketListPage = () => {
             <Button
               type="button"
               variant="secondary"
-              className="w-auto"
+              size="md"
+              fullWidth={false}
               onClick={() => setIsModalOpen(false)}
             >
               Cancelar
@@ -242,7 +244,8 @@ const TicketListPage = () => {
             <Button
               type="submit"
               variant="primary"
-              className="w-auto"
+              size="md"
+              fullWidth={false}
               onClick={handleCreateTicket}
             >
               Crear

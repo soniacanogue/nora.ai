@@ -160,7 +160,13 @@ const ImportOrdersPage = () => {
         return (
           <div className="text-center">
             <p className="text-yellow-400 font-bold">Importación Cancelada.</p>
-            <Button onClick={resetState} className="w-auto mt-4">
+            <Button 
+              variant="primary"
+              size="md"
+              fullWidth={false}
+              onClick={resetState} 
+              className="mt-4"
+            >
               Empezar de Nuevo
             </Button>
           </div>
@@ -250,13 +256,20 @@ const Step2Mapping = ({
     <div className="mt-8 flex justify-between">
       <Button
         variant="secondary"
+        size="md"
+        fullWidth={false}
         onClick={onCancel}
-        className="w-auto"
         disabled={isStarting}
       >
         Cancelar
       </Button>
-      <Button onClick={onConfirm} className="w-auto" disabled={isStarting}>
+      <Button 
+        size="md"
+        fullWidth={false}
+        variant="primary"
+        onClick={onConfirm} 
+        disabled={isStarting}
+      >
         {isStarting ? "Procesando..." : "Confirmar e Importar"}
       </Button>
     </div>
@@ -287,9 +300,10 @@ const Step3Progress = ({ progress, onCancel, isCancelling }) => {
       <div className="text-center">
         <Button
           variant="secondary"
+          size="md"
+          fullWidth={false}
           onClick={onCancel}
           disabled={isCancelling}
-          className="w-auto"
         >
           {isCancelling ? "Cancelando..." : "Cancelar Importación"}
         </Button>
@@ -355,7 +369,12 @@ const Step4Summary = ({ summary, onReset }) => (
       )}
     </div>
 
-    <Button onClick={onReset} className="w-auto">
+    <Button 
+      size="md"
+      fullWidth={false}
+      variant="primary"
+      onClick={onReset}
+    >
       Importar Otro Archivo
     </Button>
   </div>

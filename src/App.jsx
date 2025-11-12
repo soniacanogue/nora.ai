@@ -16,6 +16,7 @@ import ImportOrdersPage from "./features/orders/pages/ImportOrdersPage";
 import OrderListPage from "./features/orders/pages/OrderListPage";
 import NewTicketPage from "./features/tickets/pages/NewTicketPage";
 import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
+import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import HomePage from "./features/dashboard/pages/HomePage";
 
 // Componente simple para una página 404
@@ -60,6 +61,8 @@ function App() {
               <Route path="/tickets/:ticketId" element={<TicketDetailPage />} />
               <Route path="/import" element={<ImportOrdersPage />} />
               <Route path="/orders" element={<OrderListPage />} />
+              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+              <Route path="/admin/agent/:agentId" element={<DashboardPage />} />
             </Route>
           </Route>
 

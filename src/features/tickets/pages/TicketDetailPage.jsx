@@ -89,7 +89,7 @@ const TicketDetailPage = () => {
         <h2 className="text-2xl font-bold mb-2">Error al cargar el ticket</h2>
         <p>{error.message}</p>
         <Link to="/tickets" className="mt-4 inline-block">
-          <Button variant="secondary" className="w-auto" onClick={()=>{}}>
+          <Button variant="secondary" size="md" fullWidth={false} onClick={()=>{}}>
             Volver a la lista
           </Button>
         </Link>

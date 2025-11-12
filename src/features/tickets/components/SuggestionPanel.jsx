@@ -122,7 +122,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
         <div className="space-y-3 border-t border-secondary pt-4 mt-4">
           <Button
             variant="primary"
-            className="w-full"
+            size="md"
             onClick={handleApproveAndSend}
             disabled={isLoading}
           >
@@ -130,7 +130,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
           </Button>
           <Button
             variant="secondary"
-            className="w-full"
+            size="md"
             onClick={() => setIsEscalateModalOpen(true)}
             disabled={isLoading}
           >
@@ -138,7 +138,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
           </Button>
           <Button
             variant="secondary"
-            className="w-full"
+            size="md"
             onClick={() => setIsReassignModalOpen(true)}
             disabled={isLoading}
           >
@@ -174,7 +174,8 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
         <div className="flex justify-end gap-4 mt-4">
           <Button
             variant="secondary"
-            className="w-auto"
+            size="md"
+            fullWidth={false}
             onClick={() => setIsEscalateModalOpen(false)}
             disabled={isLoading}
           >
@@ -182,7 +183,8 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
           </Button>
           <Button
             variant="primary"
-            className="w-auto"
+            size="md"
+            fullWidth={false}
             onClick={handleEscalateConfirm}
             disabled={!escalationNote.trim() || isLoading}
           >

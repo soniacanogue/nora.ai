@@ -1,5 +1,13 @@
 // src/data/mockTickets.js
 
+// Función auxiliar para calcular fechas dinámicas
+const getDateForTicket = (daysAgo, hoursOffset = 0, minutesOffset = 0) => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  date.setHours(hoursOffset, minutesOffset, 0, 0);
+  return date.toISOString();
+};
+
 export const mockTickets = [
   // =======================================================================
   // == TICKETS PARA UI-03: VISTA DE TRIAJE (ESTADO: ia_sugerido)          ==
@@ -13,7 +21,7 @@ export const mockTickets = [
     estado: "ia_sugerido",
     prioridad: "media",
     canalOrigen: "correo",
-    creadoEn: "2023-10-27T10:00:00Z",
+    creadoEn: getDateForTicket(0, 10, 0),
     mensajes: [
       {
         id: "MSG-001",
@@ -21,7 +29,7 @@ export const mockTickets = [
           "Hola, hice un pedido hace unos días y quisiera saber dónde está. El número es ORD-2023-001. Gracias.",
         esNotaInterna: false,
         esAutomatico: false,
-        enviadoEn: "2023-10-27T10:00:00Z",
+        enviadoEn: getDateForTicket(0, 10, 0),
         // --- DATOS DE LA IA ---
         respuestaSugeridaIA:
           "Hola David,\n\n¡Gracias por contactarnos! Tu pedido ORD-2023-001 está actualmente en tránsito con DHL. Puedes rastrearlo con el número de seguimiento: TRK123456789.\n\nSaludos,\nEl equipo de GearUp Gadgets",
@@ -50,7 +58,7 @@ export const mockTickets = [
     estado: "ia_sugerido",
     prioridad: "baja",
     canalOrigen: "formulario_web",
-    creadoEn: "2023-10-27T11:30:00Z",
+    creadoEn: getDateForTicket(0, 11, 30),
     mensajes: [
       {
         id: "MSG-002",
@@ -58,7 +66,7 @@ export const mockTickets = [
           "Hola, recibí el teclado pero no es lo que esperaba. ¿Cómo puedo hacer para devolverlo?",
         esNotaInterna: false,
         esAutomatico: false,
-        enviadoEn: "2023-10-27T11:30:00Z",
+        enviadoEn: getDateForTicket(0, 11, 30),
         // --- DATOS DE LA IA ---
         respuestaSugeridaIA:
           "Hola Sofia,\n\nLamentamos que el producto no haya cumplido tus expectativas. Para iniciar una devolución, por favor visita nuestra política de devoluciones en [enlace] y asegúrate de que el producto esté en su empaque original. Tienes 30 días desde la recepción para solicitar un RMA.\n\nAvísanos si tienes otra duda.\nEl equipo de GearUp Gadgets",
@@ -83,7 +91,7 @@ export const mockTickets = [
     estado: "ia_sugerido",
     prioridad: "alta",
     canalOrigen: "correo",
-    creadoEn: "2023-10-27T14:00:00Z",
+    creadoEn: getDateForTicket(4, 14, 0),
     sugerenciaFusionId: "TICKET-004", // <-- ¡Sugerencia de Fusión!
     mensajes: [
       {
@@ -92,7 +100,7 @@ export const mockTickets = [
           "Mi mouse no funciona, llegó roto. Exijo una solución ya.",
         esNotaInterna: false,
         esAutomatico: false,
-        enviadoEn: "2023-10-27T14:00:00Z",
+        enviadoEn: getDateForTicket(4, 14, 0),
         // --- DATOS DE LA IA ---
         respuestaSugeridaIA:
           "Hola Ana,\n\nLamentamos profundamente escuchar que tu mouse llegó dañado. Para poder ayudarte de la manera más rápida, ¿podrías por favor adjuntar una foto del producto y del empaque? Con eso, podremos iniciar el proceso de reemplazo o reembolso de inmediato.\n\nQuedamos atentos,\nEl equipo de GearUp Gadgets",
@@ -120,21 +128,21 @@ export const mockTickets = [
     estado: "escalado_nivel_2",
     prioridad: "alta",
     canalOrigen: "correo",
-    creadoEn: "2023-10-26T15:00:00Z",
+    creadoEn: getDateForTicket(5, 15, 0),
     assigneeId: null, // Sin asignar, en la cola general.
     mensajes: [
       {
         id: "MSG-003-A",
         contenidoTexto:
           "Compré los Auriculares Pro XT2 pero el micrófono no funciona bien en mis llamadas de Zoom en mi Macbook M2. ¿Hay algún driver o configuración especial?",
-        enviadoEn: "2023-10-26T15:00:00Z",
+        enviadoEn: getDateForTicket(5, 15, 0),
       },
       {
         id: "MSG-003-B",
         contenidoTexto:
           "Escalado por Brenda: La IA sugirió reiniciar el equipo, pero esto parece un problema de compatibilidad específico que requiere conocimiento técnico de Nivel 2.",
         esNotaInterna: true,
-        enviadoEn: "2023-10-26T15:15:00Z",
+        enviadoEn: getDateForTicket(5, 15, 15),
       },
     ],
     etiquetas: [{ id: "tag-compat", nombre: "COMPATIBILITY" }],
@@ -149,14 +157,14 @@ export const mockTickets = [
     estado: "en_progreso_nivel_2",
     prioridad: "urgente",
     canalOrigen: "correo",
-    creadoEn: "2023-10-25T09:00:00Z",
+    creadoEn: getDateForTicket(4, 9, 0),
     assigneeId: "f4e8d9c1-b3a5-4e7d-9f2a-1c8b6e5d7f4a", // Asignado a Carlos
     mensajes: [
       {
         id: "MSG-004",
         contenidoTexto:
           "¡Hola! Recibí mi pedido ORD-2023-003 y el mouse G502 tiene la rueda de scroll rota. Adjunto una foto.",
-        enviadoEn: "2023-10-25T09:00:00Z",
+        enviadoEn: getDateForTicket(6, 9, 0),
       },
     ],
     etiquetas: [{ id: "tag-damaged", nombre: "DAMAGED" }],
@@ -181,25 +189,25 @@ export const mockTickets = [
     estado: "respuesta_cliente", // <- Estado para la cola "Respuestas de Clientes"
     prioridad: "media",
     canalOrigen: "correo",
-    creadoEn: "2023-10-27T11:30:00Z",
+    creadoEn: getDateForTicket(5, 11, 30),
     assigneeId: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b", // Asignado a Brenda
     mensajes: [
       {
         id: "MSG-006-A",
         contenidoTexto:
           "Hola, recibí el teclado pero no es lo que esperaba. ¿Cómo puedo hacer para devolverlo?",
-        enviadoEn: "2023-10-27T11:30:00Z",
+        enviadoEn: getDateForTicket(6, 11, 30),
       },
       {
         id: "MSG-006-B",
         contenidoTexto: "Hola Sofia, aquí tienes el procedimiento...",
-        enviadoEn: "2023-10-27T11:45:00Z",
+        enviadoEn: getDateForTicket(6, 11, 45),
       },
       {
         id: "MSG-006-C",
         contenidoTexto:
           "Gracias. Ya leí la política, pero no encuentro dónde generar la etiqueta de envío. ¿Me ayudan?",
-        enviadoEn: "2023-10-28T09:00:00Z",
+        enviadoEn: getDateForTicket(6, 9, 0),
       },
     ],
     etiquetas: [{ id: "tag-return", nombre: "RETURN" }],
@@ -210,10 +218,10 @@ export const mockTickets = [
     clienteId: "cli-001",
     asunto: "Pregunta sobre garantía",
     estado: "cerrado", // Ticket resuelto
-    resueltoEn: "2023-10-26T18:00:00Z",
+    resueltoEn: getDateForTicket(4, 18, 0),
     prioridad: "baja",
     canalOrigen: "formulario_web",
-    creadoEn: "2023-10-26T17:00:00Z",
+    creadoEn: getDateForTicket(6, 17, 0),
     assigneeId: "f4e8d9c1-b3a5-4e7d-9f2a-1c8b6e5d7f4a", // Resuelto por Carlos
     mensajes: [],
     etiquetas: [{ id: "tag-info", nombre: "INFO" }],
