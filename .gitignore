@@ -23,3 +23,16 @@ dist-ssr
 *.sln
 *.sw?
 .github/*
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Environment variables
+# Ignora todos los archivos de entorno para no subir secretos
+.env
+.env.*
+!.env.example
