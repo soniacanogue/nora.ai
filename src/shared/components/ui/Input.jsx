@@ -15,11 +15,11 @@ const Input = ({
     <div className="w-full">
       <label
         htmlFor={id}
-        className="block text-dt-sm font-medium text-dt-subtle mb-2"
+        className="block text-sm font-medium text-dt-subtle mb-2"
       >
         {label}
         {/* Lógica para mostrar el asterisco si el campo es requerido */}
-        {required && <span className="text-dt-red-500 ml-1">*</span>}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <input
         id={id}

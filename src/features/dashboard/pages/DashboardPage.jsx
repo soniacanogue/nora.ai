@@ -86,7 +86,7 @@ const DashboardPage = () => {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-dt-3xl font-bold text-dt-foreground">
+        <h1 className="text-3xl font-bold text-dt-foreground">
           Hola, {targetAgent?.nombre} 👋
         </h1>
         <p className="text-dt-subtle mt-1">
@@ -146,7 +146,7 @@ const DashboardPage = () => {
             />
           </div>
 
-          <h2 className="text-dt-2xl font-bold text-dt-foreground mb-4">
+          <h2 className="text-2xl font-bold text-dt-foreground mb-4">
             Mis Colas de Trabajo
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -186,7 +186,7 @@ const DashboardPage = () => {
         </div>
 
         <div className="lg:col-span-1">
-          <h2 className="text-dt-2xl font-bold text-dt-foreground mb-4">
+          <h2 className="text-2xl font-bold text-dt-foreground mb-4">
             Actividad Reciente
           </h2>
           <RecentActivityFeed activities={recentActivity} />

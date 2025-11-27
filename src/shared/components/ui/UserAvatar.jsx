@@ -8,7 +8,7 @@ const UserAvatar = ({ user, collapsed = false }) => {
       .slice(0, 2) || "U";
 
   return (
-    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-dt-foreground text-dt-primary font-bold text-dt-sm">
+    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-foreground text-primary font-bold text-sm">
       {initials}
     </div>
   );

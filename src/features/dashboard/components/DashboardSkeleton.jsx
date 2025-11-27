@@ -3,7 +3,7 @@ import React from "react";
 
 // Un esqueleto simple usando clases de Tailwind para la animación de pulso
 const SkeletonBox = ({ className }) => (
-  <div className={`bg-dt-gray-700 rounded-md animate-pulse ${className}`} />
+  <div className={`bg-gray-700 rounded-md animate-pulse ${className}`} />
 );
 
 /**

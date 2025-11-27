@@ -94,13 +94,13 @@ const TicketListPage = () => {
   }
 
   if (isError) {
-    return <div className="text-dt-red-500">Error: {error.message}</div>;
+    return <div className="text-red-500">Error: {error.message}</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-dt-3xl font-bold text-dt-foreground">
+        <h1 className="text-3xl font-bold text-dt-foreground">
           Tickets de Nivel 2
         </h1>
         <Button
@@ -118,33 +118,33 @@ const TicketListPage = () => {
           <thead className="border-b border-secondary">
             <tr>
               <th
-                className="p-4 text-dt-left cursor-pointer"
+                className="p-4 text-left cursor-pointer"
                 onClick={() => handleSort("prioridad")}
               >
                 Prioridad {getSortIcon("prioridad")}
               </th>
-              <th className="p-4 text-dt-left">Asunto</th>
-              <th className="p-4 text-dt-left">Cliente</th>
+              <th className="p-4 text-left">Asunto</th>
+              <th className="p-4 text-left">Cliente</th>
               <th
-                className="p-4 text-dt-left cursor-pointer"
+                className="p-4 text-left cursor-pointer"
                 onClick={() => handleSort("assigneeId")}
               >
                 Agente Asignado {getSortIcon("assigneeId")}
               </th>
               <th
-                className="p-4 text-dt-left cursor-pointer"
+                className="p-4 text-left cursor-pointer"
                 onClick={() => handleSort("creadoEn")}
               >
                 Última Actualización {getSortIcon("creadoEn")}
               </th>
-              <th className="p-4 text-dt-left">Acción</th>
+              <th className="p-4 text-left">Acción</th>
             </tr>
           </thead>
           <tbody>
             {tickets?.map((ticket) => (
               <tr
                 key={ticket.id}
-                className="border-b border-secondary hover:bg-dt-white/5 transition-colors"
+                className="border-b border-secondary hover:bg-white/5 transition-colors"
               >
                 <td className="p-4">
                   {/* Icono de prioridad */} {ticket.prioridad}
@@ -219,7 +219,7 @@ const TicketListPage = () => {
           <div>
             <label
               htmlFor="message"
-              className="block text-dt-sm font-medium text-dt-subtle mb-2"
+              className="block text-sm font-medium text-dt-subtle mb-2"
             >
               Mensaje Inicial
             </label>

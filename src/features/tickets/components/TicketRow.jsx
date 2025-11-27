@@ -4,18 +4,17 @@ import { useNavigate } from "react-router-dom"; // 1. Importar useNavigate
 
 // ... (El resto del componente permanece igual)
 const statusStyles = {
-  nuevo: "bg-dt-blue-500/20 text-dt-blue-300",
-  ia_sugerido: "bg-dt-purple-500/20 text-dt-purple-300",
-  escalado_nivel_2: "bg-dt-yellow-500/20 text-dt-yellow-300",
-  cerrado: "bg-dt-gray-500/20 text-dt-gray-400",
+  nuevo: "bg-blue-500/20 text-blue-300",
+  ia_sugerido: "bg-purple-500/20 text-purple-300",
+  escalado_nivel_2: "bg-yellow-500/20 text-yellow-300",
+  cerrado: "bg-gray-500/20 text-gray-400",
 };
 
 const getConfidenceColor = (confidence) => {
-  if (confidence === null || confidence === undefined)
-    return "text-dt-gray-500";
-  if (confidence >= 0.9) return "text-dt-green-400";
-  if (confidence >= 0.75) return "text-dt-yellow-400";
-  return "text-dt-orange-500";
+  if (confidence === null || confidence === undefined) return "text-gray-500";
+  if (confidence >= 0.9) return "text-green-400";
+  if (confidence >= 0.75) return "text-yellow-400";
+  return "text-orange-500";
 };
 
 // 2. AÑADIR `id` a las props
@@ -26,29 +25,26 @@ const TicketRow = ({ id, subject, status, aiConfidence, tags }) => {
     navigate(`/tickets/${id}`); // 4. Navegar a la página de detalle
   };
 
-  const statusClass =
-    statusStyles[status] || "bg-dt-gray-500/20 text-dt-gray-400";
+  const statusClass = statusStyles[status] || "bg-gray-500/20 text-gray-400";
   const confidenceColor = getConfidenceColor(aiConfidence);
 
   return (
     // 5. AÑADIR el handler y clases para feedback visual
     <tr
-      className="border-b border-secondary hover:bg-dt-white/5 transition-colors cursor-pointer"
+      className="border-b border-secondary hover:bg-white/5 transition-colors cursor-pointer"
       onClick={handleRowClick}
     >
       <td className="p-4">
         <span className="font-medium text-dt-foreground">{subject}</span>
       </td>
-      <td className="p-4 text-dt-center">
+      <td className="p-4 text-center">
         <span
-          className={`px-3 py-1 text-dt-xs font-semibold rounded-full ${statusClass}`}
+          className={`px-3 py-1 text-xs font-semibold rounded-full ${statusClass}`}
         >
           {status.replace(/_/g, " ").toUpperCase()}
         </span>
       </td>
-      <td
-        className={`p-4 text-dt-center font-mono font-bold ${confidenceColor}`}
-      >
+      <td className={`p-4 text-center font-mono font-bold ${confidenceColor}`}>
         {aiConfidence !== null && aiConfidence !== undefined
           ? `${(aiConfidence * 100).toFixed(0)}%`
           : "N/A"}
@@ -58,7 +54,7 @@ const TicketRow = ({ id, subject, status, aiConfidence, tags }) => {
           {tags.map((tag) => (
             <span
               key={tag}
-              className="px-2 py-1 bg-dt-gray-700 text-dt-gray-300 text-dt-xs rounded"
+              className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
             >
               {tag}
             </span>

@@ -13,11 +13,9 @@ const ErrorState = ({
   onRetry,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-dt-center">
-      <div className="text-dt-red-500 text-dt-6xl mb-4">⚠️</div>
-      <h2 className="text-dt-xl font-semibold text-dt-foreground mb-2">
-        Error
-      </h2>
+    <div className="flex flex-col items-center justify-center p-8 text-center">
+      <div className="text-red-500 text-6xl mb-4">⚠️</div>
+      <h2 className="text-xl font-semibold text-dt-foreground mb-2">Error</h2>
       <p className="text-dt-subtle mb-6 max-w-md">{message}</p>
       {onRetry && (
         <button

@@ -22,7 +22,7 @@ import HomePage from "./features/dashboard/pages/HomePage";
 // Componente simple para una página 404
 const NotFoundPage = () => (
   <div className="flex h-screen flex-col items-center justify-center bg-dt-background text-dt-foreground">
-    <h1 className="text-dt-4xl font-bold">404 - Página No Encontrada</h1>
+    <h1 className="text-4xl font-bold">404 - Página No Encontrada</h1>
     <p className="mt-4 text-dt-subtle">La página que buscas no existe.</p>
   </div>
 );

@@ -85,10 +85,8 @@ const TicketDetailPage = () => {
 
   if (isError) {
     return (
-      <div className="text-dt-center text-dt-red-500 p-8">
-        <h2 className="text-dt-2xl font-bold mb-2">
-          Error al cargar el ticket
-        </h2>
+      <div className="text-center text-red-500 p-8">
+        <h2 className="text-2xl font-bold mb-2">Error al cargar el ticket</h2>
         <p>{error.message}</p>
         <Link to="/tickets" className="mt-4 inline-block">
           <Button
@@ -106,7 +104,7 @@ const TicketDetailPage = () => {
 
   if (!ticket) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-dt-center">
+      <div className="flex flex-col items-center justify-center h-full text-center">
         {/* ... (código del error 404 sin cambios) ... */}
       </div>
     );
@@ -119,11 +117,11 @@ const TicketDetailPage = () => {
         <div>
           <Link
             to="/tickets"
-            className="text-dt-sm text-dt-subtle hover:text-dt-foreground"
+            className="text-sm text-dt-subtle hover:text-dt-foreground"
           >
             &larr; Volver a la Bandeja de Entrada
           </Link>
-          <h1 className="text-dt-3xl font-bold text-dt-foreground mt-2">
+          <h1 className="text-3xl font-bold text-dt-foreground mt-2">
             {ticket.asunto}
           </h1>
           <p className="text-dt-subtle">
@@ -149,7 +147,7 @@ const TicketDetailPage = () => {
           {ticket.orden && <OrderInfoPanel order={ticket.orden} />}
 
           <div className="bg-dt-primary border border-secondary rounded-lg p-6">
-            <h2 className="text-dt-xl font-bold text-dt-foreground mb-6">
+            <h2 className="text-xl font-bold text-dt-foreground mb-6">
               Historial de la Conversación
             </h2>
             <div className="space-y-6">

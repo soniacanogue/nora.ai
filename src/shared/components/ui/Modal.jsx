@@ -8,7 +8,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
     <>
       {/* Fondo oscuro */}
       <div
-        className="fixed inset-0 bg-dt-black bg-dt-opacity-70 z-40"
+        className="fixed inset-0 bg-black bg-opacity-70 z-40"
         onClick={onClose}
       />
 
@@ -16,10 +16,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-dt-primary border border-secondary rounded-lg shadow-lg z-50 w-full max-w-lg p-6">
         {/* Encabezado del Modal */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-dt-xl font-bold text-dt-foreground">{title}</h2>
+          <h2 className="text-xl font-bold text-dt-foreground">{title}</h2>
           <button
             onClick={onClose}
-            className="text-dt-subtle hover:text-dt-foreground text-dt-2xl"
+            className="text-dt-subtle hover:text-dt-foreground text-2xl"
           >
             &times;
           </button>

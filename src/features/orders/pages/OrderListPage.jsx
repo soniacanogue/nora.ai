@@ -29,13 +29,13 @@ const OrderListPage = () => {
   }
 
   if (error) {
-    return <div className="text-dt-red-500">Error: {error}</div>;
+    return <div className="text-red-500">Error: {error}</div>;
   }
 
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-        <h1 className="text-dt-3xl font-bold text-dt-foreground">
+        <h1 className="text-3xl font-bold text-dt-foreground">
           Órdenes Importadas
         </h1>
         <div className="w-full md:w-auto md:max-w-xs">
@@ -52,7 +52,7 @@ const OrderListPage = () => {
 
       <div className="bg-dt-primary border border-secondary rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-dt-secondary text-dt-left text-dt-subtle text-dt-sm">
+          <thead className="bg-dt-secondary text-left text-dt-subtle text-sm">
             <tr>
               <th className="p-4">ID de Orden</th>
               <th className="p-4">Email del Cliente</th>
@@ -89,7 +89,7 @@ const OrderListPage = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="text-dt-center p-8 text-dt-subtle">
+                <td colSpan={5} className="text-center p-8 text-dt-subtle">
                   No se encontraron órdenes que coincidan con tu búsqueda.
                 </td>
               </tr>

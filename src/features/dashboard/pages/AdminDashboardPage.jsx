@@ -53,7 +53,7 @@ const AdminDashboardPage = () => {
 
   return (
     <div>
-      <h1 className="text-dt-3xl font-bold text-dt-foreground mb-6">
+      <h1 className="text-3xl font-bold text-dt-foreground mb-6">
         Dashboard del Administrador
       </h1>
 

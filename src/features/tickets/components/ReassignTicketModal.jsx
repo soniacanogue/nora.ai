@@ -129,12 +129,12 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
                       key={agent.id}
                       type="button"
                       onClick={() => handleSelectAgent(agent.id)}
-                      className="w-full text-dt-left px-4 py-2 hover:bg-dt-secondary text-dt-foreground transition-colors"
+                      className="w-full text-left px-4 py-2 hover:bg-dt-secondary text-dt-foreground transition-colors"
                     >
                       <div className="font-medium">
                         {agent.nombre || "Sin nombre"}
                       </div>
-                      <div className="text-dt-sm text-dt-subtle">
+                      <div className="text-sm text-dt-subtle">
                         {agent.correo || "Sin correo"}
                       </div>
                     </button>

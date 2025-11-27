@@ -39,10 +39,8 @@ const NewTicketPage = () => {
   if (isSubmitted) {
     return (
       <PublicLayout>
-        <div className="bg-dt-primary p-8 rounded-lg border border-secondary text-dt-center">
-          <h2 className="text-dt-2xl font-bold text-dt-green-400 mb-4">
-            ¡Gracias!
-          </h2>
+        <div className="bg-dt-primary p-8 rounded-lg border border-secondary text-center">
+          <h2 className="text-2xl font-bold text-green-400 mb-4">¡Gracias!</h2>
           <p className="text-dt-foreground">
             Hemos recibido tu consulta. Recibirás una confirmación por correo
             electrónico en breve.
@@ -61,7 +59,7 @@ const NewTicketPage = () => {
             </Button>
             <a
               href="/"
-              className="text-dt-sm text-dt-subtle hover:text-dt-foreground hover:underline"
+              className="text-sm text-dt-subtle hover:text-dt-foreground hover:underline"
             >
               o volver a la página principal
             </a>
@@ -74,7 +72,7 @@ const NewTicketPage = () => {
   return (
     <PublicLayout>
       <div className="bg-dt-primary p-8 rounded-lg border border-secondary">
-        <h2 className="text-dt-2xl font-bold text-dt-center text-dt-foreground mb-6">
+        <h2 className="text-2xl font-bold text-center text-dt-foreground mb-6">
           Contacta con Soporte
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -90,7 +88,7 @@ const NewTicketPage = () => {
                 required
               />
               {errors.name && (
-                <p className="text-dt-red-500 text-dt-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {typeof errors.name?.message === "string"
                     ? errors.name.message
                     : ""}
@@ -114,7 +112,7 @@ const NewTicketPage = () => {
                 required
               />
               {errors.email && (
-                <p className="text-dt-red-500 text-dt-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {typeof errors.email?.message === "string"
                     ? errors.email.message
                     : ""}
@@ -140,7 +138,7 @@ const NewTicketPage = () => {
               required
             />
             {errors.subject && (
-              <p className="text-dt-red-500 text-dt-sm mt-1">
+              <p className="text-red-500 text-sm mt-1">
                 {typeof errors.subject?.message === "string"
                   ? errors.subject.message
                   : ""}
@@ -150,9 +148,9 @@ const NewTicketPage = () => {
           <div>
             <label
               htmlFor="message"
-              className="block text-dt-sm font-medium text-dt-subtle mb-2"
+              className="block text-sm font-medium text-dt-subtle mb-2"
             >
-              Mensaje<span className="text-dt-red-500 ml-1">*</span>
+              Mensaje<span className="text-red-500 ml-1">*</span>
             </label>
             <textarea
               id="message"
@@ -163,7 +161,7 @@ const NewTicketPage = () => {
               })}
             />
             {errors.message && (
-              <p className="text-dt-red-500 text-dt-sm mt-1">
+              <p className="text-red-500 text-sm mt-1">
                 {typeof errors.message?.message === "string"
                   ? errors.message.message
                   : ""}

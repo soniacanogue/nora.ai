@@ -12,11 +12,10 @@ import ReassignTicketModal from "./ReassignTicketModal"; // Importar el nuevo mo
 // --- FIN DE LAS CORRECCIONES ---
 
 const getConfidenceColor = (confidence) => {
-  if (confidence === null || confidence === undefined)
-    return "text-dt-gray-500";
-  if (confidence >= 0.9) return "text-dt-green-400";
-  if (confidence >= 0.75) return "text-dt-yellow-400";
-  return "text-dt-orange-500";
+  if (confidence === null || confidence === undefined) return "text-gray-500";
+  if (confidence >= 0.9) return "text-green-400";
+  if (confidence >= 0.75) return "text-yellow-400";
+  return "text-orange-500";
 };
 
 const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
@@ -73,16 +72,16 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
   return (
     <>
       <div className="bg-dt-primary border border-secondary rounded-lg p-6">
-        <h2 className="text-dt-xl font-bold text-dt-foreground mb-4">
+        <h2 className="text-xl font-bold text-dt-foreground mb-4">
           Sugerencia de Nora AI
         </h2>
 
         <div className="mb-4">
-          <label className="text-dt-sm font-medium text-dt-subtle">
+          <label className="text-sm font-medium text-dt-subtle">
             Confianza
           </label>
           <p
-            className={`text-dt-2xl font-bold ${getConfidenceColor(suggestion.confidence)}`}
+            className={`text-2xl font-bold ${getConfidenceColor(suggestion.confidence)}`}
           >
             {suggestion.confidence
               ? `${(suggestion.confidence * 100).toFixed(0)}%`
@@ -93,7 +92,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
         <div className="mb-4">
           <label
             htmlFor="suggested-reply"
-            className="text-dt-sm font-medium text-dt-subtle"
+            className="text-sm font-medium text-dt-subtle"
           >
             Respuesta Sugerida
           </label>
@@ -102,19 +101,19 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
             value={editedReply}
             onChange={(e) => setEditedReply(e.target.value)}
             rows={8}
-            className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-dt-sm"
+            className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-sm"
           />
         </div>
 
         <div className="mb-6">
-          <label className="text-dt-sm font-medium text-dt-subtle">
+          <label className="text-sm font-medium text-dt-subtle">
             Etiquetas Sugeridas
           </label>
           <div className="flex flex-wrap gap-2 mt-1">
             {suggestion.suggested_tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-1 bg-dt-gray-700 text-dt-gray-300 text-dt-xs rounded"
+                className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
               >
                 {tag}
               </span>
@@ -171,7 +170,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
           value={escalationNote}
           onChange={(e) => setEscalationNote(e.target.value)}
           rows={4}
-          className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-dt-sm"
+          className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-sm"
           placeholder="Ej: El cliente confirma que ha reiniciado el dispositivo. El problema parece ser de hardware."
         />
         <div className="flex justify-end gap-4 mt-4">

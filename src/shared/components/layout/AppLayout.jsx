@@ -40,12 +40,12 @@ const AppLayout = () => {
         <div className="mb-8">
           <Link
             to="/"
-            className="text-dt-foreground text-dt-xl font-bold flex items-center justify-center"
+            className="text-dt-foreground text-xl font-bold flex items-center justify-center"
           >
             <NoraLogo collapsed={!sidebarOpen} />
           </Link>
           {sidebarOpen && (
-            <p className="text-dt-subtle text-dt-sm text-dt-center mt-2">
+            <p className="text-dt-subtle text-sm text-center mt-2">
               para GearUp Gadgets
             </p>
           )}
@@ -141,7 +141,7 @@ const AppLayout = () => {
         </nav>
         <div className="mt-auto">
           <div
-            className={`mt-auto ${sidebarOpen ? "p-4 rounded-md bg-dt-secondary text-dt-center" : "flex items-center justify-center"}`}
+            className={`mt-auto ${sidebarOpen ? "p-4 rounded-md bg-dt-secondary text-center" : "flex items-center justify-center"}`}
           >
             <div className="flex items-center justify-center mb-2">
               <UserAvatar user={currentUser} collapsed={!sidebarOpen} />
@@ -151,7 +151,7 @@ const AppLayout = () => {
                 <p className="font-bold text-dt-foreground">
                   {currentUser.nombre}
                 </p>
-                <p className="text-dt-sm text-dt-subtle">
+                <p className="text-sm text-dt-subtle">
                   {roleDisplayNames[currentUser.rol] || "Usuario"}
                 </p>
               </>

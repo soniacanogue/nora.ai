@@ -17,7 +17,7 @@ const FileUpload = ({ label, onFilesSelect }) => {
 
   return (
     <div>
-      <label className="block text-dt-sm font-medium text-dt-subtle mb-2">
+      <label className="block text-sm font-medium text-dt-subtle mb-2">
         {label}
       </label>
       <input
@@ -40,8 +40,8 @@ const FileUpload = ({ label, onFilesSelect }) => {
       {/* Mostrar los archivos seleccionados */}
       {selectedFiles.length > 0 && (
         <div className="mt-3 space-y-2">
-          <p className="text-dt-sm text-dt-subtle">Archivos seleccionados:</p>
-          <ul className="list-disc list-inside text-dt-foreground text-dt-sm">
+          <p className="text-sm text-dt-subtle">Archivos seleccionados:</p>
+          <ul className="list-disc list-inside text-dt-foreground text-sm">
             {selectedFiles.map((file, index) => (
               <li key={index}>
                 {file.name} ({(file.size / 1024).toFixed(1)} KB)

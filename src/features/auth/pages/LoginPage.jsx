@@ -30,8 +30,8 @@ const LoginPage = () => {
   return (
     <AuthLayout>
       <div className="bg-dt-primary p-8 rounded-lg border border-secondary shadow-lg w-full">
-        <div className="text-dt-center mb-8">
-          <h2 className="text-dt-2xl font-bold text-dt-foreground">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-dt-foreground">
             Bienvenido de Nuevo
           </h2>
           <p className="text-dt-subtle">Ingresa a tu cuenta de ASCI</p>

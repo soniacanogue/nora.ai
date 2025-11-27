@@ -158,10 +158,8 @@ const ImportOrdersPage = () => {
         return <Step4Summary summary={job.summary} onReset={resetState} />;
       case "cancelled":
         return (
-          <div className="text-dt-center">
-            <p className="text-dt-yellow-400 font-bold">
-              Importación Cancelada.
-            </p>
+          <div className="text-center">
+            <p className="text-yellow-400 font-bold">Importación Cancelada.</p>
             <Button
               variant="primary"
               size="md"
@@ -180,7 +178,7 @@ const ImportOrdersPage = () => {
 
   return (
     <div>
-      <h1 className="text-dt-3xl font-bold text-dt-foreground mb-6">
+      <h1 className="text-3xl font-bold text-dt-foreground mb-6">
         Importar Órdenes desde CSV
       </h1>
       <div className="bg-dt-primary p-8 rounded-lg border border-secondary min-h-[300px]">
@@ -197,7 +195,7 @@ const ImportOrdersPage = () => {
 // Step Components
 const Step1Upload = ({ onFileSelect, isUploading }) => (
   <div>
-    <h2 className="text-dt-xl font-bold text-dt-foreground mb-4">
+    <h2 className="text-xl font-bold text-dt-foreground mb-4">
       Paso 1: Selecciona tu archivo CSV
     </h2>
     <p className="text-dt-subtle mb-4">
@@ -208,7 +206,7 @@ const Step1Upload = ({ onFileSelect, isUploading }) => (
       type="file"
       accept=".csv"
       onChange={(e) => e.target.files[0] && onFileSelect(e.target.files[0])}
-      className="text-dt-subtle file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-dt-sm file:font-semibold file:bg-dt-accent file:text-dt-foreground hover:file:bg-dt-accent-hover"
+      className="text-dt-subtle file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-dt-accent file:text-dt-foreground hover:file:bg-dt-accent-hover"
       disabled={isUploading}
     />
     {isUploading && <p className="mt-2 text-dt-subtle">Subiendo archivo...</p>}
@@ -224,7 +222,7 @@ const Step2Mapping = ({
   isStarting,
 }) => (
   <div>
-    <h2 className="text-dt-xl font-bold text-dt-foreground mb-4">
+    <h2 className="text-xl font-bold text-dt-foreground mb-4">
       Paso 2: Mapea las columnas
     </h2>
     <p className="text-dt-subtle mb-6">
@@ -235,7 +233,7 @@ const Step2Mapping = ({
       {REQUIRED_FIELDS.map((field) => (
         <div key={field} className="grid grid-cols-2 gap-4 items-center">
           <label className="font-bold text-dt-foreground">
-            {field} <span className="text-dt-red-400">*</span>
+            {field} <span className="text-red-400">*</span>
           </label>
           <select
             value={mapping[field] || ""}
@@ -283,23 +281,23 @@ const Step3Progress = ({ progress, onCancel, isCancelling }) => {
 
   return (
     <div>
-      <h2 className="text-dt-xl font-bold text-dt-foreground mb-4">
+      <h2 className="text-xl font-bold text-dt-foreground mb-4">
         Paso 3: Procesando archivo
       </h2>
-      <div className="flex justify-between text-dt-sm text-dt-subtle mb-2">
+      <div className="flex justify-between text-sm text-dt-subtle mb-2">
         <span className="flex items-center">
           Procesando archivo...
-          <span className="inline-block ml-2 w-2 h-2 bg-dt-green-400 rounded-full animate-pulse"></span>
+          <span className="inline-block ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
         </span>
         <span className="font-mono">{progressValue}%</span>
       </div>
       <div className="w-full bg-dt-secondary rounded-full h-3 mb-6 overflow-hidden">
         <div
-          className="bg-dt-gradient-to-r from-accent to-green-400 h-3 rounded-full transition-all duration-500 ease-out"
+          className="bg-gradient-to-r from-accent to-green-400 h-3 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${progressValue}%` }}
         />
       </div>
-      <div className="text-dt-center">
+      <div className="text-center">
         <Button
           variant="secondary"
           size="md"
@@ -310,7 +308,7 @@ const Step3Progress = ({ progress, onCancel, isCancelling }) => {
           {isCancelling ? "Cancelando..." : "Cancelar Importación"}
         </Button>
       </div>
-      <div className="mt-4 text-dt-xs text-dt-subtle text-dt-center">
+      <div className="mt-4 text-xs text-dt-subtle text-center">
         ⏱️ Actualizando automáticamente cada 2 segundos • Progreso:{" "}
         {progressValue}%
       </div>
@@ -319,12 +317,10 @@ const Step3Progress = ({ progress, onCancel, isCancelling }) => {
 };
 
 const Step4Summary = ({ summary, onReset }) => (
-  <div className="text-dt-center">
+  <div className="text-center">
     <h2
-      className={`text-dt-2xl font-bold mb-4 ${
-        summary.errors?.length === 0
-          ? "text-dt-green-400"
-          : "text-dt-yellow-400"
+      className={`text-2xl font-bold mb-4 ${
+        summary.errors?.length === 0 ? "text-green-400" : "text-yellow-400"
       }`}
     >
       {summary.errors?.length === 0
@@ -332,25 +328,25 @@ const Step4Summary = ({ summary, onReset }) => (
         : "Importación Completada con Advertencias"}
     </h2>
 
-    <div className="bg-dt-background rounded-lg p-6 mb-6 text-dt-left">
-      <div className="grid grid-cols-3 gap-4 text-dt-center mb-4">
+    <div className="bg-dt-background rounded-lg p-6 mb-6 text-left">
+      <div className="grid grid-cols-3 gap-4 text-center mb-4">
         <div>
-          <div className="text-dt-3xl font-bold text-dt-foreground">
+          <div className="text-3xl font-bold text-dt-foreground">
             {summary.total || 0}
           </div>
-          <div className="text-dt-sm text-dt-subtle">Total de Filas</div>
+          <div className="text-sm text-dt-subtle">Total de Filas</div>
         </div>
         <div>
-          <div className="text-dt-3xl font-bold text-dt-green-400">
+          <div className="text-3xl font-bold text-green-400">
             {summary.imported || 0}
           </div>
-          <div className="text-dt-sm text-dt-subtle">Importadas</div>
+          <div className="text-sm text-dt-subtle">Importadas</div>
         </div>
         <div>
-          <div className="text-dt-3xl font-bold text-dt-red-400">
+          <div className="text-3xl font-bold text-red-400">
             {summary.failed || 0}
           </div>
-          <div className="text-dt-sm text-dt-subtle">Fallidas</div>
+          <div className="text-sm text-dt-subtle">Fallidas</div>
         </div>
       </div>
 
@@ -359,13 +355,13 @@ const Step4Summary = ({ summary, onReset }) => (
           <h3 className="font-bold text-dt-foreground mb-2">
             Errores Encontrados:
           </h3>
-          <ul className="list-disc list-inside text-dt-sm text-dt-subtle max-h-40 overflow-y-auto">
+          <ul className="list-disc list-inside text-sm text-dt-subtle max-h-40 overflow-y-auto">
             {summary.errors.slice(0, 10).map((error, idx) => (
               <li key={idx}>{error}</li>
             ))}
           </ul>
           {summary.errors.length > 10 && (
-            <p className="text-dt-xs text-dt-subtle mt-2">
+            <p className="text-xs text-dt-subtle mt-2">
               ...y {summary.errors.length - 10} errores más
             </p>
           )}
