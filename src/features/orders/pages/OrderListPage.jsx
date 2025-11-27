@@ -20,7 +20,7 @@ const OrderListPage = () => {
         (order.cliente?.correo &&
           order.cliente.correo.toLowerCase().includes(lowercasedTerm)) ||
         (order.numeroSeguimiento &&
-          order.numeroSeguimiento.toLowerCase().includes(lowercasedTerm)),
+          order.numeroSeguimiento.toLowerCase().includes(lowercasedTerm))
     );
   }, [searchTerm, orders]); // 5. Añadir `orders` a las dependencias
 
@@ -29,13 +29,13 @@ const OrderListPage = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">Error: {error}</div>;
+    return <div className="text-dt-red-500">Error: {error}</div>;
   }
 
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-dt-3xl font-bold text-dt-foreground">
           Órdenes Importadas
         </h1>
         <div className="w-full md:w-auto md:max-w-xs">
@@ -50,9 +50,9 @@ const OrderListPage = () => {
         </div>
       </div>
 
-      <div className="bg-primary border border-secondary rounded-lg overflow-hidden">
+      <div className="bg-dt-primary border border-secondary rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-secondary text-left text-subtle text-sm">
+          <thead className="bg-dt-secondary text-dt-left text-dt-subtle text-dt-sm">
             <tr>
               <th className="p-4">ID de Orden</th>
               <th className="p-4">Email del Cliente</th>
@@ -65,7 +65,7 @@ const OrderListPage = () => {
             {filteredOrders.length > 0 ? (
               filteredOrders.map((order) => (
                 <tr key={order.id} className="border-b border-secondary">
-                  <td className="p-4 font-mono text-foreground">
+                  <td className="p-4 font-mono text-dt-foreground">
                     {/* 6. Enlazar al detalle de la orden si existe */}
                     <Link
                       to={`/orders/${order.id}`}
@@ -75,19 +75,21 @@ const OrderListPage = () => {
                     </Link>
                   </td>
                   {/* 7. Usar la estructura correcta para el correo */}
-                  <td className="p-4 text-subtle">
+                  <td className="p-4 text-dt-subtle">
                     {order.cliente?.correo || "N/A"}
                   </td>
-                  <td className="p-4 text-foreground">{order.estado}</td>
-                  <td className="p-4 font-mono text-subtle">
+                  <td className="p-4 text-dt-foreground">{order.estado}</td>
+                  <td className="p-4 font-mono text-dt-subtle">
                     {order.numeroSeguimiento || "N/A"}
                   </td>
-                  <td className="p-4 text-foreground">{order.transportista}</td>
+                  <td className="p-4 text-dt-foreground">
+                    {order.transportista}
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="text-center p-8 text-subtle">
+                <td colSpan={5} className="text-dt-center p-8 text-dt-subtle">
                   No se encontraron órdenes que coincidan con tu búsqueda.
                 </td>
               </tr>

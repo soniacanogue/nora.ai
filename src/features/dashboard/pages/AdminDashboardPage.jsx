@@ -53,7 +53,7 @@ const AdminDashboardPage = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">
+      <h1 className="text-dt-3xl font-bold text-dt-foreground mb-6">
         Dashboard del Administrador
       </h1>
 
@@ -63,8 +63,8 @@ const AdminDashboardPage = () => {
           onClick={() => setTimeRange("today")}
           className={`px-4 py-2 rounded-md transition-colors ${
             timeRange === "today"
-              ? "bg-accent text-foreground font-semibold"
-              : "bg-primary text-subtle hover:bg-secondary"
+              ? "bg-dt-accent text-dt-foreground font-semibold"
+              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
           }`}
         >
           Hoy
@@ -73,8 +73,8 @@ const AdminDashboardPage = () => {
           onClick={() => setTimeRange("last7Days")}
           className={`px-4 py-2 rounded-md transition-colors ${
             timeRange === "last7Days"
-              ? "bg-accent text-foreground font-semibold"
-              : "bg-primary text-subtle hover:bg-secondary"
+              ? "bg-dt-accent text-dt-foreground font-semibold"
+              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
           }`}
         >
           Últimos 7 Días

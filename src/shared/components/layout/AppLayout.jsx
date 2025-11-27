@@ -6,8 +6,8 @@ import NoraLogo from "@/shared/components/ui/NoraLogo";
 import UserAvatar from "@/shared/components/ui/UserAvatar";
 
 const navLinkClasses =
-  "flex items-center px-4 py-2 text-subtle rounded-md hover:bg-secondary hover:text-foreground transition-colors";
-const activeNavLinkClasses = "bg-secondary text-foreground";
+  "flex items-center px-4 py-2 text-dt-subtle rounded-md hover:bg-dt-secondary hover:text-dt-foreground transition-colors";
+const activeNavLinkClasses = "bg-dt-secondary text-dt-foreground";
 
 const roleDisplayNames = {
   AGENTE: "Agente de Soporte",
@@ -21,7 +21,7 @@ const AppLayout = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-dt-background">
         Cargando...
       </div>
     );
@@ -32,20 +32,20 @@ const AppLayout = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-dt-background">
       <aside
-        className={`bg-primary p-4 border-r border-secondary flex flex-col h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"}`}
+        className={`bg-dt-primary p-4 border-r border-secondary flex flex-col h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"}`}
       >
         {/* ... (toda la lógica del sidebar se mantiene igual) ... */}
         <div className="mb-8">
           <Link
             to="/"
-            className="text-foreground text-xl font-bold flex items-center justify-center"
+            className="text-dt-foreground text-dt-xl font-bold flex items-center justify-center"
           >
             <NoraLogo collapsed={!sidebarOpen} />
           </Link>
           {sidebarOpen && (
-            <p className="text-subtle text-sm text-center mt-2">
+            <p className="text-dt-subtle text-dt-sm text-dt-center mt-2">
               para GearUp Gadgets
             </p>
           )}
@@ -106,7 +106,7 @@ const AppLayout = () => {
                 {sidebarOpen && "Órdenes"}
               </NavLink>
             </li>
-            
+
             {currentUser.rol === "ADMINISTRADOR" && (
               <>
                 <li>
@@ -141,17 +141,17 @@ const AppLayout = () => {
         </nav>
         <div className="mt-auto">
           <div
-            className={`mt-auto ${sidebarOpen ? "p-4 rounded-md bg-secondary text-center" : "flex items-center justify-center"}`}
+            className={`mt-auto ${sidebarOpen ? "p-4 rounded-md bg-dt-secondary text-dt-center" : "flex items-center justify-center"}`}
           >
             <div className="flex items-center justify-center mb-2">
               <UserAvatar user={currentUser} collapsed={!sidebarOpen} />
             </div>
             {sidebarOpen && (
               <>
-                <p className="font-bold text-foreground">
+                <p className="font-bold text-dt-foreground">
                   {currentUser.nombre}
                 </p>
-                <p className="text-sm text-subtle">
+                <p className="text-dt-sm text-dt-subtle">
                   {roleDisplayNames[currentUser.rol] || "Usuario"}
                 </p>
               </>
@@ -159,7 +159,7 @@ const AppLayout = () => {
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-full mt-4 px-4 py-2 bg-secondary text-foreground rounded-md hover:bg-primary transition-colors"
+            className="w-full mt-4 px-4 py-2 bg-dt-secondary text-dt-foreground rounded-md hover:bg-dt-primary transition-colors"
           >
             {sidebarOpen ? "▶" : "◀"}
           </button>

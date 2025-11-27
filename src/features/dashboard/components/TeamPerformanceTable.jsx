@@ -4,31 +4,31 @@ import React from "react";
 const TeamPerformanceTable = ({ teamPerformance = [] }) => {
   if (!teamPerformance || teamPerformance.length === 0) {
     return (
-      <div className="bg-primary p-6 rounded-lg border border-secondary">
-        <h3 className="text-lg font-bold text-foreground mb-4">
+      <div className="bg-dt-primary p-6 rounded-lg border border-secondary">
+        <h3 className="text-dt-lg font-bold text-dt-foreground mb-4">
           Rendimiento del Equipo
         </h3>
-        <p className="text-subtle">No hay datos disponibles.</p>
+        <p className="text-dt-subtle">No hay datos disponibles.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-primary p-6 rounded-lg border border-secondary">
-      <h3 className="text-lg font-bold text-foreground mb-4">
+    <div className="bg-dt-primary p-6 rounded-lg border border-secondary">
+      <h3 className="text-dt-lg font-bold text-dt-foreground mb-4">
         Rendimiento del Equipo
       </h3>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-secondary">
-              <th className="text-left py-3 px-4 text-sm font-semibold text-subtle">
+              <th className="text-dt-left py-3 px-4 text-dt-sm font-semibold text-dt-subtle">
                 Agente
               </th>
-              <th className="text-center py-3 px-4 text-sm font-semibold text-subtle">
+              <th className="text-dt-center py-3 px-4 text-dt-sm font-semibold text-dt-subtle">
                 Tickets Asignados
               </th>
-              <th className="text-center py-3 px-4 text-sm font-semibold text-subtle">
+              <th className="text-dt-center py-3 px-4 text-dt-sm font-semibold text-dt-subtle">
                 Tickets Resueltos Hoy
               </th>
             </tr>
@@ -37,13 +37,15 @@ const TeamPerformanceTable = ({ teamPerformance = [] }) => {
             {teamPerformance.map((agent) => (
               <tr
                 key={agent.assigneeId}
-                className="border-b border-secondary hover:bg-background transition-colors"
+                className="border-b border-secondary hover:bg-dt-background transition-colors"
               >
-                <td className="py-3 px-4 text-foreground">{agent.agentName}</td>
-                <td className="py-3 px-4 text-center text-foreground">
+                <td className="py-3 px-4 text-dt-foreground">
+                  {agent.agentName}
+                </td>
+                <td className="py-3 px-4 text-dt-center text-dt-foreground">
                   {agent.assigned}
                 </td>
-                <td className="py-3 px-4 text-center text-foreground">
+                <td className="py-3 px-4 text-dt-center text-dt-foreground">
                   {agent.resolvedToday}
                 </td>
               </tr>

@@ -5,6 +5,6 @@
 
 @layer base {
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-dt-background text-dt-foreground antialiased;
   }
 }

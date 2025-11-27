@@ -105,7 +105,7 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Reasignar Ticket">
       <div className="space-y-4">
-        <p className="text-subtle">
+        <p className="text-dt-subtle">
           Selecciona un agente de la lista para asignarle este ticket.
         </p>
 
@@ -117,32 +117,32 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             placeholder="Buscar agente por nombre o correo..."
-            className="w-full p-3 bg-background border border-secondary rounded-md text-foreground placeholder-subtle focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground placeholder-subtle focus:outline-none focus:ring-2 focus:ring-accent"
             disabled={isReassigning}
           />
           {isOpenDropdown && (
             <>
               {filteredAgents.length > 0 ? (
-                <div className="absolute z-10 w-full mt-1 bg-background border border-secondary rounded-md shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-10 w-full mt-1 bg-dt-background border border-secondary rounded-md shadow-lg max-h-60 overflow-auto">
                   {filteredAgents.map((agent) => (
                     <button
                       key={agent.id}
                       type="button"
                       onClick={() => handleSelectAgent(agent.id)}
-                      className="w-full text-left px-4 py-2 hover:bg-secondary text-foreground transition-colors"
+                      className="w-full text-dt-left px-4 py-2 hover:bg-dt-secondary text-dt-foreground transition-colors"
                     >
                       <div className="font-medium">
                         {agent.nombre || "Sin nombre"}
                       </div>
-                      <div className="text-sm text-subtle">
+                      <div className="text-dt-sm text-dt-subtle">
                         {agent.correo || "Sin correo"}
                       </div>
                     </button>
                   ))}
                 </div>
               ) : searchTerm.trim() ? (
-                <div className="absolute z-10 w-full mt-1 bg-background border border-secondary rounded-md shadow-lg">
-                  <div className="px-4 py-2 text-subtle">
+                <div className="absolute z-10 w-full mt-1 bg-dt-background border border-secondary rounded-md shadow-lg">
+                  <div className="px-4 py-2 text-dt-subtle">
                     No se encontraron agentes
                   </div>
                 </div>

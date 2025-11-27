@@ -39,13 +39,15 @@ const NewTicketPage = () => {
   if (isSubmitted) {
     return (
       <PublicLayout>
-        <div className="bg-primary p-8 rounded-lg border border-secondary text-center">
-          <h2 className="text-2xl font-bold text-green-400 mb-4">¡Gracias!</h2>
-          <p className="text-foreground">
+        <div className="bg-dt-primary p-8 rounded-lg border border-secondary text-dt-center">
+          <h2 className="text-dt-2xl font-bold text-dt-green-400 mb-4">
+            ¡Gracias!
+          </h2>
+          <p className="text-dt-foreground">
             Hemos recibido tu consulta. Recibirás una confirmación por correo
             electrónico en breve.
           </p>
-          <p className="text-subtle mt-2">
+          <p className="text-dt-subtle mt-2">
             Tu número de ticket de referencia es: TKT-005.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4">
@@ -59,7 +61,7 @@ const NewTicketPage = () => {
             </Button>
             <a
               href="/"
-              className="text-sm text-subtle hover:text-foreground hover:underline"
+              className="text-dt-sm text-dt-subtle hover:text-dt-foreground hover:underline"
             >
               o volver a la página principal
             </a>
@@ -71,8 +73,8 @@ const NewTicketPage = () => {
 
   return (
     <PublicLayout>
-      <div className="bg-primary p-8 rounded-lg border border-secondary">
-        <h2 className="text-2xl font-bold text-center text-foreground mb-6">
+      <div className="bg-dt-primary p-8 rounded-lg border border-secondary">
+        <h2 className="text-dt-2xl font-bold text-dt-center text-dt-foreground mb-6">
           Contacta con Soporte
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -88,7 +90,7 @@ const NewTicketPage = () => {
                 required
               />
               {errors.name && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-dt-red-500 text-dt-sm mt-1">
                   {typeof errors.name?.message === "string"
                     ? errors.name.message
                     : ""}
@@ -112,7 +114,7 @@ const NewTicketPage = () => {
                 required
               />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-dt-red-500 text-dt-sm mt-1">
                   {typeof errors.email?.message === "string"
                     ? errors.email.message
                     : ""}
@@ -138,7 +140,7 @@ const NewTicketPage = () => {
               required
             />
             {errors.subject && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-dt-red-500 text-dt-sm mt-1">
                 {typeof errors.subject?.message === "string"
                   ? errors.subject.message
                   : ""}
@@ -148,20 +150,20 @@ const NewTicketPage = () => {
           <div>
             <label
               htmlFor="message"
-              className="block text-sm font-medium text-subtle mb-2"
+              className="block text-dt-sm font-medium text-dt-subtle mb-2"
             >
-              Mensaje<span className="text-red-500 ml-1">*</span>
+              Mensaje<span className="text-dt-red-500 ml-1">*</span>
             </label>
             <textarea
               id="message"
               rows={5}
-              className="w-full p-3 bg-background border border-secondary rounded-md"
+              className="w-full p-3 bg-dt-background border border-secondary rounded-md"
               {...register("message", {
                 required: "El mensaje es obligatorio",
               })}
             />
             {errors.message && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-dt-red-500 text-dt-sm mt-1">
                 {typeof errors.message?.message === "string"
                   ? errors.message.message
                   : ""}

@@ -27,16 +27,19 @@ const useAuth = () => ({
 const DashboardPage = () => {
   const { currentUser } = useAuth();
   const { agentId } = useParams();
-  
+
   // Si se proporciona agentId en la URL, usar ese agente; si no, usar el usuario actual
   const targetAgentId = agentId || currentUser?.id;
-  
+
   // Obtener datos del agente específico si se proporciona agentId
-  const targetAgent = agentId 
-    ? mockUsuarios.find(u => u.id === agentId) || 
-      { id: agentId, nombre: "Agente Desconocido", rol: "AGENTE" }
+  const targetAgent = agentId
+    ? mockUsuarios.find((u) => u.id === agentId) || {
+        id: agentId,
+        nombre: "Agente Desconocido",
+        rol: "AGENTE",
+      }
     : currentUser;
-  
+
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'thisWeek'
 
   const {
@@ -83,10 +86,12 @@ const DashboardPage = () => {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-dt-3xl font-bold text-dt-foreground">
           Hola, {targetAgent?.nombre} 👋
         </h1>
-        <p className="text-subtle mt-1">Este es el resumen de tu actividad.</p>
+        <p className="text-dt-subtle mt-1">
+          Este es el resumen de tu actividad.
+        </p>
       </div>
 
       {/* Time Range Selector for Metrics */}
@@ -95,8 +100,8 @@ const DashboardPage = () => {
           onClick={() => setTimeRange("today")}
           className={`px-4 py-2 rounded-md transition-colors ${
             timeRange === "today"
-              ? "bg-accent text-foreground font-semibold"
-              : "bg-primary text-subtle hover:bg-secondary"
+              ? "bg-dt-accent text-dt-foreground font-semibold"
+              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
           }`}
         >
           Hoy
@@ -105,8 +110,8 @@ const DashboardPage = () => {
           onClick={() => setTimeRange("thisWeek")}
           className={`px-4 py-2 rounded-md transition-colors ${
             timeRange === "thisWeek"
-              ? "bg-accent text-foreground font-semibold"
-              : "bg-primary text-subtle hover:bg-secondary"
+              ? "bg-dt-accent text-dt-foreground font-semibold"
+              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
           }`}
         >
           Esta Semana
@@ -141,7 +146,7 @@ const DashboardPage = () => {
             />
           </div>
 
-          <h2 className="text-2xl font-bold text-foreground mb-4">
+          <h2 className="text-dt-2xl font-bold text-dt-foreground mb-4">
             Mis Colas de Trabajo
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -181,7 +186,7 @@ const DashboardPage = () => {
         </div>
 
         <div className="lg:col-span-1">
-          <h2 className="text-2xl font-bold text-foreground mb-4">
+          <h2 className="text-dt-2xl font-bold text-dt-foreground mb-4">
             Actividad Reciente
           </h2>
           <RecentActivityFeed activities={recentActivity} />

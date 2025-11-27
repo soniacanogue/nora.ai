@@ -29,12 +29,12 @@ const LoginPage = () => {
 
   return (
     <AuthLayout>
-      <div className="bg-primary p-8 rounded-lg border border-secondary shadow-lg w-full">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-foreground">
+      <div className="bg-dt-primary p-8 rounded-lg border border-secondary shadow-lg w-full">
+        <div className="text-dt-center mb-8">
+          <h2 className="text-dt-2xl font-bold text-dt-foreground">
             Bienvenido de Nuevo
           </h2>
-          <p className="text-subtle">Ingresa a tu cuenta de ASCI</p>
+          <p className="text-dt-subtle">Ingresa a tu cuenta de ASCI</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -58,7 +58,12 @@ const LoginPage = () => {
             required
             disabled={loading}
           />
-          <Button type="submit" variant="primary" disabled={loading} onClick={handleSubmit}>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={loading}
+            onClick={handleSubmit}
+          >
             {loading ? "Ingresando..." : "Iniciar Sesión"}
           </Button>
         </form>

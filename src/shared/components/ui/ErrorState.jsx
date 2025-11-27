@@ -13,14 +13,18 @@ const ErrorState = ({
   onRetry,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
-      <div className="text-red-500 text-6xl mb-4">⚠️</div>
-      <h2 className="text-xl font-semibold text-foreground mb-2">Error</h2>
-      <p className="text-subtle mb-6 max-w-md">{message}</p>
+    <div className="flex flex-col items-center justify-center p-8 text-dt-center">
+      <div className="text-dt-red-500 text-dt-6xl mb-4">⚠️</div>
+      <h2 className="text-dt-xl font-semibold text-dt-foreground mb-2">
+        Error
+      </h2>
+      <p className="text-dt-subtle mb-6 max-w-md">{message}</p>
       {onRetry && (
         <button
-          onClick={typeof onRetry === "function" ? (e) => onRetry(e) : undefined}
-          className="px-6 py-2 bg-accent text-foreground font-semibold rounded-md hover:bg-accent/80 transition-colors"
+          onClick={
+            typeof onRetry === "function" ? (e) => onRetry(e) : undefined
+          }
+          className="px-6 py-2 bg-dt-accent text-dt-foreground font-semibold rounded-md hover:bg-dt-accent/80 transition-colors"
         >
           Reintentar
         </button>

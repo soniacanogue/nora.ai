@@ -16,7 +16,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   // Muestra un estado de carga mientras el hook de autenticación determina el usuario
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-dt-background">
         Verificando sesión...
       </div>
     );

@@ -20,18 +20,19 @@ const Button = ({
 
   // Variantes de color
   const variantStyles = {
-    primary: "bg-accent text-foreground hover:bg-accent-hover active:bg-accent-hover/80",
+    primary:
+      "bg-dt-accent text-dt-foreground hover:bg-dt-accent-hover active:bg-dt-accent-hover/80",
     secondary:
-      "bg-secondary text-foreground hover:bg-primary border border-subtle hover:border-accent",
-    ghost: "text-foreground hover:bg-white/10 border border-transparent",
+      "bg-dt-secondary text-dt-foreground hover:bg-dt-primary border border-subtle hover:border-accent",
+    ghost: "text-dt-foreground hover:bg-dt-white/10 border border-transparent",
   };
 
   // Tamaños - más balanceados y profesionales
   const sizeStyles = {
-    sm: "px-3 py-1.5 text-xs",
-    md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base",
-    xl: "px-8 py-4 text-lg",
+    sm: "px-3 py-1.5 text-dt-xs",
+    md: "px-4 py-2 text-dt-sm",
+    lg: "px-6 py-3 text-dt-base",
+    xl: "px-8 py-4 text-dt-lg",
   };
 
   // Ancho

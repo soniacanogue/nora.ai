@@ -5,17 +5,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "#0D1117", // Nuestro fondo principal
-        primary: "#161B22", // Color para contenedores, paneles, etc.
-        secondary: "#21262D", // Un tono más claro para bordes o fondos sutiles
-        accent: {
-          DEFAULT: "#8A2BE2", // Nuestro acento principal (BlueViolet)
-          hover: "#9932CC", // Un tono más oscuro para hover (DarkOrchid)
+        "dt-background": "#0D1117",
+        "dt-primary": "#161B22",
+        "dt-secondary": "#21262D",
+        "dt-accent": {
+          DEFAULT: "#8A2BE2",
+          hover: "#9932CC",
         },
-        foreground: "#FFFFFF", // Nuestro texto principal
-        subtle: "#8B949E", // Texto secundario o íconos
+        "dt-foreground": "#FFFFFF",
+        "dt-subtle": "#8B949E",
       },
-      // Opcional: una sombra nítida para el estilo neobrutalista
       boxShadow: {
         sharp: "4px 4px 0px 0px rgba(0,0,0,0.9)",
       },

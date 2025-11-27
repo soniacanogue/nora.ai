@@ -10,16 +10,16 @@ import { useTicketQueue } from "../hooks/useTicketQueue"; // NUEVO Hook para nav
 // El componente Skeleton es una excelente práctica, lo mantenemos.
 const TicketDetailSkeleton = () => (
   <div className="animate-pulse">
-    <div className="h-6 bg-secondary rounded w-1/4 mb-4"></div>
-    <div className="h-10 bg-secondary rounded w-3/4 mb-2"></div>
-    <div className="h-5 bg-secondary rounded w-1/2 mb-8"></div>
+    <div className="h-6 bg-dt-secondary rounded w-1/4 mb-4"></div>
+    <div className="h-10 bg-dt-secondary rounded w-3/4 mb-2"></div>
+    <div className="h-5 bg-dt-secondary rounded w-1/2 mb-8"></div>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 bg-primary border border-secondary rounded-lg p-6 space-y-6">
-        <div className="h-20 bg-secondary rounded"></div>
-        <div className="h-20 bg-secondary rounded"></div>
+      <div className="lg:col-span-2 bg-dt-primary border border-secondary rounded-lg p-6 space-y-6">
+        <div className="h-20 bg-dt-secondary rounded"></div>
+        <div className="h-20 bg-dt-secondary rounded"></div>
       </div>
-      <div className="lg:col-span-1 bg-primary border border-secondary rounded-lg p-6">
-        <div className="h-40 bg-secondary rounded"></div>
+      <div className="lg:col-span-1 bg-dt-primary border border-secondary rounded-lg p-6">
+        <div className="h-40 bg-dt-secondary rounded"></div>
       </div>
     </div>
   </div>
@@ -85,11 +85,18 @@ const TicketDetailPage = () => {
 
   if (isError) {
     return (
-      <div className="text-center text-red-500 p-8">
-        <h2 className="text-2xl font-bold mb-2">Error al cargar el ticket</h2>
+      <div className="text-dt-center text-dt-red-500 p-8">
+        <h2 className="text-dt-2xl font-bold mb-2">
+          Error al cargar el ticket
+        </h2>
         <p>{error.message}</p>
         <Link to="/tickets" className="mt-4 inline-block">
-          <Button variant="secondary" size="md" fullWidth={false} onClick={()=>{}}>
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth={false}
+            onClick={() => {}}
+          >
             Volver a la lista
           </Button>
         </Link>
@@ -99,7 +106,7 @@ const TicketDetailPage = () => {
 
   if (!ticket) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center">
+      <div className="flex flex-col items-center justify-center h-full text-dt-center">
         {/* ... (código del error 404 sin cambios) ... */}
       </div>
     );
@@ -112,16 +119,16 @@ const TicketDetailPage = () => {
         <div>
           <Link
             to="/tickets"
-            className="text-sm text-subtle hover:text-foreground"
+            className="text-dt-sm text-dt-subtle hover:text-dt-foreground"
           >
             &larr; Volver a la Bandeja de Entrada
           </Link>
-          <h1 className="text-3xl font-bold text-foreground mt-2">
+          <h1 className="text-dt-3xl font-bold text-dt-foreground mt-2">
             {ticket.asunto}
           </h1>
-          <p className="text-subtle">
-            Cliente: {" "}
-            <span className="text-foreground font-medium">
+          <p className="text-dt-subtle">
+            Cliente:{" "}
+            <span className="text-dt-foreground font-medium">
               {ticket.cliente?.nombre || ""}
             </span>{" "}
             ({ticket.cliente?.correo || ""})
@@ -141,8 +148,8 @@ const TicketDetailPage = () => {
         <div className="lg:col-span-2 space-y-6">
           {ticket.orden && <OrderInfoPanel order={ticket.orden} />}
 
-          <div className="bg-primary border border-secondary rounded-lg p-6">
-            <h2 className="text-xl font-bold text-foreground mb-6">
+          <div className="bg-dt-primary border border-secondary rounded-lg p-6">
+            <h2 className="text-dt-xl font-bold text-dt-foreground mb-6">
               Historial de la Conversación
             </h2>
             <div className="space-y-6">

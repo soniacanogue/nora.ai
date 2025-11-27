@@ -38,8 +38,8 @@ const PieChart = ({
 
   return (
     // --- CORRECCIÓN 1: Quitar la altura fija de aquí ---
-    <div className="bg-primary p-6 rounded-lg border border-secondary flex flex-col h-full">
-      <h3 className="text-lg font-bold text-foreground mb-4">{title}</h3>
+    <div className="bg-dt-primary p-6 rounded-lg border border-secondary flex flex-col h-full">
+      <h3 className="text-dt-lg font-bold text-dt-foreground mb-4">{title}</h3>
       {/* --- CORRECCIÓN 2: Dar altura explícita al contenedor del gráfico --- */}
       <div className="flex-grow">
         <ResponsiveContainer width="100%" height={300}>

@@ -40,7 +40,7 @@ const TicketListPage = () => {
     error,
   } = useTickets(
     { status: statusFilter, assigneeId: assigneeFilter },
-    sortConfig,
+    sortConfig
   );
 
   const { mutate: claim, isLoading: isClaiming } = useClaimTicket();
@@ -94,70 +94,77 @@ const TicketListPage = () => {
   }
 
   if (isError) {
-    return <div className="text-red-500">Error: {error.message}</div>;
+    return <div className="text-dt-red-500">Error: {error.message}</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-dt-3xl font-bold text-dt-foreground">
           Tickets de Nivel 2
         </h1>
-        <Button variant="secondary" size="md" fullWidth={false} onClick={openModal}>
+        <Button
+          variant="secondary"
+          size="md"
+          fullWidth={false}
+          onClick={openModal}
+        >
           Crear Ticket
         </Button>
       </div>
 
-      <div className="bg-primary border border-secondary rounded-lg overflow-hidden">
+      <div className="bg-dt-primary border border-secondary rounded-lg overflow-hidden">
         <table className="w-full">
           <thead className="border-b border-secondary">
             <tr>
               <th
-                className="p-4 text-left cursor-pointer"
+                className="p-4 text-dt-left cursor-pointer"
                 onClick={() => handleSort("prioridad")}
               >
                 Prioridad {getSortIcon("prioridad")}
               </th>
-              <th className="p-4 text-left">Asunto</th>
-              <th className="p-4 text-left">Cliente</th>
+              <th className="p-4 text-dt-left">Asunto</th>
+              <th className="p-4 text-dt-left">Cliente</th>
               <th
-                className="p-4 text-left cursor-pointer"
+                className="p-4 text-dt-left cursor-pointer"
                 onClick={() => handleSort("assigneeId")}
               >
                 Agente Asignado {getSortIcon("assigneeId")}
               </th>
               <th
-                className="p-4 text-left cursor-pointer"
+                className="p-4 text-dt-left cursor-pointer"
                 onClick={() => handleSort("creadoEn")}
               >
                 Última Actualización {getSortIcon("creadoEn")}
               </th>
-              <th className="p-4 text-left">Acción</th>
+              <th className="p-4 text-dt-left">Acción</th>
             </tr>
           </thead>
           <tbody>
             {tickets?.map((ticket) => (
               <tr
                 key={ticket.id}
-                className="border-b border-secondary hover:bg-white/5 transition-colors"
+                className="border-b border-secondary hover:bg-dt-white/5 transition-colors"
               >
                 <td className="p-4">
                   {/* Icono de prioridad */} {ticket.prioridad}
                 </td>
                 <td
-                  className="p-4 text-foreground hover:underline cursor-pointer"
+                  className="p-4 text-dt-foreground hover:underline cursor-pointer"
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                 >
                   {ticket.asunto}
                 </td>
-                <td className="p-4 text-subtle">{ticket.cliente?.nombre || ""}</td>
-                <td className="p-4 text-subtle">
+                <td className="p-4 text-dt-subtle">
+                  {ticket.cliente?.nombre || ""}
+                </td>
+                <td className="p-4 text-dt-subtle">
                   {ticket.assigneeId
                     ? mockUsuarios.find((u) => u.id === ticket.assigneeId)
                         ?.nombre || "Usuario no encontrado"
                     : "Sin Asignar"}
                 </td>
-                <td className="p-4 text-subtle">
+                <td className="p-4 text-dt-subtle">
                   {new Date(ticket.creadoEn).toLocaleDateString()}
                 </td>
                 <td className="p-4">
@@ -212,14 +219,14 @@ const TicketListPage = () => {
           <div>
             <label
               htmlFor="message"
-              className="block text-sm font-medium text-subtle mb-2"
+              className="block text-dt-sm font-medium text-dt-subtle mb-2"
             >
               Mensaje Inicial
             </label>
             <textarea
               id="message"
               rows={4}
-              className="w-full p-3 bg-background border border-secondary rounded-md"
+              className="w-full p-3 bg-dt-background border border-secondary rounded-md"
               value={formData.message}
               onChange={(e) =>
                 setFormData({ ...formData, message: e.target.value })

@@ -12,10 +12,11 @@ import ReassignTicketModal from "./ReassignTicketModal"; // Importar el nuevo mo
 // --- FIN DE LAS CORRECCIONES ---
 
 const getConfidenceColor = (confidence) => {
-  if (confidence === null || confidence === undefined) return "text-gray-500";
-  if (confidence >= 0.9) return "text-green-400";
-  if (confidence >= 0.75) return "text-yellow-400";
-  return "text-orange-500";
+  if (confidence === null || confidence === undefined)
+    return "text-dt-gray-500";
+  if (confidence >= 0.9) return "text-dt-green-400";
+  if (confidence >= 0.75) return "text-dt-yellow-400";
+  return "text-dt-orange-500";
 };
 
 const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
@@ -50,7 +51,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
           // La navegación la manejaría el componente padre si el ticket desaparece de la cola
           onApprovalSuccess();
         },
-      },
+      }
     );
   };
 
@@ -62,7 +63,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
           setIsReassignModalOpen(false);
           onApprovalSuccess();
         },
-      },
+      }
     );
   };
 
@@ -71,15 +72,17 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
 
   return (
     <>
-      <div className="bg-primary border border-secondary rounded-lg p-6">
-        <h2 className="text-xl font-bold text-foreground mb-4">
+      <div className="bg-dt-primary border border-secondary rounded-lg p-6">
+        <h2 className="text-dt-xl font-bold text-dt-foreground mb-4">
           Sugerencia de Nora AI
         </h2>
 
         <div className="mb-4">
-          <label className="text-sm font-medium text-subtle">Confianza</label>
+          <label className="text-dt-sm font-medium text-dt-subtle">
+            Confianza
+          </label>
           <p
-            className={`text-2xl font-bold ${getConfidenceColor(suggestion.confidence)}`}
+            className={`text-dt-2xl font-bold ${getConfidenceColor(suggestion.confidence)}`}
           >
             {suggestion.confidence
               ? `${(suggestion.confidence * 100).toFixed(0)}%`
@@ -90,7 +93,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
         <div className="mb-4">
           <label
             htmlFor="suggested-reply"
-            className="text-sm font-medium text-subtle"
+            className="text-dt-sm font-medium text-dt-subtle"
           >
             Respuesta Sugerida
           </label>
@@ -99,19 +102,19 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
             value={editedReply}
             onChange={(e) => setEditedReply(e.target.value)}
             rows={8}
-            className="w-full mt-1 p-3 bg-background border border-secondary rounded-md text-foreground text-sm"
+            className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-dt-sm"
           />
         </div>
 
         <div className="mb-6">
-          <label className="text-sm font-medium text-subtle">
+          <label className="text-dt-sm font-medium text-dt-subtle">
             Etiquetas Sugeridas
           </label>
           <div className="flex flex-wrap gap-2 mt-1">
             {suggestion.suggested_tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
+                className="px-2 py-1 bg-dt-gray-700 text-dt-gray-300 text-dt-xs rounded"
               >
                 {tag}
               </span>
@@ -161,14 +164,14 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
         onClose={() => setIsEscalateModalOpen(false)}
         title="Escalar a Nivel 2"
       >
-        <p className="text-subtle mb-4">
+        <p className="text-dt-subtle mb-4">
           Añade una nota interna obligatoria para el especialista de Nivel 2.
         </p>
         <textarea
           value={escalationNote}
           onChange={(e) => setEscalationNote(e.target.value)}
           rows={4}
-          className="w-full mt-1 p-3 bg-background border border-secondary rounded-md text-foreground text-sm"
+          className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-dt-sm"
           placeholder="Ej: El cliente confirma que ha reiniciado el dispositivo. El problema parece ser de hardware."
         />
         <div className="flex justify-end gap-4 mt-4">
