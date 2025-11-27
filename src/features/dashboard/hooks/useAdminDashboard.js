@@ -4,6 +4,8 @@ import { getAdminDashboardData } from "../api/dashboardApi";
 
 /**
  * A hook to fetch and manage data for the admin dashboard.
+ * @deprecated This hook has been replaced by using `useQuery` from @tanstack/react-query directly.
+ * Use `useQuery({ queryKey: ['adminDashboard'], queryFn: getAdminDashboardData })` instead.
  * @returns {{dashboardData: object|null, isLoading: boolean, error: string|null}}
  */
 export const useAdminDashboard = () => {

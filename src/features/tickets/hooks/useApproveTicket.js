@@ -1,38 +1,39 @@
 // src/features/tickets/hooks/useApproveTicket.js
-import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { approveTicket } from "../api/ticketsApi";
 import toast from "react-hot-toast";
 
 /**
  * A hook to approve a ticket with the suggested or edited response.
- * @returns {{ approve: Function, isApproving: boolean, error: string|null }}
+ * @param {object} options - Opciones como onSuccess para callbacks.
+ * @returns {any}
  */
-export const useApproveTicket = () => {
-  const [isApproving, setIsApproving] = useState(false);
-  const [error, setError] = useState(null);
+export const useApproveTicket = (options = {}) => {
+  const queryClient = useQueryClient();
 
-  const approve = async (ticketId, editedBody) => {
-    try {
-      setIsApproving(true);
-      setError(null);
-      
-      const result = await approveTicket(ticketId, { editedBody });
-      
-      if (result.success) {
-        toast.success("Ticket aprobado y respuesta enviada correctamente");
-        return result;
-      } else {
-        throw new Error("No se pudo aprobar el ticket");
+  return useMutation({
+    mutationFn: async ({ ticketId, editedBody }) => {
+      await approveTicket(ticketId, { editedBody });
+      return { ticketId, editedBody };
+    },
+    onSuccess: (data, variables) => {
+      toast.success(
+        `Ticket ${variables.ticketId} aprobado y respuesta enviada.`,
+      );
+      // Invalidamos la lista de tickets para que se refresque la cola
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      // También invalidamos el detalle del ticket por si acaso
+      queryClient.invalidateQueries({
+        queryKey: ["ticket", variables.ticketId],
+      });
+
+      // Ejecutamos el callback onSuccess si existe (para la navegación)
+      if (options.onSuccess) {
+        options.onSuccess(data, variables);
       }
-    } catch (err) {
-      const errorMessage = err.message || "Error al aprobar el ticket";
-      setError(errorMessage);
-      toast.error(errorMessage);
-      throw err;
-    } finally {
-      setIsApproving(false);
-    }
-  };
-
-  return { approve, isApproving, error };
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al aprobar el ticket.");
+    },
+  });
 };

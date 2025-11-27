@@ -51,7 +51,8 @@ const NewTicketPage = () => {
           <div className="mt-8 flex flex-col items-center gap-4">
             <Button
               onClick={handleCreateAnother}
-              className="w-full max-w-xs"
+              size="md"
+              fullWidth={false}
               variant="secondary"
             >
               Crear otro ticket
@@ -174,14 +175,7 @@ const NewTicketPage = () => {
           <Button
             type="submit"
             variant="primary"
-            disabled={isSubmitting}
-            onClick={() => {}}
-          >
-            {isSubmitting ? "Enviando..." : "Enviar Consulta"}
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
+            size="md"
             disabled={isSubmitting}
             onClick={() => {}}
           >

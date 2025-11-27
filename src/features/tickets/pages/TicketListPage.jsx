@@ -1,52 +1,67 @@
-// src/features/tickets/pages/TicketListPage.jsx
-
-import React, { useState, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
-import AppLayout from "src/shared/components/layout/AppLayout";
-import Button from "src/shared/components/ui/Button";
-import TicketRow from "../components/TicketRow"; // Importamos el nuevo componente
-import Modal from "src/shared/components/ui/Modal";
-import Input from "src/shared/components/ui/Input";
-import FileUpload from "src/shared/components/ui/FileUpload";
-import { mockTickets } from "@/data/mockTickets";
+import React, { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTickets } from "../hooks/useTickets";
+import { useClaimTicket } from "../hooks/useClaimTicket"; // Nuevo
+import { useAuth } from "@/shared/hooks/useAuth"; // Para obtener el agente actual
+import { FaArrowUp, FaArrowDown } from "react-icons/fa"; // Iconos para ordenamiento
+import Button from "@/shared/components/ui/Button";
+import Modal from "@/shared/components/ui/Modal";
+import Input from "@/shared/components/ui/Input";
+import FileUpload from "@/shared/components/ui/FileUpload";
+import { mockUsuarios } from "@/data/mockUsuarios";
 
 const TicketListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [files, setFiles] = useState([]);
-  const [searchParams] = useSearchParams();
+  const [formData, setFormData] = useState({
+    clientEmail: "",
+    subject: "",
+    message: "",
+  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
-  // Extract filter parameters from URL
+  // -- State para ordenamiento --
+  const [sortConfig, setSortConfig] = useState({
+    key: "prioridad",
+    order: "desc",
+  });
+
+  // -- Filtros desde la URL --
   const statusFilter = searchParams.get("status");
   const assigneeFilter = searchParams.get("assignee");
 
-  // Filter and sort tickets based on URL parameters
-  const filteredAndSortedTickets = useMemo(() => {
-    let tickets = [...mockTickets];
+  // -- Hook de datos con filtros y ordenamiento --
+  const {
+    data: tickets,
+    isLoading,
+    isError,
+    error,
+  } = useTickets(
+    { status: statusFilter, assigneeId: assigneeFilter },
+    sortConfig,
+  );
 
-    // Filter by status
-    if (statusFilter) {
-      const statuses = statusFilter.split(",");
-      tickets = tickets.filter((ticket) => statuses.includes(ticket.estado));
+  const { mutate: claim, isLoading: isClaiming } = useClaimTicket();
+
+  const handleSort = (key) => {
+    let order = "asc";
+    if (sortConfig.key === key && sortConfig.order === "asc") {
+      order = "desc";
     }
+    setSortConfig({ key, order });
+  };
 
-    // Filter by assignee (if "me", would need current user context)
-    if (assigneeFilter && assigneeFilter !== "me") {
-      tickets = tickets.filter((ticket) => ticket.assigneeId === assigneeFilter);
-    }
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.order === "asc" ? (
+      <FaArrowUp className="inline ml-1" />
+    ) : (
+      <FaArrowDown className="inline ml-1" />
+    );
+  };
 
-    // Sort by AI confidence if viewing triage queue
-    if (statusFilter && statusFilter.includes("ia_sugerido")) {
-      tickets.sort((a, b) => {
-        const aConfidence = a.mensajes?.[0]?.confianzaIA || 0;
-        const bConfidence = b.mensajes?.[0]?.confianzaIA || 0;
-        return bConfidence - aConfidence; // Sort descending by confidence
-      });
-    }
-
-    return tickets;
-  }, [statusFilter, assigneeFilter]);
-
-  // ... (lógica del modal sin cambios)
   const handleCreateTicket = (e) => {
     e.preventDefault();
     console.log("Creando ticket desde el modal...");
@@ -74,65 +89,98 @@ const TicketListPage = () => {
     return "Bandeja de Entrada";
   };
 
+  if (isLoading) {
+    return <div>Cargando tickets...</div>; // Usar un Skeleton aquí
+  }
+
+  if (isError) {
+    return <div className="text-red-500">Error: {error.message}</div>;
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-foreground">
-          {getPageTitle()}
+          Tickets de Nivel 2
         </h1>
-        <Button variant="secondary" className="w-auto" onClick={openModal}>
+        <Button variant="secondary" size="md" fullWidth={false} onClick={openModal}>
           Crear Ticket
         </Button>
       </div>
 
-      {filteredAndSortedTickets.length === 0 ? (
-        <div className="bg-primary border border-secondary rounded-lg p-8 text-center">
-          <p className="text-subtle">No hay tickets que coincidan con los filtros seleccionados.</p>
-        </div>
-      ) : (
-        <div className="bg-primary border border-secondary rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="border-b border-secondary">
-              <tr>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-subtle">
-                  Asunto
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-subtle">
-                  Estado
-                </th>
-                <th className="text-center py-3 px-4 text-sm font-semibold text-subtle">
-                  Confianza IA
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-subtle">
-                  Etiquetas
-                </th>
+      <div className="bg-primary border border-secondary rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="border-b border-secondary">
+            <tr>
+              <th
+                className="p-4 text-left cursor-pointer"
+                onClick={() => handleSort("prioridad")}
+              >
+                Prioridad {getSortIcon("prioridad")}
+              </th>
+              <th className="p-4 text-left">Asunto</th>
+              <th className="p-4 text-left">Cliente</th>
+              <th
+                className="p-4 text-left cursor-pointer"
+                onClick={() => handleSort("assigneeId")}
+              >
+                Agente Asignado {getSortIcon("assigneeId")}
+              </th>
+              <th
+                className="p-4 text-left cursor-pointer"
+                onClick={() => handleSort("creadoEn")}
+              >
+                Última Actualización {getSortIcon("creadoEn")}
+              </th>
+              <th className="p-4 text-left">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tickets?.map((ticket) => (
+              <tr
+                key={ticket.id}
+                className="border-b border-secondary hover:bg-white/5 transition-colors"
+              >
+                <td className="p-4">
+                  {/* Icono de prioridad */} {ticket.prioridad}
+                </td>
+                <td
+                  className="p-4 text-foreground hover:underline cursor-pointer"
+                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                >
+                  {ticket.asunto}
+                </td>
+                <td className="p-4 text-subtle">{ticket.cliente?.nombre || ""}</td>
+                <td className="p-4 text-subtle">
+                  {ticket.assigneeId
+                    ? mockUsuarios.find((u) => u.id === ticket.assigneeId)
+                        ?.nombre || "Usuario no encontrado"
+                    : "Sin Asignar"}
+                </td>
+                <td className="p-4 text-subtle">
+                  {new Date(ticket.creadoEn).toLocaleDateString()}
+                </td>
+                <td className="p-4">
+                  {!ticket.assigneeId && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      fullWidth={false}
+                      onClick={() =>
+                        claim({ ticketId: ticket.id, agentId: currentUser?.id })
+                      }
+                      disabled={isClaiming}
+                    >
+                      Tomar
+                    </Button>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filteredAndSortedTickets.map((ticket) => {
-                const latestMessage = ticket.mensajes?.[0];
-                const aiConfidence = latestMessage?.confianzaIA;
-                const suggestedTags = ticket.etiquetas.map(
-                  (etiqueta) => etiqueta.nombre
-                );
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-                return (
-                  <TicketRow
-                    key={ticket.id}
-                    id={ticket.id} // <-- PASAMOS EL ID PARA LA NAVEGACIÓN
-                    subject={ticket.asunto}
-                    status={ticket.estado}
-                    aiConfidence={aiConfidence}
-                    tags={suggestedTags}
-                  />
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* --- MODAL (sin cambios en su estructura interna) --- */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -145,12 +193,20 @@ const TicketListPage = () => {
             label="Correo del Cliente"
             type="email"
             placeholder="Ingresa el correo del cliente"
+            value={formData.clientEmail}
+            onChange={(e) =>
+              setFormData({ ...formData, clientEmail: e.target.value })
+            }
             required
           />
           <Input
             id="subject"
             label="Asunto"
             placeholder="Ingresa el asunto"
+            value={formData.subject}
+            onChange={(e) =>
+              setFormData({ ...formData, subject: e.target.value })
+            }
             required
           />
           <div>
@@ -164,6 +220,10 @@ const TicketListPage = () => {
               id="message"
               rows={4}
               className="w-full p-3 bg-background border border-secondary rounded-md"
+              value={formData.message}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
               required
             />
           </div>
@@ -175,12 +235,19 @@ const TicketListPage = () => {
             <Button
               type="button"
               variant="secondary"
-              className="w-auto"
+              size="md"
+              fullWidth={false}
               onClick={() => setIsModalOpen(false)}
             >
               Cancelar
             </Button>
-            <Button type="submit" variant="primary" className="w-auto">
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              fullWidth={false}
+              onClick={handleCreateTicket}
+            >
               Crear
             </Button>
           </div>

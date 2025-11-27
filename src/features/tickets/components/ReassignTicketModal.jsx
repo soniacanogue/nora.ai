@@ -14,14 +14,14 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
     // Filtrar por rol y eliminar duplicados por ID
     const uniqueAgents = [];
     const seenIds = new Set();
-    
+
     mockUsuarios.forEach((user) => {
       if (user.rol === "AGENTE" && !seenIds.has(user.id)) {
         seenIds.add(user.id);
         uniqueAgents.push(user);
       }
     });
-    
+
     return uniqueAgents;
   }, []);
 
@@ -131,8 +131,12 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
                       onClick={() => handleSelectAgent(agent.id)}
                       className="w-full text-left px-4 py-2 hover:bg-secondary text-foreground transition-colors"
                     >
-                      <div className="font-medium">{agent.nombre || "Sin nombre"}</div>
-                      <div className="text-sm text-subtle">{agent.correo || "Sin correo"}</div>
+                      <div className="font-medium">
+                        {agent.nombre || "Sin nombre"}
+                      </div>
+                      <div className="text-sm text-subtle">
+                        {agent.correo || "Sin correo"}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -151,7 +155,8 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
           <Button
             type="button"
             variant="secondary"
-            className="w-auto"
+            size="md"
+            fullWidth={false}
             onClick={onClose}
             disabled={isReassigning}
           >
@@ -160,7 +165,8 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
           <Button
             type="button"
             variant="primary"
-            className="w-auto"
+            size="md"
+            fullWidth={false}
             onClick={handleConfirm}
             disabled={!selectedAgent || isReassigning}
           >

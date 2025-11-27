@@ -20,7 +20,7 @@ const OrderListPage = () => {
         (order.cliente?.correo &&
           order.cliente.correo.toLowerCase().includes(lowercasedTerm)) ||
         (order.numeroSeguimiento &&
-          order.numeroSeguimiento.toLowerCase().includes(lowercasedTerm))
+          order.numeroSeguimiento.toLowerCase().includes(lowercasedTerm)),
     );
   }, [searchTerm, orders]); // 5. Añadir `orders` a las dependencias
 

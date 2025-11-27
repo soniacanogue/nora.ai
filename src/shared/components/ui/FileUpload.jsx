@@ -30,8 +30,9 @@ const FileUpload = ({ label, onFilesSelect }) => {
       <Button
         type="button"
         variant="secondary"
+        size="md"
+        fullWidth={false}
         onClick={handleButtonClick}
-        className="w-auto"
       >
         Seleccionar Archivos...
       </Button>

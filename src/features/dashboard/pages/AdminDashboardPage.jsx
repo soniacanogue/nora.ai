@@ -1,30 +1,51 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import StatCard from "../components/StatCard";
 import SimpleBarChart from "../components/SimpleBarChart";
 import TeamPerformanceTable from "../components/TeamPerformanceTable";
 import PieChart from "../components/PieChart";
-import DashboardSkeleton from "../components/DashboardSkeleton";
-import { useAdminDashboard } from "../hooks/useAdminDashboard";
-import AppLayout from "src/shared/components/layout/AppLayout";
+import { AdminDashboardSkeleton } from "../components/DashboardSkeleton";
+import { getAdminDashboardData } from "../api/dashboardApi";
+import ErrorState from "src/shared/components/ui/ErrorState";
+import EmptyState from "src/shared/components/ui/EmptyState";
+import { formatTicketStatus, formatChannel } from "src/shared/utils/formatters"; // <- IMPORTAR
 
 const AdminDashboardPage = () => {
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'last7Days'
-  const { dashboardData, isLoading, error } = useAdminDashboard();
+
+  const {
+    data: dashboardData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["adminDashboard", timeRange],
+    queryFn: () => getAdminDashboardData(timeRange),
+  });
 
   if (isLoading) {
-    return <DashboardSkeleton />;
+    return <AdminDashboardSkeleton />;
   }
 
-  if (error) {
+  if (isError) {
     return (
-      <div className="text-red-500 p-4">
-        <strong>Error al cargar el dashboard:</strong> {error}
-      </div>
+      <ErrorState
+        message={
+          error?.message || "Error al cargar el dashboard del administrador."
+        }
+        onRetry={refetch}
+      />
     );
   }
 
   if (!dashboardData) {
-    return <div>No se encontraron datos para el dashboard.</div>;
+    return (
+      <EmptyState
+        message="No se encontraron datos para el dashboard del administrador."
+        icon="📭"
+      />
+    );
   }
 
   const { kpis, workload, teamPerformance, distribution } = dashboardData;
@@ -86,7 +107,11 @@ const AdminDashboardPage = () => {
 
       {/* Gráficos - Primera Fila */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <SimpleBarChart data={workload} />
+        <SimpleBarChart
+          data={workload}
+          title="Carga de Trabajo Actual"
+          nameFormatter={formatTicketStatus} // <- PASAR EL FORMATEADOR
+        />
         <TeamPerformanceTable teamPerformance={teamPerformance} />
       </div>
 
@@ -95,14 +120,14 @@ const AdminDashboardPage = () => {
         <PieChart
           data={distribution.byChannel}
           title="Distribución por Canal"
-          dataKey="count"
           nameKey="channel"
+          nameFormatter={formatChannel} // <- PASAR EL FORMATEADOR
         />
         <PieChart
           data={distribution.byTag}
           title="Distribución por Etiqueta"
-          dataKey="count"
           nameKey="tag"
+          // No se necesita formateador aquí si las etiquetas ya son legibles
         />
       </div>
     </div>
