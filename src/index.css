@@ -91,4 +91,56 @@
   textarea:focus {
     @apply outline-none ring-2 ring-accent border-accent;
   }
+
+  /* Estilos para autocompletado del navegador */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #0D1117 inset !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    caret-color: #FFFFFF !important;
+  }
+
+  /* Estilos para el dropdown de sugerencias del navegador */
+  input::-webkit-contacts-auto-fill-button,
+  input::-webkit-credentials-auto-fill-button {
+    background-color: #8A2BE2;
+  }
+
+  /* Estilos para datalist (sugerencias HTML5) */
+  datalist {
+    background-color: #161B22;
+    border: 1px solid #21262D;
+  }
+
+  datalist option {
+    background-color: #161B22;
+    color: #FFFFFF;
+  }
+
+  datalist option:hover {
+    background-color: #8A2BE2;
+    color: #FFFFFF;
+  }
+
+  /* Estilos para el dropdown de sugerencias del navegador (autocompletado) */
+  /* Chrome/Edge autocomplete dropdown */
+  input::-webkit-contacts-auto-fill-button,
+  input::-webkit-credentials-auto-fill-button {
+    background-color: #8A2BE2;
+  }
+
+  /* Estilos para el dropdown de sugerencias del navegador */
+  /* Esto afecta el dropdown nativo del navegador */
+  input::-webkit-list-button,
+  input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+
+  /* Para el dropdown de sugerencias del navegador, usar fondo claro */
+  /* Nota: Los navegadores tienen control limitado sobre estos estilos */
+  input[list]::-webkit-calendar-picker-indicator {
+    background-color: #161B22;
+  }
 }

@@ -28,7 +28,11 @@ const Input = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full px-3 py-2 bg-dt-background border border-secondary rounded-md text-dt-foreground placeholder-subtle focus:outline-none focus:ring-2 focus:ring-accent"
+        className="w-full px-3 py-2 bg-white border border-secondary rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+        style={{
+          colorScheme: "light",
+        }}
+        autoComplete="off"
         required={required} // Pasamos el prop al input real
         {...props}
       />
