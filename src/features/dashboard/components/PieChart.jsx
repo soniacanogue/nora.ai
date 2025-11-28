@@ -9,15 +9,39 @@ import {
   Legend,
 } from "recharts";
 
+// Tooltip personalizado con colores del tema
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          backgroundColor: "#161B22",
+          border: "1px solid #8A2BE2",
+          borderRadius: "4px",
+          padding: "8px 12px",
+        }}
+      >
+        <p style={{ color: "#8A2BE2", fontWeight: "bold", marginBottom: "4px" }}>
+          {payload[0].name}
+        </p>
+        <p style={{ color: "#8A2BE2", fontWeight: "bold" }}>
+          count: <span style={{ color: "#FFFFFF" }}>{payload[0].value}</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 const COLORS = [
-  "#3B82F6",
-  "#8B5CF6",
-  "#EC4899",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#6366F1",
-  "#14B8A6",
+  "#8A2BE2", // dt-accent (morado principal)
+  "#9932CC", // dt-accent-hover (morado más oscuro)
+  "#9370DB", // MediumSlateBlue (variación morada)
+  "#BA55D3", // MediumOrchid (variación morada)
+  "#DA70D6", // Orchid (variación morada)
+  "#DDA0DD", // Plum (variación morada clara)
+  "#EE82EE", // Violet (variación morada)
+  "#FF69B4", // HotPink (variación rosa-morada)
 ];
 
 const PieChart = ({
@@ -63,14 +87,7 @@ const PieChart = ({
                 />
               ))}
             </Pie>
-            <Tooltip
-              formatter={(value, name) => [value, name]}
-              contentStyle={{
-                backgroundColor: "#161B22",
-                borderColor: "#21262D",
-                color: "#FFFFFF",
-              }}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend
               verticalAlign="bottom"
               height={50}

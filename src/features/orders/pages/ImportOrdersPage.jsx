@@ -9,6 +9,7 @@ import {
   useCancelImportJob,
 } from "../hooks/useImport";
 import Button from "src/shared/components/ui/Button";
+import Select from "src/shared/components/ui/Select";
 import { useQueryClient } from "@tanstack/react-query";
 // Importaríamos un nuevo componente de Drag and Drop
 // import DragAndDropArea from "src/shared/components/ui/DragAndDropArea";
@@ -235,20 +236,18 @@ const Step2Mapping = ({
           <label className="font-bold text-dt-foreground">
             {field} <span className="text-red-400">*</span>
           </label>
-          <select
+          <Select
             value={mapping[field] || ""}
             onChange={(e) =>
               setMapping((prev) => ({ ...prev, [field]: e.target.value }))
             }
-            className="bg-dt-background border border-secondary rounded-md p-2 w-full"
-          >
-            <option value="">Selecciona una columna...</option>
-            {headers.map((header) => (
-              <option key={header} value={header}>
-                {header}
-              </option>
-            ))}
-          </select>
+            placeholder="Selecciona una columna..."
+            options={[
+              { value: "", label: "Selecciona una columna..." },
+              ...headers.map((header) => ({ value: header, label: header })),
+            ]}
+            className="w-full"
+          />
         </div>
       ))}
     </div>

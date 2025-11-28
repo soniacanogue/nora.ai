@@ -7,4 +7,88 @@
   body {
     @apply bg-dt-background text-dt-foreground antialiased;
   }
+
+  /* Estilos para select y option - usar colores del tema */
+  select {
+    @apply bg-dt-background text-dt-foreground;
+  }
+
+  select:focus {
+    @apply outline-none ring-2 ring-accent border-accent;
+  }
+
+  option {
+    @apply bg-dt-background text-dt-foreground;
+    background-color: #161B22 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Estilos para el hover y selección de las opciones del select */
+  option:hover,
+  option:focus,
+  option:checked,
+  option:active {
+    background-color: #8A2BE2 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Estilos adicionales para navegadores específicos */
+  select option:checked {
+    background: linear-gradient(#8A2BE2, #8A2BE2) !important;
+    background-color: #8A2BE2 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Para Firefox */
+  select option:hover {
+    background-color: #8A2BE2 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Para Chrome/Edge - usar color-scheme para forzar tema oscuro */
+  select {
+    color-scheme: dark;
+  }
+
+  /* Estilos para inputs de tipo file */
+  input[type="file"] {
+    @apply text-dt-foreground;
+  }
+
+  input[type="file"]::file-selector-button {
+    @apply bg-dt-accent text-dt-foreground border-0 rounded-md px-4 py-2 mr-4 text-sm font-semibold cursor-pointer;
+  }
+
+  input[type="file"]::file-selector-button:hover {
+    @apply bg-dt-accent-hover;
+  }
+
+  input[type="file"]::file-selector-button:focus {
+    @apply outline-none ring-2 ring-accent;
+  }
+
+  /* Estilos para elementos con focus por defecto del navegador */
+  /* Solo eliminar outline en elementos que ya tienen estilos de focus personalizados */
+  input:focus,
+  textarea:focus,
+  select:focus,
+  button:focus {
+    outline: none;
+  }
+
+  /* Usar focus-visible para mantener accesibilidad con teclado */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent;
+  }
+
+  /* Estilos para checkboxes y radio buttons */
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply accent-accent;
+  }
+
+  /* Estilos para textarea */
+  textarea:focus {
+    @apply outline-none ring-2 ring-accent border-accent;
+  }
 }

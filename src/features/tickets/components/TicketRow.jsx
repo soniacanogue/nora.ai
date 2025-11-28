@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom"; // 1. Importar useNavigate
 
 // ... (El resto del componente permanece igual)
 const statusStyles = {
-  nuevo: "bg-blue-500/20 text-blue-300",
-  ia_sugerido: "bg-purple-500/20 text-purple-300",
+  nuevo: "bg-dt-accent/20 text-dt-accent",
+  ia_sugerido: "bg-dt-accent/30 text-purple-300",
   escalado_nivel_2: "bg-yellow-500/20 text-yellow-300",
   cerrado: "bg-gray-500/20 text-gray-400",
 };

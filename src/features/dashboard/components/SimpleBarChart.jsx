@@ -9,6 +9,30 @@ import {
   CartesianGrid,
 } from "recharts";
 
+// Tooltip personalizado con colores del tema
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          backgroundColor: "#161B22",
+          border: "1px solid #8A2BE2",
+          borderRadius: "4px",
+          padding: "8px 12px",
+        }}
+      >
+        <p style={{ color: "#8A2BE2", fontWeight: "bold", marginBottom: "4px" }}>
+          {label}
+        </p>
+        <p style={{ color: "#8A2BE2", fontWeight: "bold" }}>
+          count: <span style={{ color: "#FFFFFF" }}>{payload[0].value}</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 const SimpleBarChart = ({
   data = [],
   title = "Distribución de Tickets por Estado",
@@ -42,17 +66,13 @@ const SimpleBarChart = ({
             <YAxis stroke="#8B949E" fontSize={12} />
             <Tooltip
               cursor={{ fill: "rgba(138, 43, 226, 0.1)" }}
-              contentStyle={{
-                backgroundColor: "#161B22",
-                borderColor: "#21262D",
-                color: "#FFFFFF",
-              }}
+              content={<CustomTooltip />}
             />
             <Bar
               dataKey="count"
-              fill="#3B82F6"
+              fill="#8A2BE2"
               radius={[4, 4, 0, 0]}
-              activeBar={{ fill: "#60A5FA" }}
+              activeBar={{ fill: "#9932CC" }}
             />
           </BarChart>
         </ResponsiveContainer>

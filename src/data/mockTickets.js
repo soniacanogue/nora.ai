@@ -227,4 +227,131 @@ export const mockTickets = [
     etiquetas: [{ id: "tag-info", nombre: "INFO" }],
     archivos: [],
   },
+  // =======================================================================
+  // == TICKETS ADICIONALES PARA DASHBOARD DE BRENDA (FECHA DE HOY)        ==
+  // =======================================================================
+  {
+    id: "TICKET-008",
+    clienteId: "cli-002",
+    asunto: "Consulta sobre envío",
+    estado: "cerrado", // Ticket resuelto hoy
+    resueltoEn: getDateForTicket(0, 14, 30),
+    prioridad: "media",
+    canalOrigen: "correo",
+    creadoEn: getDateForTicket(0, 9, 0),
+    assigneeId: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b", // Resuelto por Brenda hoy
+    mensajes: [
+      {
+        id: "MSG-008",
+        contenidoTexto: "¿Cuándo llegará mi pedido?",
+        enviadoEn: getDateForTicket(0, 9, 0),
+      },
+    ],
+    etiquetas: [{ id: "tag-shipping", nombre: "SHIPPING" }],
+    archivos: [],
+  },
+  {
+    id: "TICKET-009",
+    clienteId: "cli-003",
+    asunto: "Problema con mi pedido",
+    estado: "ia_sugerido", // Ticket con sugerencia de IA
+    prioridad: "alta",
+    canalOrigen: "correo",
+    creadoEn: getDateForTicket(0, 8, 0),
+    assigneeId: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b", // Asignado a Brenda hoy
+    mensajes: [
+      {
+        id: "MSG-009",
+        contenidoTexto: "Mi pedido no llegó completo",
+        enviadoEn: getDateForTicket(0, 8, 0),
+        esNotaInterna: false,
+        esAutomatico: false,
+        // --- DATOS DE LA IA ---
+        respuestaSugeridaIA:
+          "Hola,\n\nLamentamos escuchar que tu pedido no llegó completo. Para poder ayudarte de la mejor manera, ¿podrías proporcionarnos el número de pedido y una lista de los artículos que faltan?\n\nCon esta información podremos investigar el problema y resolverlo lo antes posible.\n\nSaludos,\nEl equipo de GearUp Gadgets",
+        confianzaIA: 0.88,
+        metaDatosIA: {
+          agente: "ac-shipping-01",
+          datosUsados: ["baseConocimiento.politica_envios"],
+          reasoning: "Problema de envío incompleto detectado. Se requiere información adicional del cliente.",
+        },
+      },
+    ],
+    etiquetas: [{ id: "tag-issue", nombre: "ISSUE" }],
+    archivos: [],
+  },
+  {
+    id: "TICKET-010",
+    clienteId: "cli-001",
+    asunto: "Solicitud de reembolso",
+    estado: "cerrado", // Ticket resuelto hoy
+    resueltoEn: getDateForTicket(0, 16, 0),
+    prioridad: "media",
+    canalOrigen: "formulario_web",
+    creadoEn: getDateForTicket(0, 13, 0),
+    assigneeId: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b", // Resuelto por Brenda hoy
+    mensajes: [
+      {
+        id: "MSG-010",
+        contenidoTexto: "Quiero solicitar un reembolso",
+        enviadoEn: getDateForTicket(0, 13, 0),
+      },
+    ],
+    etiquetas: [{ id: "tag-refund", nombre: "REFUND" }],
+    archivos: [],
+  },
+  {
+    id: "TICKET-011",
+    clienteId: "cli-002",
+    asunto: "Pregunta sobre producto",
+    estado: "ia_sugerido", // Ticket con sugerencia de IA
+    prioridad: "baja",
+    canalOrigen: "correo",
+    creadoEn: getDateForTicket(0, 12, 0),
+    assigneeId: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b", // Asignado a Brenda hoy
+    mensajes: [
+      {
+        id: "MSG-011",
+        contenidoTexto: "¿Tienen este producto en stock?",
+        enviadoEn: getDateForTicket(0, 12, 0),
+        esNotaInterna: false,
+        esAutomatico: false,
+        // --- DATOS DE LA IA ---
+        respuestaSugeridaIA:
+          "Hola,\n\nGracias por tu consulta. Para poder ayudarte mejor, ¿podrías indicarnos el nombre o código del producto que te interesa?\n\nUna vez que tengamos esa información, podremos verificar la disponibilidad y proporcionarte todos los detalles que necesites.\n\nSaludos,\nEl equipo de GearUp Gadgets",
+        confianzaIA: 0.75,
+        metaDatosIA: {
+          agente: "ac-info-01",
+          datosUsados: [],
+          reasoning: "Consulta general sobre disponibilidad. Se requiere información del producto específico.",
+        },
+      },
+    ],
+    etiquetas: [{ id: "tag-question", nombre: "QUESTION" }],
+    archivos: [],
+  },
+  {
+    id: "TICKET-012",
+    clienteId: "cli-003",
+    asunto: "Re: Problema con mi pedido",
+    estado: "esperando_cliente", // Ticket esperando respuesta del cliente
+    prioridad: "media",
+    canalOrigen: "correo",
+    creadoEn: getDateForTicket(0, 7, 0),
+    assigneeId: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b", // Asignado a Brenda
+    mensajes: [
+      {
+        id: "MSG-012-A",
+        contenidoTexto: "Tengo un problema con mi pedido",
+        enviadoEn: getDateForTicket(0, 7, 0),
+      },
+      {
+        id: "MSG-012-B",
+        contenidoTexto: "Hola, por favor proporciona más detalles...",
+        enviadoEn: getDateForTicket(0, 7, 30),
+      },
+    ],
+    etiquetas: [{ id: "tag-issue", nombre: "ISSUE" }],
+    archivos: [],
+  },
 ];

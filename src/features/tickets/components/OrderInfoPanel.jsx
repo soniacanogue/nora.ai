@@ -11,7 +11,7 @@ const OrderInfoPanel = ({ order }) => {
       case "entregado":
         return "bg-green-700 text-green-200";
       case "en_transito":
-        return "bg-blue-700 text-blue-200";
+        return "bg-dt-accent text-white";
       case "procesando":
         return "bg-yellow-700 text-yellow-200";
       case "cancelado":

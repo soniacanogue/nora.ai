@@ -65,14 +65,22 @@ const TicketDetailPage = () => {
   const aiSuggestion = useMemo(() => {
     if (!ticket?.mensajes) return {};
 
-    // 4. Usamos la lógica más robusta para encontrar la sugerencia.
-    const latestCustomerMessage = [...ticket.mensajes]
+    // 4. Buscamos primero un mensaje que tenga respuestaSugeridaIA (sugerencia de IA)
+    // Si no lo encontramos, buscamos el último mensaje del cliente
+    let messageWithSuggestion = [...ticket.mensajes]
       .reverse()
-      .find((m) => !m.esNotaInterna && !m.usuarioId);
+      .find((m) => !m.esNotaInterna && !m.usuarioId && m.respuestaSugeridaIA);
+
+    // Si no hay mensaje con sugerencia, buscamos el último mensaje del cliente
+    if (!messageWithSuggestion) {
+      messageWithSuggestion = [...ticket.mensajes]
+        .reverse()
+        .find((m) => !m.esNotaInterna && !m.usuarioId);
+    }
 
     return {
-      reply_text: latestCustomerMessage?.respuestaSugeridaIA || "",
-      confidence: latestCustomerMessage?.confianzaIA,
+      reply_text: messageWithSuggestion?.respuestaSugeridaIA || "",
+      confidence: messageWithSuggestion?.confianzaIA,
       suggested_tags: ticket.etiquetas?.map((tag) => tag.nombre) || [],
     };
   }, [ticket]);

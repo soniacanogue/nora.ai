@@ -6,7 +6,7 @@ const ConversationBubble = ({ message }) => {
   const isCustomer = from === "customer";
 
   const bubbleAlignment = isCustomer ? "items-start" : "items-end";
-  const bubbleColor = isCustomer ? "bg-dt-secondary" : "bg-blue-600";
+  const bubbleColor = isCustomer ? "bg-dt-secondary" : "bg-dt-accent";
   const textColor = isCustomer ? "text-dt-foreground" : "text-white";
 
   return (
