@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000, // Puerto fijo
+    port: 4000, // Puerto fijo
     strictPort: true, // No intentar otros puertos si 3000 está ocupado
   },
 });

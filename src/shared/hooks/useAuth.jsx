@@ -1,7 +1,7 @@
 // src/shared/hooks/useAuth.js
 
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { mockUsuarios } from "@/data/mockUsuarios";
+import { login as apiLogin, getProfile } from "@/features/auth/api/authApi";
 
 // 1. Crear el Contexto
 const AuthContext = createContext(null);
@@ -13,22 +13,52 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simula la obtención del usuario al cargar la aplicación
-    const fetchUser = () => {
-      setTimeout(() => {
-        // --- ¡AQUÍ PUEDES CAMBIAR EL USUARIO PARA PROBAR! ---
-        // Cambia el índice [0] (Brenda), [1] (Carlos), o [2] (Admin)
-        const loggedInUser = mockUsuarios[0]; // <--- CAMBIA AQUÍ PARA PROBAR ROLES
-
-        setCurrentUser(loggedInUser);
+    // Load user profile on app start if token exists
+    const loadUserProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
         setIsLoading(false);
-      }, 500); // Simula un pequeño retraso de red
+        return;
+      }
+
+      try {
+        const user = await getProfile();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
+        // Token might be invalid, clear it
+        localStorage.removeItem("token");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    fetchUser();
+    loadUserProfile();
   }, []);
 
-  const value = { currentUser, isLoading };
+  const login = async (email, password) => {
+    const response = await apiLogin(email, password);
+    // Save token to localStorage
+    if (response.accessToken) {
+      localStorage.setItem("token", response.accessToken);
+    }
+    // Set user from response or fetch profile
+    if (response.user) {
+      setCurrentUser(response.user);
+    } else {
+      // If login response doesn't include user, fetch profile
+      const user = await getProfile();
+      setCurrentUser(user);
+    }
+    return response;
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setCurrentUser(null);
+  };
+
+  const value = { currentUser, isLoading, login, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

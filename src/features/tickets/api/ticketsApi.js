@@ -1,15 +1,27 @@
 // src/features/tickets/api/ticketsApi.js
 
-import { mockClientes } from "@/data/mockClients";
-import { mockOrdenes } from "@/data/mockOrders";
-import { mockTickets } from "@/data/mockTickets";
+import { apiClient } from "@/shared/lib/apiClient";
+
+// Default empty ticket structure for fallback
+const defaultTicket = {
+  id: null,
+  asunto: "",
+  estado: "nuevo",
+  prioridad: "media",
+  canalOrigen: "web",
+  creadoEn: new Date().toISOString(),
+  cliente: { nombre: "Cliente Desconocido", correo: "" },
+  orden: null,
+  etiquetas: [],
+  conversacion: [],
+  respuestaSugerida: "",
+};
 
 /**
- * Simula una llamada a la API para obtener una lista de tickets.
- * AHORA APLICA FILTROS Y ORDENAMIENTO.
- * @param {object} filters - Parámetros de filtrado.
- * @param {object} sort - Parámetros de ordenamiento.
- * @param {boolean} includeDetails - Si debe incluir detalles de cliente y orden.
+ * Fetches a list of tickets from the API.
+ * @param {object} filters - Filtering parameters.
+ * @param {object} sort - Sorting parameters.
+ * @param {boolean} includeDetails - If details should be included.
  * @returns {Promise<Array>}
  */
 export const getTickets = async (
@@ -18,195 +30,191 @@ export const getTickets = async (
   includeDetails = true,
 ) => {
   console.log(
-    "Fetching MOCKED ticket list with filters:",
+    "Fetching ticket list with filters:",
     filters,
     "and sort:",
     sort,
     "includeDetails:",
     includeDetails,
   );
-  await new Promise((resolve) => setTimeout(resolve, 300));
 
-  let filteredTickets = [...mockTickets];
-  // Aplicar filtros
-  if (filters.status) {
-    const statuses = filters.status.split(",");
-    filteredTickets = filteredTickets.filter((ticket) =>
-      statuses.includes(ticket.estado),
-    );
+  try {
+    // Build query params
+    const params = new URLSearchParams();
+
+    // Map 'status' filter to 'estado' query param
+    if (filters.status) {
+      params.append("estado", filters.status);
+    }
+    if (filters.assigneeId) {
+      params.append("assigneeId", filters.assigneeId);
+    }
+    if (sort.key) {
+      params.append("sortBy", sort.key);
+    }
+    if (sort.order) {
+      params.append("sortOrder", sort.order);
+    }
+    if (includeDetails !== undefined) {
+      params.append("includeDetails", includeDetails.toString());
+    }
+
+    const queryString = params.toString();
+    const endpoint = `/tickets${queryString ? `?${queryString}` : ""}`;
+
+    const { data } = await apiClient.get(endpoint);
+
+    // Ensure we return an array
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Failed to fetch tickets:", error);
+    return [];
   }
-  if (filters.assigneeId) {
-    if (filters.assigneeId === "unassigned") {
-      filteredTickets = filteredTickets.filter((ticket) => !ticket.assigneeId);
-    } else {
-      // 'me' se resolvería en el backend, aquí lo simulamos con un ID fijo si es necesario
-      filteredTickets = filteredTickets.filter(
-        (ticket) => ticket.assigneeId === filters.assigneeId,
-      );
-    }
-  }
-  // Se podrían añadir más filtros aquí (por etiqueta, cliente, etc.)
-  // Aplicar ordenamiento
-  const priorityOrder = { urgente: 3, alta: 2, media: 1, baja: 0 };
-  filteredTickets.sort((a, b) => {
-    let valA, valB;
-
-    if (sort.key === "prioridad") {
-      valA = priorityOrder[a.prioridad] || 0;
-      valB = priorityOrder[b.prioridad] || 0;
-    } else if (sort.key === "creadoEn" || sort.key === "resueltoEn") {
-      valA = new Date(a[sort.key] || 0);
-      valB = new Date(b[sort.key] || 0);
-    } else {
-      valA = a[sort.key];
-      valB = b[sort.key];
-    }
-    if (valA < valB) {
-      return sort.order === "asc" ? -1 : 1;
-    }
-    if (valA > valB) {
-      return sort.order === "asc" ? 1 : -1;
-    }
-    return 0;
-  });
-
-  // Si se solicitan detalles, enriquecer los tickets
-  if (includeDetails) {
-    return await enrichTicketsWithDetails(filteredTickets);
-  }
-
-  return Promise.resolve(filteredTickets);
 };
 
 /**
- * Simula una llamada a la API para obtener un ticket por su ID.
- * Enriquece el ticket con los datos completos del cliente y la orden.
- * @param {string} ticketId - El ID del ticket a buscar.
+ * Fetches a single ticket by ID.
+ * @param {string} ticketId - The ID of the ticket.
  * @returns {Promise<object|null>}
  */
 export const getTicketById = async (ticketId) => {
-  console.log(`Fetching MOCKED ticket data for ID: ${ticketId}...`);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  console.log(`Fetching ticket data for ID: ${ticketId}...`);
 
-  const ticket = mockTickets.find((t) => t.id === ticketId);
-  if (!ticket) {
-    return Promise.resolve(null);
+  try {
+    const { data } = await apiClient.get(`/tickets/${ticketId}`);
+
+    // Merge with defaults to ensure all expected properties exist
+    return {
+      ...defaultTicket,
+      ...data,
+      cliente: data.cliente || defaultTicket.cliente,
+      orden: data.orden || null,
+      etiquetas: data.etiquetas || [],
+      conversacion: data.conversacion || [],
+    };
+  } catch (error) {
+    console.error(`Failed to fetch ticket ${ticketId}:`, error);
+    return null;
   }
-
-  const enrichedTicket = await enrichTicketsWithDetails([ticket]);
-
-  return Promise.resolve(enrichedTicket[0]);
 };
 
 /**
- * Enriquece una lista de tickets con los datos completos de clientes y órdenes.
- * @param {Array} tickets - Lista de tickets a enriquecer.
- * @returns {Promise<Array>} - Lista de tickets enriquecidos.
+ * Enriches a list of tickets with client and order details.
+ * Note: With real API, this might not be needed if the backend returns enriched data.
+ * @param {Array} tickets - List of tickets to enrich.
+ * @returns {Promise<Array>} - List of enriched tickets.
  */
 export const enrichTicketsWithDetails = async (tickets) => {
-  console.log(
-    `Enriching ${tickets.length} tickets with client and order details...`,
-  );
-  await new Promise((resolve) => setTimeout(resolve, 100)); // Simula latencia
-
-  const enrichedTickets = tickets.map((ticket) => {
-    const cliente = mockClientes.find((c) => c.id === ticket.clienteId);
-    const orden = mockOrdenes.find((o) => o.id === ticket.ordenId);
-
-    return {
-      ...ticket,
-      cliente: cliente || { nombre: "Cliente Desconocido", correo: "" },
-      orden: orden || null,
-    };
-  });
-
-  return Promise.resolve(enrichedTickets);
+  // With real API, tickets should already come enriched
+  // This function is kept for backward compatibility
+  return tickets.map((ticket) => ({
+    ...ticket,
+    cliente: ticket.cliente || { nombre: "Cliente Desconocido", correo: "" },
+    orden: ticket.orden || null,
+  }));
 };
 
 /**
- * Simula una llamada a la API para ejecutar una acción sobre un ticket (ej. aprobar).
- * @param {string} ticketId - El ID del ticket.
- * @param {object} payload - Los datos para la acción (ej. { editedBody: "..." }).
+ * Approves a ticket.
+ * @param {string} ticketId - The ID of the ticket.
+ * @param {object} payload - The payload for the action (e.g., { editedBody: "..." }).
  * @returns {Promise<object>}
  */
 export const approveTicket = async (ticketId, payload) => {
   console.log(
-    `Executing MOCKED action 'approve' on ticket ${ticketId} with payload:`,
+    `Executing action 'approve' on ticket ${ticketId} with payload:`,
     payload,
   );
-  await new Promise((resolve) => setTimeout(resolve, 400));
 
-  // En una API real, esto devolvería el ticket actualizado.
-  // Aquí podemos devolver un simple éxito.
-  return Promise.resolve({ success: true, ticketId });
+  try {
+    const { data } = await apiClient.patch(`/tickets/${ticketId}`, {
+      estado: "aprobado",
+      ...payload,
+    });
+    return { success: true, ticketId, data };
+  } catch (error) {
+    console.error(`Failed to approve ticket ${ticketId}:`, error);
+    throw error;
+  }
 };
 
-// --- CORRECCIONES AÑADIDAS ---
-
 /**
- * Simula la escalada de un ticket a Nivel 2.
- * @param {string} ticketId - El ID del ticket.
- * @param {string} note - Nota interna para el especialista de Nivel 2.
+ * Escalates a ticket to Level 2.
+ * @param {string} ticketId - The ID of the ticket.
+ * @param {string} note - Internal note for the Level 2 specialist.
  * @returns {Promise<object>}
  */
 export const escalateTicket = async (ticketId, note) => {
   console.log(
-    `Executing MOCKED action 'escalate' on ticket ${ticketId} with note:`,
+    `Executing action 'escalate' on ticket ${ticketId} with note:`,
     note,
   );
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  // Aquí, la lógica del backend cambiaría el estado del ticket a 'escalado_nivel_2'.
-  return Promise.resolve({
-    success: true,
-    message: `Ticket ${ticketId} escalado.`,
-  });
+
+  try {
+    const { data } = await apiClient.patch(`/tickets/${ticketId}`, {
+      estado: "escalado_nivel_2",
+      nota: note,
+    });
+    return {
+      success: true,
+      message: `Ticket ${ticketId} escalado.`,
+      data,
+    };
+  } catch (error) {
+    console.error(`Failed to escalate ticket ${ticketId}:`, error);
+    throw error;
+  }
 };
 
 /**
- * Simula la reasignación de un ticket a otro agente.
- * @param {string} ticketId - El ID del ticket.
- * @param {string} newAssigneeId - El ID del nuevo agente.
+ * Reassigns a ticket to another agent.
+ * @param {string} ticketId - The ID of the ticket.
+ * @param {string} newAssigneeId - The ID of the new agent.
  * @returns {Promise<object>}
  */
 export const reassignTicket = async (ticketId, newAssigneeId) => {
   console.log(
-    `Executing MOCKED action 'reassign' on ticket ${ticketId} to agent ${newAssigneeId}`,
+    `Executing action 'reassign' on ticket ${ticketId} to agent ${newAssigneeId}`,
   );
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  // Aquí, la lógica del backend cambiaría el 'assigneeId' del ticket.
-  return Promise.resolve({
-    success: true,
-    message: `Ticket ${ticketId} reasignado.`,
-  });
+
+  try {
+    const { data } = await apiClient.patch(`/tickets/${ticketId}`, {
+      assigneeId: newAssigneeId,
+    });
+    return {
+      success: true,
+      message: `Ticket ${ticketId} reasignado.`,
+      data,
+    };
+  } catch (error) {
+    console.error(`Failed to reassign ticket ${ticketId}:`, error);
+    throw error;
+  }
 };
+
 /**
- * Simula la acción de "tomar" (claim) un ticket.
- * @param {string} ticketId - El ID del ticket.
- * @param {string} agentId - El ID del agente que toma el ticket.
+ * Claims a ticket for an agent.
+ * @param {string} ticketId - The ID of the ticket.
+ * @param {string} agentId - The ID of the agent claiming the ticket.
  * @returns {Promise<object>}
  */
 export const claimTicket = async (ticketId, agentId) => {
   console.log(
-    `Executing MOCKED action 'claim' on ticket ${ticketId} by agent ${agentId}`,
+    `Executing action 'claim' on ticket ${ticketId} by agent ${agentId}`,
   );
-  await new Promise((resolve) => setTimeout(resolve, 400));
 
-  // Simulación de race condition: 10% de probabilidad de que falle
-  if (Math.random() < 0.1) {
-    return Promise.reject(
-      new Error("El ticket ya fue asignado a otro agente."),
-    );
+  try {
+    const { data } = await apiClient.patch(`/tickets/${ticketId}`, {
+      assigneeId: agentId,
+      estado: "en_progreso_nivel_2",
+    });
+    return {
+      success: true,
+      message: `Ticket ${ticketId} asignado a ti.`,
+      data,
+    };
+  } catch (error) {
+    console.error(`Failed to claim ticket ${ticketId}:`, error);
+    throw error;
   }
-
-  // Lógica para actualizar el mock (en un mundo real, esto lo hace el backend)
-  const ticketIndex = mockTickets.findIndex((t) => t.id === ticketId);
-  if (ticketIndex !== -1) {
-    mockTickets[ticketIndex].assigneeId = agentId;
-    mockTickets[ticketIndex].estado = "en_progreso_nivel_2";
-  }
-
-  return Promise.resolve({
-    success: true,
-    message: `Ticket ${ticketId} asignado a ti.`,
-  });
 };

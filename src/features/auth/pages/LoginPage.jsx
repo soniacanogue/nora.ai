@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import AuthLayout from "../../../shared/components/layout/AuthLayout";
 import Input from "../../../shared/components/ui/Input";
 import Button from "../../../shared/components/ui/Button";
+import { useAuth } from "../../../shared/hooks/useAuth";
 
 const LoginPage = () => {
   // Estados para guardar lo que el usuario escribe
@@ -11,20 +14,24 @@ const LoginPage = () => {
   // Estado para controlar si estamos enviando el formulario
   const [loading, setLoading] = useState(false);
 
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   // Función que se ejecuta al enviar el formulario
-  const handleSubmit = (event) => {
-    event.preventDefault(); // Evita que la página se recargue
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
 
-    console.log("Simulando envío de datos...");
-    console.log("Email:", email);
-    console.log("Password:", password);
-
-    // Simulamos un retraso de 2 segundos (como si fuera una llamada a un servidor)
-    setTimeout(() => {
-      console.log("Respuesta recibida.");
+    try {
+      await login(email, password);
+      toast.success("¡Inicio de sesión exitoso!");
+      navigate("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.message || "Error al iniciar sesión. Verifica tus credenciales.");
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (
