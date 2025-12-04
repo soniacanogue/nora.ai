@@ -1,7 +1,7 @@
 // src/shared/lib/apiClient.js
 
 // Configuración base del cliente API
-const baseURL = import.meta.env.API_URL ?? "http://localhost:3000";
+const baseURL = import.meta.env.API_URL ?? "https://nora-ai-f7r2.onrender.com";
 
 class ApiClient {
   constructor() {

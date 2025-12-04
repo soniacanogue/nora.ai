@@ -21,13 +21,26 @@ export const uploadCsvForImport = async (file) => {
     const preferredType = originalType || "application/vnd.ms-excel";
     // If the type is empty or not accepted by backend, create a new File with
     // a commonly accepted CSV MIME type. This preserves the file contents.
-    if (!originalType || !/csv|text\/csv|application\/vnd\.ms-excel/.test(originalType)) {
-      fileToUpload = new File([file], file.name, { type: "application/vnd.ms-excel" });
+    if (
+      !originalType ||
+      !/csv|text\/csv|application\/vnd\.ms-excel/.test(originalType)
+    ) {
+      fileToUpload = new File([file], file.name, {
+        type: "application/vnd.ms-excel",
+      });
     }
-    console.log("File types -> original:", originalType, ", upload:", fileToUpload.type);
+    console.log(
+      "File types -> original:",
+      originalType,
+      ", upload:",
+      fileToUpload.type
+    );
   } catch (e) {
     // If creating a new File fails (older browsers), fall back to original file
-    console.warn("Could not coerce file type for upload, using original file.", e);
+    console.warn(
+      "Could not coerce file type for upload, using original file.",
+      e
+    );
     fileToUpload = file;
   }
 
@@ -77,7 +90,7 @@ export const startImportJob = async (jobId, mapping) => {
     // If endpoint returns 404, the import was already processed immediately
     if (error.status === 404) {
       console.log(
-        "Start import endpoint not available (404), assuming immediate processing",
+        "Start import endpoint not available (404), assuming immediate processing"
       );
       return { success: true, immediateProcessing: true };
     }
@@ -108,7 +121,7 @@ export const getImportJobStatus = async (jobId) => {
     // If status endpoint returns 404, status tracking is not available
     if (error.status === 404) {
       console.log(
-        "Status endpoint not available (404), returning unknown status",
+        "Status endpoint not available (404), returning unknown status"
       );
       return {
         id: jobId,

@@ -8,7 +8,6 @@ import AppLayout from "./shared/components/layout/AppLayout";
 import ProtectedRoute from "./shared/components/ProtectedRoute";
 
 // --- Page Components ---
-// Sugerencia: Mover HomePage a una carpeta más genérica como /src/pages
 import LoginPage from "./features/auth/pages/LoginPage";
 import TicketListPage from "./features/tickets/pages/TicketListPage";
 import TicketDetailPage from "./features/tickets/pages/TicketDetailPage";
@@ -18,6 +17,13 @@ import NewTicketPage from "./features/tickets/pages/NewTicketPage";
 import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
 import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import HomePage from "./features/dashboard/pages/HomePage";
+
+// --- NUEVO: Importaciones para las páginas de administración de Agentes AI ---
+// Nota: La ruta de importación se basa en la que proporcionaste.
+// Si moviste los archivos, asegúrate de que apunten a la ubicación correcta.
+// Por ejemplo, si están en la raíz de 'ai-agents', sería: './features/admin/ai-agents/AgentListPage'
+import { AgentListPage } from "./features/admin/ai-agents/pages/AgentListPage";
+import { AgentFormPage } from "./features/admin/ai-agents/pages/AgentFormPage";
 
 // Componente simple para una página 404
 const NotFoundPage = () => (
@@ -43,26 +49,39 @@ function App() {
         />
         <Routes>
           {/* --- RUTAS PÚBLICAS --- */}
-          {/* Accesibles para todos, sin layout de la aplicación */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/new-ticket" element={<NewTicketPage />} />
 
-          {/* --- GRUPO DE RUTAS PROTEGIDAS --- */}
-          {/* Todas las rutas anidadas aquí requieren autenticación (AGENTE o ADMINISTRADOR) */}
+          {/* --- GRUPO DE RUTAS PROTEGIDAS (AGENTE Y ADMIN) --- */}
           <Route
             element={
               <ProtectedRoute allowedRoles={["ADMINISTRADOR", "AGENTE"]} />
             }
           >
-            {/* Todas las rutas anidadas aquí también obtienen el layout principal (sidebar, etc.) */}
+            {/* Todas estas rutas usan el layout principal */}
             <Route element={<AppLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/tickets" element={<TicketListPage />} />
               <Route path="/tickets/:ticketId" element={<TicketDetailPage />} />
               <Route path="/import" element={<ImportOrdersPage />} />
               <Route path="/orders" element={<OrderListPage />} />
-              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-              <Route path="/admin/agent/:agentId" element={<DashboardPage />} />
+              {/* --- AJUSTE: La ruta /admin/dashboard se ha movido a su propio grupo de rutas de admin más abajo --- */}
+            </Route>
+          </Route>
+
+          {/* --- NUEVO: GRUPO DE RUTAS DE ADMINISTRACIÓN (SOLO ADMIN) --- */}
+          {/* Todas las rutas anidadas aquí requieren rol de ADMINISTRADOR */}
+          <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR"]} />}>
+            {/* Usamos una ruta padre '/admin' para que todas las rutas de admin también usen el AppLayout */}
+            <Route path="/admin" element={<AppLayout />}>
+              {/* La ruta para el dashboard de admin es ahora /admin/dashboard */}
+              <Route path="dashboard" element={<AdminDashboardPage />} />
+
+              {/* Rutas para la gestión de Agentes de IA anidadas bajo /admin/ai-agents */}
+              <Route path="ai-agents" element={<AgentListPage />} />
+              <Route path="ai-agents/new" element={<AgentFormPage />} />
+              <Route path="ai-agents/edit/:id" element={<AgentFormPage />} />
+              {/* Podrías añadir más rutas de admin aquí en el futuro (ej. /admin/templates, /admin/users, etc.) */}
             </Route>
           </Route>
 

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// 1. Importa `Outlet` junto con los otros componentes de react-router-dom
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/shared/hooks/useAuth";
 import NoraLogo from "@/shared/components/ui/NoraLogo";
@@ -14,7 +13,6 @@ const roleDisplayNames = {
   ADMINISTRADOR: "Administrador",
 };
 
-// 2. Elimina `children` de los parámetros de la función
 const AppLayout = () => {
   const { currentUser, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -36,7 +34,6 @@ const AppLayout = () => {
       <aside
         className={`bg-dt-primary p-4 border-r border-secondary flex flex-col h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"}`}
       >
-        {/* ... (toda la lógica del sidebar se mantiene igual) ... */}
         <div className="mb-8">
           <Link
             to="/"
@@ -63,7 +60,7 @@ const AppLayout = () => {
                 end
               >
                 <span>📊</span>
-                {sidebarOpen && "Dashboard"}
+                {sidebarOpen && <span className="ml-3">Dashboard</span>}
               </NavLink>
             </li>
 
@@ -77,7 +74,7 @@ const AppLayout = () => {
                 }
               >
                 <span>🎫</span>
-                {sidebarOpen && "Tickets"}
+                {sidebarOpen && <span className="ml-3">Tickets</span>}
               </NavLink>
             </li>
             <li>
@@ -90,7 +87,7 @@ const AppLayout = () => {
                 }
               >
                 <span>📥</span>
-                {sidebarOpen && "Importar"}
+                {sidebarOpen && <span className="ml-3">Importar</span>}
               </NavLink>
             </li>
             <li>
@@ -103,12 +100,23 @@ const AppLayout = () => {
                 }
               >
                 <span>📋</span>
-                {sidebarOpen && "Órdenes"}
+                {sidebarOpen && <span className="ml-3">Órdenes</span>}
               </NavLink>
             </li>
 
+            {/* --- AJUSTE CLAVE: Sección de Administrador Mejorada --- */}
             {currentUser.rol === "ADMINISTRADOR" && (
               <>
+                {/* Separador visual para agrupar los enlaces de admin */}
+                <li className="pt-4">
+                  {sidebarOpen && (
+                    <p className="px-4 text-xs font-bold text-dt-subtle uppercase tracking-wider mb-2">
+                      Administración
+                    </p>
+                  )}
+                  {!sidebarOpen && <hr className="my-2 border-secondary" />}
+                </li>
+
                 <li>
                   <NavLink
                     to="/admin/dashboard"
@@ -119,22 +127,28 @@ const AppLayout = () => {
                     }
                   >
                     <span>⚙️</span>
-                    {sidebarOpen && "Admin Dashboard"}
+                    {sidebarOpen && (
+                      <span className="ml-3">Admin Dashboard</span>
+                    )}
                   </NavLink>
                 </li>
+
+                {/* --- NUEVO: Enlace a la configuración de Agentes de IA --- */}
                 <li>
                   <NavLink
-                    to="/admin/agent/c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b"
+                    to="/admin/ai-agents"
                     className={({ isActive }) =>
                       isActive
                         ? `${navLinkClasses} ${activeNavLinkClasses}`
                         : navLinkClasses
                     }
                   >
-                    <span>👤</span>
-                    {sidebarOpen && "Dashboard Brenda"}
+                    <span>🤖</span>
+                    {sidebarOpen && <span className="ml-3">Agentes IA</span>}
                   </NavLink>
                 </li>
+
+                {/* --- ELIMINADO: Se quita el enlace antiguo y hardcodeado a /admin/agent/... --- */}
               </>
             )}
           </ul>
@@ -161,13 +175,11 @@ const AppLayout = () => {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="w-full mt-4 px-4 py-2 bg-dt-secondary text-dt-foreground rounded-md hover:bg-dt-primary transition-colors"
           >
-            {sidebarOpen ? "▶" : "◀"}
+            {sidebarOpen ? "◀" : "▶"}
           </button>
         </div>
       </aside>
 
-      {/* 3. Reemplaza `{children}` con `<Outlet />` */}
-      {/* Aquí es donde React Router renderizará el componente de la ruta hija activa */}
       <main className="flex-1 p-8 overflow-y-auto">
         <Outlet />
       </main>
