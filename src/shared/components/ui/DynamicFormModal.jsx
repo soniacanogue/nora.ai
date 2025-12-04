@@ -48,125 +48,127 @@ const DynamicFormModal = ({ isOpen, onClose, title, config }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {fields &&
-          Object.entries(fields).map(([key, fieldConfig]) => {
-            const {
-              type = "text",
-              label,
-              placeholder,
-              required,
-              options,
-              ...rest
-            } = fieldConfig;
+      <div className="max-h-[70vh] overflow-y-auto pr-2">
+        <form onSubmit={handleSubmit} className="space-y-4 pr-2">
+          {fields &&
+            Object.entries(fields).map(([key, fieldConfig]) => {
+              const {
+                type = "text",
+                label,
+                placeholder,
+                required,
+                options,
+                ...rest
+              } = fieldConfig;
 
-            if (type === "select") {
-              return (
-                <div key={key}>
-                  <label className="block text-sm font-medium text-dt-subtle mb-2">
-                    {label}
-                    {required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  <Select
-                    value={formData[key]}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    options={options || []}
-                    placeholder={placeholder}
+              if (type === "select") {
+                return (
+                  <div key={key}>
+                    <label className="block text-sm font-medium text-dt-subtle mb-2">
+                      {label}
+                      {required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <Select
+                      value={formData[key]}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      options={options || []}
+                      placeholder={placeholder}
+                      {...rest}
+                    />
+                  </div>
+                );
+              }
+
+              if (type === "textarea") {
+                return (
+                  <div key={key}>
+                    <label
+                      htmlFor={key}
+                      className="block text-sm font-medium text-dt-subtle mb-2"
+                    >
+                      {label}
+                      {required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <textarea
+                      id={key}
+                      rows={rest.rows || 4}
+                      className="w-full p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-primary-light"
+                      placeholder={placeholder}
+                      value={formData[key]}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      required={required}
+                      {...rest}
+                    />
+                  </div>
+                );
+              }
+
+              if (type === "file") {
+                return (
+                  <FileUpload
+                    key={key}
+                    label={label}
+                    onFilesSelect={(selectedFiles) =>
+                      handleFileChange(key, selectedFiles)
+                    }
                     {...rest}
                   />
-                </div>
-              );
-            }
+                );
+              }
 
-            if (type === "textarea") {
               return (
-                <div key={key}>
-                  <label
-                    htmlFor={key}
-                    className="block text-sm font-medium text-dt-subtle mb-2"
-                  >
-                    {label}
-                    {required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  <textarea
-                    id={key}
-                    rows={rest.rows || 4}
-                    className="w-full p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-primary-light"
-                    placeholder={placeholder}
-                    value={formData[key]}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    required={required}
-                    {...rest}
-                  />
-                </div>
-              );
-            }
-
-            if (type === "file") {
-              return (
-                <FileUpload
+                <Input
                   key={key}
+                  id={key}
+                  type={type}
                   label={label}
-                  onFilesSelect={(selectedFiles) =>
-                    handleFileChange(key, selectedFiles)
-                  }
+                  placeholder={placeholder}
+                  value={formData[key]}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  required={required}
                   {...rest}
                 />
               );
-            }
-
-            return (
-              <Input
-                key={key}
-                id={key}
-                type={type}
-                label={label}
-                placeholder={placeholder}
-                value={formData[key]}
-                onChange={(e) => handleChange(key, e.target.value)}
-                required={required}
-                {...rest}
-              />
-            );
-          })}
-
-        <div className="flex justify-end gap-4 mt-6">
-          {buttons &&
-            Object.entries(buttons).map(([key, btnConfig]) => {
-              const {
-                label,
-                onClick,
-                variant = "primary",
-                type = "button",
-                ...rest
-              } = btnConfig;
-
-              const handleClick = (e) => {
-                if (onClick) {
-                  // Pass formData and files to the click handler
-                  onClick({ ...formData, ...files }, e);
-                }
-                if (type === "submit") {
-                  // If it's a submit button, the form onSubmit might also trigger if not prevented.
-                  // But usually we want to handle the logic in onClick for this dynamic form.
-                }
-              };
-
-              return (
-                <Button
-                  key={key}
-                  type={type}
-                  variant={variant}
-                  onClick={handleClick}
-                  fullWidth={false}
-                  {...rest}
-                >
-                  {label}
-                </Button>
-              );
             })}
-        </div>
-      </form>
+
+          <div className="flex justify-end gap-4 mt-6">
+            {buttons &&
+              Object.entries(buttons).map(([key, btnConfig]) => {
+                const {
+                  label,
+                  onClick,
+                  variant = "primary",
+                  type = "button",
+                  ...rest
+                } = btnConfig;
+
+                const handleClick = (e) => {
+                  if (onClick) {
+                    // Pass formData and files to the click handler
+                    onClick({ ...formData, ...files }, e);
+                  }
+                  if (type === "submit") {
+                    // If it's a submit button, the form onSubmit might also trigger if not prevented.
+                    // But usually we want to handle the logic in onClick for this dynamic form.
+                  }
+                };
+
+                return (
+                  <Button
+                    key={key}
+                    type={type}
+                    variant={variant}
+                    onClick={handleClick}
+                    fullWidth={false}
+                    {...rest}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+          </div>
+        </form>
+      </div>
     </Modal>
   );
 };

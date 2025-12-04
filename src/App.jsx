@@ -25,6 +25,10 @@ import HomePage from "./features/dashboard/pages/HomePage";
 import { AgentListPage } from "./features/admin/ai-agents/pages/AgentListPage";
 import { AgentFormPage } from "./features/admin/ai-agents/pages/AgentFormPage";
 
+// --- NUEVO: Importaciones para Plantillas ---
+import { TemplateListPage } from "./features/admin/ai-agents/templates/TemplateListPage";
+import { TemplateFormPage } from "./features/admin/ai-agents/templates/TemplateFormPage";
+
 // Componente simple para una página 404
 const NotFoundPage = () => (
   <div className="flex h-screen flex-col items-center justify-center bg-dt-background text-dt-foreground">
@@ -79,9 +83,12 @@ function App() {
 
               {/* Rutas para la gestión de Agentes de IA anidadas bajo /admin/ai-agents */}
               <Route path="ai-agents" element={<AgentListPage />} />
-              <Route path="ai-agents/new" element={<AgentFormPage />} />
               <Route path="ai-agents/edit/:id" element={<AgentFormPage />} />
-              {/* Podrías añadir más rutas de admin aquí en el futuro (ej. /admin/templates, /admin/users, etc.) */}
+
+              {/* --- NUEVO: Rutas para la gestión de Plantillas --- */}
+              <Route path="templates" element={<TemplateListPage />} />
+              <Route path="templates/edit/:id" element={<TemplateFormPage />} />
+              {/* Podrías añadir más rutas de admin aquí en el futuro (ej. /admin/users, etc.) */}
             </Route>
           </Route>
 

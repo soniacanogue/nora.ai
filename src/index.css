@@ -19,8 +19,8 @@
 
   option {
     @apply bg-dt-background text-dt-foreground;
-    background-color: #161B22 !important;
-    color: #FFFFFF !important;
+    background-color: #161b22 !important;
+    color: #ffffff !important;
   }
 
   /* Estilos para el hover y selección de las opciones del select */
@@ -28,21 +28,21 @@
   option:focus,
   option:checked,
   option:active {
-    background-color: #8A2BE2 !important;
-    color: #FFFFFF !important;
+    background-color: #8a2be2 !important;
+    color: #ffffff !important;
   }
 
   /* Estilos adicionales para navegadores específicos */
   select option:checked {
-    background: linear-gradient(#8A2BE2, #8A2BE2) !important;
-    background-color: #8A2BE2 !important;
-    color: #FFFFFF !important;
+    background: linear-gradient(#8a2be2, #8a2be2) !important;
+    background-color: #8a2be2 !important;
+    color: #ffffff !important;
   }
 
   /* Para Firefox */
   select option:hover {
-    background-color: #8A2BE2 !important;
-    color: #FFFFFF !important;
+    background-color: #8a2be2 !important;
+    color: #ffffff !important;
   }
 
   /* Para Chrome/Edge - usar color-scheme para forzar tema oscuro */
@@ -97,38 +97,68 @@
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #0D1117 inset !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-    caret-color: #FFFFFF !important;
+    -webkit-box-shadow: 0 0 0 30px #0d1117 inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff !important;
   }
 
   /* Estilos para el dropdown de sugerencias del navegador */
   input::-webkit-contacts-auto-fill-button,
   input::-webkit-credentials-auto-fill-button {
-    background-color: #8A2BE2;
+    background-color: #8a2be2;
   }
 
   /* Estilos para datalist (sugerencias HTML5) */
   datalist {
-    background-color: #161B22;
-    border: 1px solid #21262D;
+    background-color: #161b22;
+    border: 1px solid #21262d;
   }
 
   datalist option {
-    background-color: #161B22;
-    color: #FFFFFF;
+    background-color: #161b22;
+    color: #ffffff;
   }
 
   datalist option:hover {
-    background-color: #8A2BE2;
-    color: #FFFFFF;
+    background-color: #8a2be2;
+    color: #ffffff;
+  }
+
+  /* Estilos para scrollbar minimalista técnico */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #21262d;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #8a2be2;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #21262d transparent;
+  }
+
+  *:hover {
+    scrollbar-color: #8a2be2 transparent;
   }
 
   /* Estilos para el dropdown de sugerencias del navegador (autocompletado) */
   /* Chrome/Edge autocomplete dropdown */
   input::-webkit-contacts-auto-fill-button,
   input::-webkit-credentials-auto-fill-button {
-    background-color: #8A2BE2;
+    background-color: #8a2be2;
   }
 
   /* Estilos para el dropdown de sugerencias del navegador */
@@ -141,6 +171,6 @@
   /* Para el dropdown de sugerencias del navegador, usar fondo claro */
   /* Nota: Los navegadores tienen control limitado sobre estos estilos */
   input[list]::-webkit-calendar-picker-indicator {
-    background-color: #161B22;
+    background-color: #161b22;
   }
 }
