@@ -5,6 +5,7 @@ import FileUpload from "../../../shared/components/ui/FileUpload";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import PublicLayout from "../../../shared/components/layout/PublicLayout";
+import { createTicket } from "../api/ticketsApi";
 
 const NewTicketPage = () => {
   const {
@@ -17,17 +18,36 @@ const NewTicketPage = () => {
   const [files, setFiles] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const onSubmit = (data) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("--- NUEVO TICKET ENVIADO (VALIDADO) ---");
-        console.log("Datos:", data);
-        console.log("Archivos:", files);
-        toast.success("¡Consulta enviada con éxito!");
-        setIsSubmitted(true);
-        resolve();
-      }, 1500);
-    });
+  const onSubmit = async (data) => {
+    try {
+      const payload = {
+        canal: "web",
+        prioridad: "media",
+        asunto: data.subject,
+        mensajeInicial: data.message,
+        correoCliente: data.email,
+        nombreCliente: data.name,
+        ordenId: data.orderId || null,
+        archivos: files.map((f) => ({
+          nombreArchivo: f.name,
+          urlAlmacenamiento: "", // Placeholder
+          tipoMime: f.type,
+          tamano: f.size,
+        })),
+      };
+
+      await createTicket(payload);
+
+      console.log("--- NUEVO TICKET ENVIADO (VALIDADO) ---");
+      console.log("Datos:", payload);
+      toast.success("¡Consulta enviada con éxito!");
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      toast.error(
+        "Hubo un error al enviar tu consulta. Por favor intenta de nuevo.",
+      );
+    }
   };
 
   const handleCreateAnother = () => {

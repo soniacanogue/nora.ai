@@ -218,3 +218,20 @@ export const claimTicket = async (ticketId, agentId) => {
     throw error;
   }
 };
+
+/**
+ * Creates a new ticket.
+ * @param {object} ticketData - The data for the new ticket.
+ * @returns {Promise<object>}
+ */
+export const createTicket = async (ticketData) => {
+  console.log("Creating new ticket with data:", ticketData);
+
+  try {
+    const { data } = await apiClient.post("/tickets", ticketData);
+    return data;
+  } catch (error) {
+    console.error("Failed to create ticket:", error);
+    throw error;
+  }
+};

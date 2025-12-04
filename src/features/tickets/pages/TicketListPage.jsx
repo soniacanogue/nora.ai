@@ -1,26 +1,27 @@
 import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTickets } from "../hooks/useTickets";
 import { useClaimTicket } from "../hooks/useClaimTicket"; // Nuevo
 import { useAuth } from "@/shared/hooks/useAuth"; // Para obtener el agente actual
 import { FaArrowUp, FaArrowDown } from "react-icons/fa"; // Iconos para ordenamiento
 import Button from "@/shared/components/ui/Button";
-import Modal from "@/shared/components/ui/Modal";
-import Input from "@/shared/components/ui/Input";
-import FileUpload from "@/shared/components/ui/FileUpload";
-import { mockUsuarios } from "@/data/mockUsuarios";
+import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
+import { getUsers } from "@/features/auth/api/authApi";
+import { createTicket } from "../api/ticketsApi";
+import toast from "react-hot-toast";
 
 const TicketListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [files, setFiles] = useState([]);
-  const [formData, setFormData] = useState({
-    clientEmail: "",
-    subject: "",
-    message: "",
-  });
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: users } = useQuery({
+    queryKey: ["users"],
+    queryFn: getUsers,
+  });
 
   // -- State para ordenamiento --
   const [sortConfig, setSortConfig] = useState({
@@ -62,17 +63,76 @@ const TicketListPage = () => {
     );
   };
 
-  const handleCreateTicket = (e) => {
-    e.preventDefault();
-    console.log("Creando ticket desde el modal...");
-    console.log("Archivos adjuntos:", files);
-    setFiles([]);
+  const handleTicketCreated = () => {
+    queryClient.invalidateQueries(["tickets"]);
     setIsModalOpen(false);
   };
 
   const openModal = () => {
-    setFiles([]);
     setIsModalOpen(true);
+  };
+
+  const formConfig = {
+    fields: {
+      clientEmail: {
+        label: "Correo del Cliente",
+        type: "email",
+        placeholder: "Ingresa el correo del cliente",
+        required: true,
+      },
+      subject: {
+        label: "Asunto",
+        placeholder: "Ingresa el asunto",
+        required: true,
+      },
+      message: {
+        label: "Mensaje Inicial",
+        type: "textarea",
+        placeholder: "Escribe el mensaje...",
+        required: true,
+        rows: 4,
+      },
+      files: {
+        label: "Adjuntar Archivos (Opcional)",
+        type: "file",
+      },
+    },
+    buttons: {
+      cancel: {
+        label: "Cancelar",
+        variant: "secondary",
+        onClick: () => setIsModalOpen(false),
+      },
+      submit: {
+        label: "Crear",
+        variant: "primary",
+        onClick: async (data) => {
+          try {
+            const payload = {
+              canal: "correo",
+              prioridad: "media",
+              asunto: data.subject,
+              mensajeInicial: data.message,
+              correoCliente: data.clientEmail,
+              nombreCliente: "",
+              ordenId: null,
+              archivos: (data.files || []).map((f) => ({
+                nombreArchivo: f.name,
+                urlAlmacenamiento: "",
+                tipoMime: f.type,
+                tamano: f.size,
+              })),
+            };
+            await createTicket(payload);
+            toast.success("Ticket creado exitosamente");
+            handleTicketCreated();
+          } catch (error) {
+            console.error("Error creating ticket:", error);
+            toast.error("Error al crear el ticket");
+          }
+        },
+      },
+    },
   };
 
   // Determine page title based on filters
@@ -160,7 +220,7 @@ const TicketListPage = () => {
                 </td>
                 <td className="p-4 text-dt-subtle">
                   {ticket.assigneeId
-                    ? mockUsuarios.find((u) => u.id === ticket.assigneeId)
+                    ? users?.find((u) => u.id === ticket.assigneeId)
                         ?.nombre || "Usuario no encontrado"
                     : "Sin Asignar"}
                 </td>
@@ -188,78 +248,12 @@ const TicketListPage = () => {
         </table>
       </div>
 
-      <Modal
+      <DynamicFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Crear Nuevo Ticket Manualmente"
-      >
-        {/* ... (el formulario del modal permanece igual) */}
-        <form onSubmit={handleCreateTicket} className="space-y-4">
-          <Input
-            id="clientEmail"
-            label="Correo del Cliente"
-            type="email"
-            placeholder="Ingresa el correo del cliente"
-            value={formData.clientEmail}
-            onChange={(e) =>
-              setFormData({ ...formData, clientEmail: e.target.value })
-            }
-            required
-          />
-          <Input
-            id="subject"
-            label="Asunto"
-            placeholder="Ingresa el asunto"
-            value={formData.subject}
-            onChange={(e) =>
-              setFormData({ ...formData, subject: e.target.value })
-            }
-            required
-          />
-          <div>
-            <label
-              htmlFor="message"
-              className="block text-sm font-medium text-dt-subtle mb-2"
-            >
-              Mensaje Inicial
-            </label>
-            <textarea
-              id="message"
-              rows={4}
-              className="w-full p-3 bg-dt-background border border-secondary rounded-md"
-              value={formData.message}
-              onChange={(e) =>
-                setFormData({ ...formData, message: e.target.value })
-              }
-              required
-            />
-          </div>
-          <FileUpload
-            label="Adjuntar Archivos (Opcional)"
-            onFilesSelect={(selectedFiles) => setFiles(selectedFiles)}
-          />
-          <div className="flex justify-end gap-4 mt-6">
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              fullWidth={false}
-              onClick={() => setIsModalOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              fullWidth={false}
-              onClick={handleCreateTicket}
-            >
-              Crear
-            </Button>
-          </div>
-        </form>
-      </Modal>
+        config={formConfig}
+      />
     </div>
   );
 };

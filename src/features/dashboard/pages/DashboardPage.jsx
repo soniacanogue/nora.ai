@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { getAgentDashboardData } from "../api/dashboardApi";
-import { mockUsuarios } from "@/data/mockUsuarios";
+import { getUserById } from "@/features/auth/api/authApi";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 import StatCard from "../components/StatCard";
 import QueueLinkCard from "../components/QueueLinkCard";
@@ -14,16 +15,6 @@ import ErrorState from "src/shared/components/ui/ErrorState";
 import EmptyState from "src/shared/components/ui/EmptyState";
 import { formatTicketStatus } from "@/shared/utils/formatters";
 
-// Hook mock de autenticación (sin cambios)
-const useAuth = () => ({
-  currentUser: {
-    id: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b",
-    nombre: "Brenda Diaz",
-    rol: "AGENTE",
-  },
-  isLoading: false,
-});
-
 const DashboardPage = () => {
   const { currentUser } = useAuth();
   const { agentId } = useParams();
@@ -31,14 +22,17 @@ const DashboardPage = () => {
   // Si se proporciona agentId en la URL, usar ese agente; si no, usar el usuario actual
   const targetAgentId = agentId || currentUser?.id;
 
-  // Obtener datos del agente específico si se proporciona agentId
-  const targetAgent = agentId
-    ? mockUsuarios.find((u) => u.id === agentId) || {
-        id: agentId,
-        nombre: "Agente Desconocido",
-        rol: "AGENTE",
-      }
-    : currentUser;
+  // Fetch target agent details if it's not the current user
+  const { data: fetchedAgent } = useQuery({
+    queryKey: ["user", targetAgentId],
+    queryFn: () => getUserById(targetAgentId),
+    enabled: !!targetAgentId && targetAgentId !== currentUser?.id,
+  });
+
+  const targetAgent =
+    targetAgentId === currentUser?.id
+      ? currentUser
+      : fetchedAgent || { nombre: "Agente" };
 
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'thisWeek'
 
