@@ -1,7 +1,9 @@
 // src/shared/lib/apiClient.js
 
 // Configuración base del cliente API
-const baseURL = import.meta.env.API_URL ?? "http://localhost:3000";
+const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
+console.log(import.meta.env.VITE_API_URL);
 
 class ApiClient {
   constructor() {
