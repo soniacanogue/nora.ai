@@ -6,9 +6,10 @@ import TeamPerformanceTable from "../components/TeamPerformanceTable";
 import PieChart from "../components/PieChart";
 import { AdminDashboardSkeleton } from "../components/DashboardSkeleton";
 import { getAdminDashboardData } from "../api/dashboardApi";
-import ErrorState from "src/shared/components/ui/ErrorState";
-import EmptyState from "src/shared/components/ui/EmptyState";
-import { formatTicketStatus, formatChannel } from "src/shared/utils/formatters"; // <- IMPORTAR
+import ErrorState from "@/shared/components/ui/ErrorState";
+import EmptyState from "@/shared/components/ui/EmptyState";
+import { formatTicketStatus, formatChannel } from "@/shared/utils/formatters";
+import { RollingNumber } from "@/shared/components/ui/RollingNumber";
 
 const AdminDashboardPage = () => {
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'last7Days'
@@ -22,6 +23,7 @@ const AdminDashboardPage = () => {
   } = useQuery({
     queryKey: ["adminDashboard", timeRange],
     queryFn: () => getAdminDashboardData(timeRange),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   if (isLoading) {
@@ -43,7 +45,7 @@ const AdminDashboardPage = () => {
     return (
       <EmptyState
         message="No se encontraron datos para el dashboard del administrador."
-        icon="📭"
+        icon={<span className="material-symbols-outlined text-xl relative z-10">inbox</span>}
       />
     );
   }
@@ -53,81 +55,92 @@ const AdminDashboardPage = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-dt-foreground mb-6">
-        Dashboard del Administrador
-      </h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-dt-foreground">
+          Dashboard del Administrador
+        </h1>
 
-      {/* Time Range Selector */}
-      <div className="mb-6 flex gap-2">
-        <button
-          onClick={() => setTimeRange("today")}
-          className={`px-4 py-2 rounded-md transition-colors ${
-            timeRange === "today"
-              ? "bg-dt-accent text-dt-foreground font-semibold"
-              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
-          }`}
-        >
-          Hoy
-        </button>
-        <button
-          onClick={() => setTimeRange("last7Days")}
-          className={`px-4 py-2 rounded-md transition-colors ${
-            timeRange === "last7Days"
-              ? "bg-dt-accent text-dt-foreground font-semibold"
-              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
-          }`}
-        >
-          Últimos 7 Días
-        </button>
+        {/* Time Range Selector */}
+        <div className="flex gap-1 bg-neutral-900/60 p-1 rounded-lg border border-white/5 backdrop-blur-sm">
+          <button
+            onClick={() => setTimeRange("today")}
+            className={`px-4 py-1.5 rounded-md transition-all duration-300 text-sm font-medium ${
+              timeRange === "today"
+                ? "bg-dt-accent text-white shadow-glow"
+                : "text-dt-subtle hover:text-white hover:bg-white/5"
+            }`}
+          >
+            Hoy
+          </button>
+          <button
+            onClick={() => setTimeRange("last7Days")}
+            className={`px-4 py-1.5 rounded-md transition-all duration-300 text-sm font-medium ${
+              timeRange === "last7Days"
+                ? "bg-dt-accent text-white shadow-glow"
+                : "text-dt-subtle hover:text-white hover:bg-white/5"
+            }`}
+          >
+            Últimos 7 Días
+          </button>
+        </div>
       </div>
 
-      {/* Métricas Globales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Métricas Globales - Unified Bento Block */}
+      <div className="bg-neutral-900/60 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-white/5 shadow-lg shadow-black/20">
         <StatCard
+          variant="minimal"
           title="Tickets Creados"
-          value={currentKpis.created}
-          icon="📈"
+          value={<RollingNumber value={currentKpis.created} />}
+          icon={<span className="material-symbols-outlined text-xl relative z-10">trending_up</span>}
         />
         <StatCard
+          variant="minimal"
           title="Tickets Resueltos"
-          value={currentKpis.resolved}
-          icon="✔️"
+          value={<RollingNumber value={currentKpis.resolved} />}
+          icon={<span className="material-symbols-outlined text-xl relative z-10">check_circle</span>}
         />
         <StatCard
-          title="Tiempo Promedio Primera Respuesta"
-          value={`${currentKpis.avgFirstResponseTime}m`}
-          icon="⏱️"
+          variant="minimal"
+          title="Tiempo 1ra Resp"
+          value={<><RollingNumber value={currentKpis.avgFirstResponseTime} />m</>}
+          icon={<span className="material-symbols-outlined text-xl relative z-10">timer</span>}
         />
         <StatCard
-          title="Tiempo Promedio de Resolución"
-          value={`${currentKpis.avgResolutionTime}m`}
-          icon="⏳"
+          variant="minimal"
+          title="Tiempo Resolución"
+          value={<><RollingNumber value={currentKpis.avgResolutionTime} />m</>}
+          icon={<span className="material-symbols-outlined text-xl relative z-10">hourglass_bottom</span>}
         />
       </div>
 
-      {/* Gráficos - Primera Fila */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <SimpleBarChart
-          data={workload}
-          title="Carga de Trabajo Actual"
-          nameFormatter={formatTicketStatus} // <- PASAR EL FORMATEADOR
-        />
-        <TeamPerformanceTable teamPerformance={teamPerformance} />
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Main Chart - Spans 2 columns */}
+        <div className="lg:col-span-2">
+            <SimpleBarChart
+            data={workload}
+            title="Carga de Trabajo Actual"
+            nameFormatter={formatTicketStatus}
+            />
+        </div>
+        {/* Team Performance - Spans 1 column */}
+        <div className="lg:col-span-1">
+            <TeamPerformanceTable teamPerformance={teamPerformance} />
+        </div>
       </div>
 
-      {/* Gráficos - Segunda Fila: Distribuciones */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Pie Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PieChart
           data={distribution.byChannel}
           title="Distribución por Canal"
           nameKey="channel"
-          nameFormatter={formatChannel} // <- PASAR EL FORMATEADOR
+          nameFormatter={formatChannel}
         />
         <PieChart
           data={distribution.byTag}
           title="Distribución por Etiqueta"
           nameKey="tag"
-          // No se necesita formateador aquí si las etiquetas ya son legibles
         />
       </div>
     </div>

@@ -1,34 +1,21 @@
 // src/features/dashboard/hooks/useAdminDashboard.js
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getAdminDashboardData } from "../api/dashboardApi";
 
 /**
  * A hook to fetch and manage data for the admin dashboard.
- * @deprecated This hook has been replaced by using `useQuery` from @tanstack/react-query directly.
- * Use `useQuery({ queryKey: ['adminDashboard'], queryFn: getAdminDashboardData })` instead.
  * @returns {{dashboardData: object|null, isLoading: boolean, error: string|null}}
  */
-export const useAdminDashboard = () => {
-  const [dashboardData, setDashboardData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+export const useAdminDashboard = (timeRange = "today") => {
+  const {
+    data: dashboardData = null,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["adminDashboard", timeRange],
+    queryFn: () => getAdminDashboardData(timeRange),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await getAdminDashboardData();
-        setDashboardData(data);
-      } catch (err) {
-        setError(err.message || "An unknown error occurred.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  return { dashboardData, isLoading, error };
+  return { dashboardData, isLoading, error: error ? error.message : null };
 };

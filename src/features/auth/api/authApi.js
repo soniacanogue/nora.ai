@@ -21,3 +21,33 @@ export const getProfile = async () => {
   const { data } = await apiClient.get("/users/profile");
   return data;
 };
+
+/**
+ * Fetches a list of all users (agents/admins).
+ * @returns {Promise<Array>} - List of users.
+ */
+export const getUsers = async () => {
+  const { data } = await apiClient.get("/users");
+  return Array.isArray(data) ? data : [];
+};
+
+/**
+ * Fetches a single user by ID.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<object>} - User profile data.
+ */
+export const getUserById = async (userId) => {
+  const { data } = await apiClient.get(`/users/${userId}`);
+  return data;
+};
+
+/**
+ * Updates a user by ID.
+ * @param {string} userId - The ID of the user to update.
+ * @param {object} updates - The fields to update.
+ * @returns {Promise<object>} - Updated user data.
+ */
+export const updateUser = async (userId, updates) => {
+  const { data } = await apiClient.patch(`/users/${userId}`, updates);
+  return data;
+};

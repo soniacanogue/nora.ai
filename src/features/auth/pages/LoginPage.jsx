@@ -36,12 +36,15 @@ const LoginPage = () => {
 
   return (
     <AuthLayout>
-      <div className="bg-dt-primary p-8 rounded-lg border border-secondary shadow-lg w-full">
+      <div className="bg-white/5 backdrop-blur-md p-8 rounded-lg border border-white/10 shadow-glow w-full relative overflow-hidden">
+        {/* Decorative top line */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-dt-accent to-transparent"></div>
+        
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-dt-foreground">
+          <h2 className="text-2xl font-bold text-dt-foreground tracking-tight">
             Bienvenido de Nuevo
           </h2>
-          <p className="text-dt-subtle">Ingresa a tu cuenta de ASCI</p>
+          <p className="text-dt-subtle text-sm mt-2">Ingresa a tu cuenta de ASCI</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -70,10 +73,15 @@ const LoginPage = () => {
             variant="primary"
             disabled={loading}
             onClick={handleSubmit}
+            className="w-full shadow-glow hover:shadow-glow-strong transition-all duration-300"
           >
-            {loading ? "Ingresando..." : "Iniciar Sesión"}
+            {loading ? "Autenticando..." : "Iniciar Sesión"}
           </Button>
         </form>
+        
+        <div className="mt-6 text-center">
+            <p className="text-xs text-dt-subtle font-mono opacity-50">SECURE SYSTEM ACCESS V2.0</p>
+        </div>
       </div>
     </AuthLayout>
   );

@@ -56,6 +56,7 @@ const NoraLogo = ({ collapsed = false }) => {
         fontWeight="bold"
         fill="currentColor"
         fontFamily="system-ui, -apple-system, sans-serif"
+        className="animate-pulse-slow"
       >
         Nora AI
       </text>

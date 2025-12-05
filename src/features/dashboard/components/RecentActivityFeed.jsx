@@ -6,14 +6,14 @@ import { Link } from "react-router-dom";
 // En el futuro, podría conectarse a SSE (COM-03) para actualizaciones en vivo.
 const RecentActivityFeed = ({ activities }) => {
   return (
-    <div className="bg-gray-800/50 rounded-lg p-4 space-y-4">
+    <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 space-y-2 border border-white/10 hover:shadow-glow transition-shadow duration-300">
       {activities && activities.length > 0 ? (
         activities.map((activity) => {
           // If activity has a ticketId, make it a link
           const content = (
             <>
-              <p className="text-dt-foreground">{activity.message}</p>
-              <p className="text-dt-subtle text-xs">
+              <p className="text-dt-foreground text-sm font-medium">{activity.message}</p>
+              <p className="text-dt-subtle text-[10px] font-mono mt-1 uppercase tracking-wider opacity-70">
                 {new Date(activity.timestamp).toLocaleTimeString()}
               </p>
             </>
@@ -24,21 +24,23 @@ const RecentActivityFeed = ({ activities }) => {
               <Link
                 key={activity.eventId}
                 to={`/tickets/${activity.ticketId}`}
-                className="block text-sm hover:bg-gray-700/50 p-2 rounded transition-colors"
+                className="block hover:bg-white/5 p-3 rounded border border-transparent hover:border-white/10 transition-all duration-200 group"
               >
-                {content}
+                <div className="group-hover:translate-x-1 transition-transform duration-200">
+                    {content}
+                </div>
               </Link>
             );
           }
 
           return (
-            <div key={activity.eventId} className="text-sm p-2">
+            <div key={activity.eventId} className="p-3 border-b border-white/5 last:border-0">
               {content}
             </div>
           );
         })
       ) : (
-        <p className="text-dt-subtle text-sm">No hay actividad reciente.</p>
+        <p className="text-dt-subtle text-sm p-4 text-center italic">No hay actividad reciente.</p>
       )}
     </div>
   );

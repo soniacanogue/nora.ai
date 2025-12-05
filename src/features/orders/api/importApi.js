@@ -154,3 +154,18 @@ export const cancelImportJob = async (jobId) => {
     return { success: true };
   }
 };
+
+/**
+ * Sends a batch of orders to be imported.
+ * @param {object} payload - Payload containing orders array.
+ * @returns {Promise<object>} - The result of the batch import.
+ */
+export const importOrdersBatch = async (payload) => {
+  try {
+    const { data } = await apiClient.post("/orders", payload);
+    return { success: true, ...data };
+  } catch (error) {
+    console.error("Batch import failed:", error);
+    throw error;
+  }
+};

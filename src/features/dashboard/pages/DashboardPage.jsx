@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { getAgentDashboardData } from "../api/dashboardApi";
-import { mockUsuarios } from "@/data/mockUsuarios";
+import { getUserById } from "@/features/auth/api/authApi";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 import StatCard from "../components/StatCard";
 import QueueLinkCard from "../components/QueueLinkCard";
@@ -14,16 +15,6 @@ import ErrorState from "src/shared/components/ui/ErrorState";
 import EmptyState from "src/shared/components/ui/EmptyState";
 import { formatTicketStatus } from "@/shared/utils/formatters";
 
-// Hook mock de autenticación (sin cambios)
-const useAuth = () => ({
-  currentUser: {
-    id: "c7b5a2e0-f2a8-4f7a-8b1e-9d2c5e6f8a3b",
-    nombre: "Brenda Diaz",
-    rol: "AGENTE",
-  },
-  isLoading: false,
-});
-
 const DashboardPage = () => {
   const { currentUser } = useAuth();
   const { agentId } = useParams();
@@ -31,14 +22,18 @@ const DashboardPage = () => {
   // Si se proporciona agentId en la URL, usar ese agente; si no, usar el usuario actual
   const targetAgentId = agentId || currentUser?.id;
 
-  // Obtener datos del agente específico si se proporciona agentId
-  const targetAgent = agentId
-    ? mockUsuarios.find((u) => u.id === agentId) || {
-        id: agentId,
-        nombre: "Agente Desconocido",
-        rol: "AGENTE",
-      }
-    : currentUser;
+  // Fetch target agent details if it's not the current user
+  const { data: fetchedAgent } = useQuery({
+    queryKey: ["user", targetAgentId],
+    queryFn: () => getUserById(targetAgentId),
+    enabled: !!targetAgentId && targetAgentId !== currentUser?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const targetAgent =
+    targetAgentId === currentUser?.id
+      ? currentUser
+      : fetchedAgent || { nombre: "Agente" };
 
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'thisWeek'
 
@@ -52,6 +47,7 @@ const DashboardPage = () => {
     queryKey: ["agentDashboard", targetAgentId, timeRange],
     queryFn: () => getAgentDashboardData(targetAgentId, timeRange),
     enabled: !!targetAgentId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   if (isLoading) {
@@ -98,20 +94,20 @@ const DashboardPage = () => {
       <div className="mb-6 flex gap-2">
         <button
           onClick={() => setTimeRange("today")}
-          className={`px-4 py-2 rounded-md transition-colors ${
+          className={`px-4 py-2 rounded-md transition-all duration-200 text-sm font-medium ${
             timeRange === "today"
-              ? "bg-dt-accent text-dt-foreground font-semibold"
-              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
+              ? "bg-dt-accent text-white shadow-glow"
+              : "bg-white/5 text-dt-subtle hover:bg-white/10 hover:text-dt-foreground border border-transparent hover:border-white/10"
           }`}
         >
           Hoy
         </button>
         <button
           onClick={() => setTimeRange("thisWeek")}
-          className={`px-4 py-2 rounded-md transition-colors ${
+          className={`px-4 py-2 rounded-md transition-all duration-200 text-sm font-medium ${
             timeRange === "thisWeek"
-              ? "bg-dt-accent text-dt-foreground font-semibold"
-              : "bg-dt-primary text-dt-subtle hover:bg-dt-secondary"
+              ? "bg-dt-accent text-white shadow-glow"
+              : "bg-white/5 text-dt-subtle hover:bg-white/10 hover:text-dt-foreground border border-transparent hover:border-white/10"
           }`}
         >
           Esta Semana
@@ -137,8 +133,8 @@ const DashboardPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-        <div className="lg:col-span-2">
-          <div className="mb-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="h-96">
             <SimpleBarChart
               data={myTicketsByStatus}
               title="Mis Tickets por Estado"
@@ -146,47 +142,51 @@ const DashboardPage = () => {
             />
           </div>
 
-          <h2 className="text-2xl font-bold text-dt-foreground mb-4">
-            Mis Colas de Trabajo
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <QueueLinkCard
-              title="Tickets Reabiertos"
-              count={myQueues.reopened}
-              linkTo="/tickets?status=reabierto"
-              description="Máxima prioridad. Clientes que respondieron a tickets cerrados."
-            />
-            <QueueLinkCard
-              title="Respuestas de Clientes"
-              count={myQueues.customerReplied}
-              linkTo="/tickets?status=respuesta_cliente"
-              description="Conversaciones activas que esperan tu respuesta."
-            />
-            <QueueLinkCard
-              title="Tickets para Triaje"
-              count={myQueues.forTriage}
-              linkTo="/tickets?status=ia_sugerido,nuevo"
-              description="Nuevos tickets y sugerencias de Nora AI por revisar."
-            />
-            <QueueLinkCard
-              title="Mis Tickets Escalados"
-              count={myQueues.myEscalated}
-              linkTo="/tickets?status=escalado_nivel_2&assignee=me"
-              description="Casos complejos que requieren tu atención manual."
-            />
-            {/* --- CORRECCIÓN AÑADIDA --- */}
-            <QueueLinkCard
-              title="Esperando Respuesta del Cliente"
-              count={myQueues.waitingForCustomer}
-              linkTo="/tickets?status=esperando_cliente"
-              description="Tickets en los que has respondido y se espera acción del cliente."
-            />
-            {/* --- FIN DE LA CORRECCIÓN --- */}
+          <div>
+            <h2 className="text-lg font-bold text-dt-foreground mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-dt-accent">queue_music</span>
+                Mis Colas de Trabajo
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <QueueLinkCard
+                title="Tickets Reabiertos"
+                count={myQueues.reopened}
+                linkTo="/tickets?status=reabierto"
+                description="Máxima prioridad. Clientes que respondieron a tickets cerrados."
+                />
+                <QueueLinkCard
+                title="Respuestas de Clientes"
+                count={myQueues.customerReplied}
+                linkTo="/tickets?status=respuesta_cliente"
+                description="Conversaciones activas que esperan tu respuesta."
+                />
+                <QueueLinkCard
+                title="Tickets para Triaje"
+                count={myQueues.forTriage}
+                linkTo="/tickets?status=ia_sugerido,nuevo"
+                description="Nuevos tickets y sugerencias de Nora AI por revisar."
+                />
+                <QueueLinkCard
+                title="Mis Tickets Escalados"
+                count={myQueues.myEscalated}
+                linkTo="/tickets?status=escalado_nivel_2&assignee=me"
+                description="Casos complejos que requieren tu atención manual."
+                />
+                {/* --- CORRECCIÓN AÑADIDA --- */}
+                <QueueLinkCard
+                title="Esperando Respuesta"
+                count={myQueues.waitingForCustomer}
+                linkTo="/tickets?status=esperando_cliente"
+                description="Tickets en los que has respondido y se espera acción del cliente."
+                />
+                {/* --- FIN DE LA CORRECCIÓN --- */}
+            </div>
           </div>
         </div>
 
         <div className="lg:col-span-1">
-          <h2 className="text-2xl font-bold text-dt-foreground mb-4">
+          <h2 className="text-lg font-bold text-dt-foreground mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-dt-accent">history</span>
             Actividad Reciente
           </h2>
           <RecentActivityFeed activities={recentActivity} />

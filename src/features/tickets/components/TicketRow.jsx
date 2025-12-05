@@ -1,67 +1,51 @@
-// src/features/tickets/components/TicketRow.jsx
 import React from "react";
-import { useNavigate } from "react-router-dom"; // 1. Importar useNavigate
 
-// ... (El resto del componente permanece igual)
-const statusStyles = {
-  nuevo: "bg-dt-accent/20 text-dt-accent",
-  ia_sugerido: "bg-dt-accent/30 text-purple-300",
-  escalado_nivel_2: "bg-yellow-500/20 text-yellow-300",
-  cerrado: "bg-gray-500/20 text-gray-400",
-};
+const TicketRow = ({ ticket, onClick }) => {
+  // Adapt properties to match the component's expected structure
+  const status = ticket.status || ticket.prioridad || "NORMAL";
+  const title = ticket.title || ticket.asunto || "Sin asunto";
+  const client = ticket.client || ticket.cliente?.nombre || "Cliente desconocido";
+  const id = ticket.id;
 
-const getConfidenceColor = (confidence) => {
-  if (confidence === null || confidence === undefined) return "text-gray-500";
-  if (confidence >= 0.9) return "text-green-400";
-  if (confidence >= 0.75) return "text-yellow-400";
-  return "text-orange-500";
-};
-
-// 2. AÑADIR `id` a las props
-const TicketRow = ({ id, subject, status, aiConfidence, tags }) => {
-  const navigate = useNavigate(); // 3. Inicializar el hook de navegación
-
-  const handleRowClick = () => {
-    navigate(`/tickets/${id}`); // 4. Navegar a la página de detalle
-  };
-
-  const statusClass = statusStyles[status] || "bg-gray-500/20 text-gray-400";
-  const confidenceColor = getConfidenceColor(aiConfidence);
+  const isUrgent = status === 'URGENTE' || status === 'alta';
 
   return (
-    // 5. AÑADIR el handler y clases para feedback visual
-    <tr
-      className="border-b border-secondary hover:bg-white/5 transition-colors cursor-pointer"
-      onClick={handleRowClick}
+    <div 
+      onClick={onClick}
+      className="group grid grid-cols-12 gap-4 border-b border-white/5 p-4 transition-colors hover:bg-white/[0.02] items-center text-sm cursor-pointer"
     >
-      <td className="p-4">
-        <span className="font-medium text-dt-foreground">{subject}</span>
-      </td>
-      <td className="p-4 text-center">
-        <span
-          className={`px-3 py-1 text-xs font-semibold rounded-full ${statusClass}`}
-        >
-          {status.replace(/_/g, " ").toUpperCase()}
+      
+      {/* Badge de estado: Minimalist pill */}
+      <div className="col-span-2">
+        <span className={`
+          px-2.5 py-1 rounded text-[10px] font-mono uppercase tracking-wide border
+          ${isUrgent
+            ? 'bg-red-500/10 text-red-400 border-red-500/20' 
+            : 'bg-dt-accent-dim text-dt-accent-text border-dt-accent/20'}
+        `}>
+          {status}
         </span>
-      </td>
-      <td className={`p-4 text-center font-mono font-bold ${confidenceColor}`}>
-        {aiConfidence !== null && aiConfidence !== undefined
-          ? `${(aiConfidence * 100).toFixed(0)}%`
-          : "N/A"}
-      </td>
-      <td className="p-4">
-        <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </td>
-    </tr>
+      </div>
+
+      {/* Info Principal */}
+      <div className="col-span-4">
+        <h4 className="text-white font-medium truncate pr-4 group-hover:text-dt-accent transition-colors">
+          {title}
+        </h4>
+        <span className="text-xs text-dt-subtle font-mono">ID: {id}</span>
+      </div>
+
+      {/* Metadatos alineados */}
+      <div className="col-span-3 text-dt-subtle text-xs">
+        {client}
+      </div>
+
+      <div className="col-span-3 flex justify-end">
+         <button className="opacity-0 group-hover:opacity-100 transition-all duration-200 px-4 py-1.5 text-xs font-medium bg-white text-black hover:bg-dt-accent hover:text-white rounded shadow-glow">
+            Procesar AI
+         </button>
+      </div>
+    </div>
   );
 };
 

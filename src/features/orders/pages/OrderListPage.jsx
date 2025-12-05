@@ -1,45 +1,118 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom"; // Importar Link
 import { useOrders } from "../hooks/useOrders"; // 1. Usar el hook de datos
-import SearchInput from "src/shared/components/ui/SearchInput";
+import { useDynamicSearch } from "@/shared/hooks/useDynamicSearch";
+import DynamicSearch from "@/shared/components/ui/DynamicSearch";
+import DynamicTable from "@/shared/components/ui/DynamicTable";
 
 const OrderListPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, order: "asc" });
   const { orders, isLoading, error } = useOrders(); // 2. Obtener datos, loading y error
 
-  // Generar sugerencias basadas en los datos de las órdenes
-  const searchSuggestions = useMemo(() => {
-    const suggestions = new Set();
-    orders.forEach((order) => {
-      if (order.id) suggestions.add(order.id);
-      if (order.cliente?.correo) suggestions.add(order.cliente.correo);
-      if (order.numeroSeguimiento) suggestions.add(order.numeroSeguimiento);
-      if (order.transportista) suggestions.add(order.transportista);
-    });
-    return Array.from(suggestions);
-  }, [orders]);
+  // Configuración de búsqueda
+  const searchConfig = useMemo(() => ({
+    searchKeys: [
+      "id",
+      "cliente.correo",
+      "numeroSeguimiento",
+      "transportista",
+      "estado"
+    ]
+  }), []);
+
+  // Hook de búsqueda dinámica
+  const { 
+    searchTerm, 
+    setSearchTerm, 
+    filteredData: searchedOrders, 
+    suggestions: searchSuggestions 
+  } = useDynamicSearch(orders, searchConfig);
 
   const filteredOrders = useMemo(() => {
-    // 3. Usar `orders` del hook en lugar de `mockOrdenes`
-    if (!searchTerm.trim()) {
-      return orders;
+    let result = searchedOrders;
+
+    if (sortConfig.key) {
+      result = [...result].sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (sortConfig.key === 'cliente') {
+             aValue = a.cliente?.correo || '';
+             bValue = b.cliente?.correo || '';
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.order === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.order === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
     }
-    const lowercasedTerm = searchTerm.toLowerCase();
-    // 4. Adaptar el filtro a la estructura de datos correcta
-    // Buscar en todos los campos: ID, email, tracking, transportista y estado
-    return orders.filter(
-      (order) =>
-        (order.id && order.id.toLowerCase().includes(lowercasedTerm)) ||
-        (order.cliente?.correo &&
-          order.cliente.correo.toLowerCase().includes(lowercasedTerm)) ||
-        (order.numeroSeguimiento &&
-          order.numeroSeguimiento.toLowerCase().includes(lowercasedTerm)) ||
-        (order.transportista &&
-          order.transportista.toLowerCase().includes(lowercasedTerm)) ||
-        (order.estado &&
-          order.estado.toLowerCase().includes(lowercasedTerm))
-    );
-  }, [searchTerm, orders]); // 5. Añadir `orders` a las dependencias
+
+    return result;
+  }, [searchedOrders, sortConfig]);
+
+  const handleSort = (key) => {
+    let order = "asc";
+    if (sortConfig.key === key && sortConfig.order === "asc") {
+      order = "desc";
+    }
+    setSortConfig({ key, order });
+  };
+
+  const columns = useMemo(() => [
+    {
+      key: "id",
+      label: "ID de Orden",
+      sortable: true,
+      className: "font-mono text-dt-foreground whitespace-nowrap",
+      render: (order) => (
+        <Link
+          to={`/orders/${order.id}`}
+          className="hover:text-dt-accent transition-colors"
+        >
+          {order.id}
+        </Link>
+      )
+    },
+    {
+      key: "cliente",
+      label: "Email del Cliente",
+      sortable: true,
+      className: "text-dt-subtle whitespace-nowrap",
+      render: (order) => order.cliente?.correo || "N/A"
+    },
+    {
+      key: "estado",
+      label: "Estado",
+      sortable: true,
+      className: "whitespace-nowrap",
+      render: (order) => (
+        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+            order.estado === 'entregado' ? 'bg-dt-success/10 text-dt-success border border-dt-success/20' :
+            order.estado === 'en_transito' ? 'bg-dt-accent/10 text-dt-accent border border-dt-accent/20' :
+            'bg-white/10 text-dt-subtle border border-white/10'
+        }`}>
+            {order.estado}
+        </span>
+      )
+    },
+    {
+      key: "numeroSeguimiento",
+      label: "Nº de Seguimiento",
+      sortable: true,
+      className: "font-mono text-dt-subtle whitespace-nowrap text-xs",
+      render: (order) => order.numeroSeguimiento || "N/A"
+    },
+    {
+      key: "transportista",
+      label: "Transportista",
+      sortable: true,
+      className: "text-dt-foreground whitespace-nowrap",
+    }
+  ], []);
 
   if (isLoading) {
     return <div>Cargando órdenes...</div>;
@@ -56,7 +129,7 @@ const OrderListPage = () => {
           Órdenes Importadas
         </h1>
         <div className="w-full md:flex-1 md:max-w-none lg:max-w-4xl xl:max-w-5xl">
-          <SearchInput
+          <DynamicSearch
             id="search"
             label="Buscar"
             placeholder="Buscar por ID, email, tracking, transportista..."
@@ -67,55 +140,18 @@ const OrderListPage = () => {
         </div>
       </div>
 
-      <div className="bg-dt-primary border border-secondary rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px]">
-            <thead className="bg-dt-secondary text-left text-dt-subtle text-sm">
-              <tr>
-                <th className="p-4 whitespace-nowrap">ID de Orden</th>
-                <th className="p-4 whitespace-nowrap">Email del Cliente</th>
-                <th className="p-4 whitespace-nowrap">Estado</th>
-                <th className="p-4 whitespace-nowrap">Nº de Seguimiento</th>
-                <th className="p-4 whitespace-nowrap">Transportista</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-secondary">
-                    <td className="p-4 font-mono text-dt-foreground whitespace-nowrap">
-                      {/* 6. Enlazar al detalle de la orden si existe */}
-                      <Link
-                        to={`/orders/${order.id}`}
-                        className="hover:underline"
-                      >
-                        {order.id}
-                      </Link>
-                    </td>
-                    {/* 7. Usar la estructura correcta para el correo */}
-                    <td className="p-4 text-dt-subtle whitespace-nowrap">
-                      {order.cliente?.correo || "N/A"}
-                    </td>
-                    <td className="p-4 text-dt-foreground whitespace-nowrap">{order.estado}</td>
-                    <td className="p-4 font-mono text-dt-subtle whitespace-nowrap">
-                      {order.numeroSeguimiento || "N/A"}
-                    </td>
-                    <td className="p-4 text-dt-foreground whitespace-nowrap">
-                      {order.transportista}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="text-center p-8 text-dt-subtle">
-                    No se encontraron órdenes que coincidan con tu búsqueda.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DynamicTable
+        columns={columns}
+        data={filteredOrders}
+        sortConfig={sortConfig}
+        onSort={handleSort}
+        isLoading={isLoading}
+        emptyState={
+          <div className="text-center p-8 text-dt-subtle italic bg-white/5 backdrop-blur-md border border-white/10 rounded-lg">
+            No se encontraron órdenes que coincidan con tu búsqueda.
+          </div>
+        }
+      />
     </div>
   );
 };

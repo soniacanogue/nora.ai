@@ -76,7 +76,7 @@ export function AgentForm({ initialData, onSubmit, isSubmitting, onCancel }) {
         <textarea
           id="promptBase"
           rows={10}
-          className="w-full p-3 bg-dt-background border border-secondary rounded-md focus:ring-2 focus:ring-dt-accent"
+          className="w-full p-3 bg-black/20 border border-white/10 rounded-md focus:outline-none focus:border-dt-accent/50 focus:ring-1 focus:ring-dt-accent/50 text-dt-foreground transition-colors"
           {...register("promptBase")}
         />
         {errors.promptBase && (
@@ -103,7 +103,7 @@ export function AgentForm({ initialData, onSubmit, isSubmitting, onCancel }) {
         <textarea
           id="promptsPorCanal"
           rows={5}
-          className="w-full p-3 bg-dt-background border border-secondary rounded-md font-mono text-sm focus:ring-2 focus:ring-dt-accent"
+          className="w-full p-3 bg-black/20 border border-white/10 rounded-md font-mono text-sm focus:outline-none focus:border-dt-accent/50 focus:ring-1 focus:ring-dt-accent/50 text-dt-foreground transition-colors"
           {...register("promptsPorCanal")}
         />
         {errors.promptsPorCanal && (

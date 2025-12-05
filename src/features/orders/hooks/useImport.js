@@ -5,6 +5,7 @@ import {
   startImportJob,
   getImportJobStatus,
   cancelImportJob,
+  importOrdersBatch,
 } from "../api/importApi";
 import toast from "react-hot-toast";
 
@@ -107,6 +108,22 @@ export const useCancelImportJob = (options = {}) => {
       options.onSuccess?.(data, variables);
     },
     onError: (err) => toast.error(err.message || "No se pudo cancelar el job."),
+    ...options,
+  });
+
+  return {
+    ...mutation,
+    isPending: mutation.status === "pending",
+  };
+};
+
+// Hook para importar un lote de órdenes
+/**
+ * @returns {any} - Wrapped mutation that accepts {orders}
+ */
+export const useImportBatch = (options = {}) => {
+  const mutation = useMutation({
+    mutationFn: importOrdersBatch,
     ...options,
   });
 

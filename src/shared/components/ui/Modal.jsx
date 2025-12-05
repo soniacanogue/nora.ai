@@ -8,18 +8,18 @@ const Modal = ({ isOpen, onClose, title, children }) => {
     <>
       {/* Fondo oscuro */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-70 z-40"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Contenedor del Modal */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-dt-primary border border-secondary rounded-lg shadow-lg z-50 w-full max-w-lg p-6">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-dt-background border border-white/10 rounded-lg shadow-glow z-50 w-full max-w-lg p-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Encabezado del Modal */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-dt-foreground">{title}</h2>
+        <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+          <h2 className="text-lg font-bold text-dt-foreground uppercase tracking-wider">{title}</h2>
           <button
             onClick={onClose}
-            className="text-dt-subtle hover:text-dt-foreground text-2xl"
+            className="text-dt-subtle hover:text-dt-foreground text-2xl transition-colors"
           >
             &times;
           </button>

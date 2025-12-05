@@ -69,83 +69,97 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess }) => {
   // Estado de carga unificado
   const isLoading = isApproving || isEscalating || isReassigning;
 
+  const confidencePercent = suggestion.confidence ? Math.round(suggestion.confidence * 100) : 0;
+  const confidenceColorClass = confidencePercent >= 90 ? "bg-dt-success shadow-glow-success" : confidencePercent >= 70 ? "bg-yellow-500" : "bg-dt-error shadow-glow-error";
+  const confidenceTextClass = confidencePercent >= 90 ? "text-dt-success" : confidencePercent >= 70 ? "text-yellow-500" : "text-dt-error";
+
   return (
     <>
-      <div className="bg-dt-primary border border-secondary rounded-lg p-6">
-        <h2 className="text-xl font-bold text-dt-foreground mb-4">
-          Sugerencia de Nora AI
-        </h2>
-
-        <div className="mb-4">
-          <label className="text-sm font-medium text-dt-subtle">
-            Confianza
-          </label>
-          <p
-            className={`text-2xl font-bold ${getConfidenceColor(suggestion.confidence)}`}
-          >
-            {suggestion.confidence
-              ? `${(suggestion.confidence * 100).toFixed(0)}%`
-              : "N/A"}
-          </p>
+      <div className="bg-dt-accent/5 border border-dt-accent/20 rounded-lg p-6 shadow-glow relative overflow-hidden">
+        {/* Decorative AI header line */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-dt-accent to-transparent opacity-50"></div>
+        
+        <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold text-dt-foreground flex items-center gap-2">
+            <span className="material-symbols-outlined text-dt-accent animate-pulse">smart_toy</span>
+            Sugerencia de Nora AI
+            </h2>
+            <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-dt-subtle uppercase tracking-wider">Confianza</span>
+                <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div 
+                            className={`h-full rounded-full transition-all duration-1000 ease-out ${confidenceColorClass}`} 
+                            style={{ width: `${confidencePercent}%` }}
+                        ></div>
+                    </div>
+                    <span className={`text-sm font-bold font-mono ${confidenceTextClass}`}>{confidencePercent}%</span>
+                </div>
+            </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-6">
           <label
             htmlFor="suggested-reply"
-            className="text-sm font-medium text-dt-subtle"
+            className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-2 block"
           >
-            Respuesta Sugerida
+            Respuesta Generada
           </label>
           <textarea
             id="suggested-reply"
             value={editedReply}
             onChange={(e) => setEditedReply(e.target.value)}
             rows={8}
-            className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-sm"
+            className="w-full p-4 bg-black/20 border border-white/10 rounded-md text-dt-foreground text-sm font-mono leading-relaxed focus:outline-none focus:border-dt-accent focus:shadow-glow transition-all duration-200 resize-none"
           />
         </div>
 
         <div className="mb-6">
-          <label className="text-sm font-medium text-dt-subtle">
-            Etiquetas Sugeridas
+          <label className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-2 block">
+            Etiquetas Detectadas
           </label>
-          <div className="flex flex-wrap gap-2 mt-1">
+          <div className="flex flex-wrap gap-2">
             {suggestion.suggested_tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
+                className="px-3 py-1 bg-dt-accent/10 text-dt-accent border border-dt-accent/20 text-xs rounded-full font-mono"
               >
-                {tag}
+                #{tag}
               </span>
             ))}
           </div>
         </div>
         {/* --- SECCIÓN DE ACCIONES --- */}
-        <div className="space-y-3 border-t border-secondary pt-4 mt-4">
+        <div className="grid grid-cols-1 gap-3 border-t border-white/10 pt-6 mt-4">
           <Button
             variant="primary"
             size="md"
             onClick={handleApproveAndSend}
             disabled={isLoading}
+            className="w-full justify-center"
           >
-            {isApproving ? "Aprobando..." : "✅ Aprobar y Enviar"}
+            {isApproving ? "Procesando..." : "✅ Aprobar y Enviar"}
           </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={() => setIsEscalateModalOpen(true)}
-            disabled={isLoading}
-          >
-            {isEscalating ? "Escalando..." : "➡️ Escalar a Nivel 2"}
-          </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={() => setIsReassignModalOpen(true)}
-            disabled={isLoading}
-          >
-            {isReassigning ? "Reasignando..." : "👤 Reasignar"}
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsEscalateModalOpen(true)}
+                disabled={isLoading}
+                className="justify-center"
+            >
+                {isEscalating ? "..." : "➡️ Escalar (Nivel 2)"}
+            </Button>
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsReassignModalOpen(true)}
+                disabled={isLoading}
+                className="justify-center"
+            >
+                {isReassigning ? "..." : "👤 Reasignar"}
+            </Button>
+          </div>
         </div>
       </div>
 

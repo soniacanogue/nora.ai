@@ -49,7 +49,7 @@ export function AgentFormPage() {
           ? `Editando: ${agentData?.nombre}`
           : "Crear Nuevo Agente de IA"}
       </h1>
-      <div className="bg-dt-primary border border-secondary rounded-lg p-8">
+      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-8 shadow-glow">
         <AgentForm
           initialData={isEditMode ? agentData : undefined}
           onSubmit={handleSubmit}

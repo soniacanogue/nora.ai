@@ -1,7 +1,7 @@
 // src/shared/lib/apiClient.js
 
 // Configuración base del cliente API
-const baseURL = import.meta.env.API_URL ?? "https://nora-ai-f7r2.onrender.com";
+const baseURL = import.meta.env.API_URL ?? "http://localhost:3000";
 
 class ApiClient {
   constructor() {
@@ -33,6 +33,17 @@ class ApiClient {
       });
 
       if (!response.ok) {
+        // Manejo global de errores de autenticación (401)
+        if (response.status === 401) {
+          console.warn("Sesión expirada o inválida. Redirigiendo al login...");
+          localStorage.removeItem("token");
+          
+          // Evitar bucle de redirección si ya estamos en login
+          if (!window.location.pathname.includes("/login")) {
+            window.location.href = "/login";
+          }
+        }
+
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(
           errorData.message || `HTTP error! status: ${response.status}`

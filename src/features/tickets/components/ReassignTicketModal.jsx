@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Modal from "src/shared/components/ui/Modal";
 import Button from "src/shared/components/ui/Button";
-import { mockUsuarios } from "@/data/mockUsuarios";
+import { getUsers } from "@/features/auth/api/authApi";
 
 const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
   const [selectedAgent, setSelectedAgent] = useState("");
@@ -10,12 +11,19 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
+  const { data: users } = useQuery({
+    queryKey: ["users"],
+    queryFn: getUsers,
+    enabled: isOpen,
+  });
+
   const agents = useMemo(() => {
+    if (!users) return [];
     // Filtrar por rol y eliminar duplicados por ID
     const uniqueAgents = [];
     const seenIds = new Set();
 
-    mockUsuarios.forEach((user) => {
+    users.forEach((user) => {
       if (user.rol === "AGENTE" && !seenIds.has(user.id)) {
         seenIds.add(user.id);
         uniqueAgents.push(user);
@@ -23,7 +31,7 @@ const ReassignTicketModal = ({ isOpen, onClose, onConfirm, isReassigning }) => {
     });
 
     return uniqueAgents;
-  }, []);
+  }, [users]);
 
   const filteredAgents = useMemo(() => {
     if (!searchTerm || !searchTerm.trim()) {

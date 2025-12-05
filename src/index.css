@@ -3,24 +3,37 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .shadow-glow {
+    /* Un resplandor difuso, sin desplazamiento (x=0, y=0), radio de 15px */
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.3); /* Color violeta base */
+  }
+
+  /* Variante más fuerte para hover o estados activos */
+  .shadow-glow-strong {
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.6);
+  }
+}
+
 @layer base {
   body {
-    @apply bg-dt-background text-dt-foreground antialiased;
+    @apply bg-dt-background text-dt-foreground antialiased font-sans;
   }
 
   /* Estilos para select y option - usar colores del tema */
   select {
-    @apply bg-dt-background text-dt-foreground;
+    @apply bg-dt-background text-dt-foreground border border-white/10 rounded-md;
   }
 
   select:focus {
-    @apply outline-none ring-2 ring-accent border-accent;
+    @apply outline-none ring-1 ring-accent border-accent;
+    box-shadow: theme('boxShadow.glow');
   }
 
   option {
     @apply bg-dt-background text-dt-foreground;
-    background-color: #161B22 !important;
-    color: #FFFFFF !important;
+    background-color: #0A0A0A !important;
+    color: #ffffff !important;
   }
 
   /* Estilos para el hover y selección de las opciones del select */
@@ -28,21 +41,21 @@
   option:focus,
   option:checked,
   option:active {
-    background-color: #8A2BE2 !important;
-    color: #FFFFFF !important;
+    background-color: #8a2be2 !important;
+    color: #ffffff !important;
   }
 
   /* Estilos adicionales para navegadores específicos */
   select option:checked {
-    background: linear-gradient(#8A2BE2, #8A2BE2) !important;
-    background-color: #8A2BE2 !important;
-    color: #FFFFFF !important;
+    background: linear-gradient(#8a2be2, #8a2be2) !important;
+    background-color: #8a2be2 !important;
+    color: #ffffff !important;
   }
 
   /* Para Firefox */
   select option:hover {
-    background-color: #8A2BE2 !important;
-    color: #FFFFFF !important;
+    background-color: #8a2be2 !important;
+    color: #ffffff !important;
   }
 
   /* Para Chrome/Edge - usar color-scheme para forzar tema oscuro */
@@ -56,15 +69,16 @@
   }
 
   input[type="file"]::file-selector-button {
-    @apply bg-dt-accent text-dt-foreground border-0 rounded-md px-4 py-2 mr-4 text-sm font-semibold cursor-pointer;
+    @apply bg-dt-accent text-dt-foreground border-0 rounded-md px-4 py-2 mr-4 text-sm font-semibold cursor-pointer transition-all duration-200;
   }
 
   input[type="file"]::file-selector-button:hover {
     @apply bg-dt-accent-hover;
+    box-shadow: theme('boxShadow.glow');
   }
 
   input[type="file"]::file-selector-button:focus {
-    @apply outline-none ring-2 ring-accent;
+    @apply outline-none ring-1 ring-accent;
   }
 
   /* Estilos para elementos con focus por defecto del navegador */
@@ -76,9 +90,9 @@
     outline: none;
   }
 
-  /* Usar focus-visible para mantener accesibilidad con teclado */
   *:focus-visible {
-    @apply outline-none ring-2 ring-accent;
+    @apply outline-none ring-1 ring-accent;
+    box-shadow: theme('boxShadow.glow');
   }
 
   /* Estilos para checkboxes y radio buttons */
@@ -87,9 +101,9 @@
     @apply accent-accent;
   }
 
-  /* Estilos para textarea */
   textarea:focus {
-    @apply outline-none ring-2 ring-accent border-accent;
+    @apply outline-none ring-1 ring-accent border-accent;
+    box-shadow: theme('boxShadow.glow');
   }
 
   /* Estilos para autocompletado del navegador */
@@ -97,38 +111,68 @@
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #0D1117 inset !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-    caret-color: #FFFFFF !important;
+    -webkit-box-shadow: 0 0 0 30px #111111 inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff !important;
   }
 
   /* Estilos para el dropdown de sugerencias del navegador */
   input::-webkit-contacts-auto-fill-button,
   input::-webkit-credentials-auto-fill-button {
-    background-color: #8A2BE2;
+    background-color: #8a2be2;
   }
 
   /* Estilos para datalist (sugerencias HTML5) */
   datalist {
-    background-color: #161B22;
-    border: 1px solid #21262D;
+    background-color: #0A0A0A;
+    border: 1px solid #333;
   }
 
   datalist option {
-    background-color: #161B22;
-    color: #FFFFFF;
+    background-color: #0A0A0A;
+    color: #ffffff;
   }
 
   datalist option:hover {
-    background-color: #8A2BE2;
-    color: #FFFFFF;
+    background-color: #8a2be2;
+    color: #ffffff;
+  }
+
+  /* Estilos para scrollbar minimalista técnico */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #8a2be2;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
+
+  *:hover {
+    scrollbar-color: #8a2be2 transparent;
   }
 
   /* Estilos para el dropdown de sugerencias del navegador (autocompletado) */
   /* Chrome/Edge autocomplete dropdown */
   input::-webkit-contacts-auto-fill-button,
   input::-webkit-credentials-auto-fill-button {
-    background-color: #8A2BE2;
+    background-color: #8a2be2;
   }
 
   /* Estilos para el dropdown de sugerencias del navegador */
@@ -141,6 +185,6 @@
   /* Para el dropdown de sugerencias del navegador, usar fondo claro */
   /* Nota: Los navegadores tienen control limitado sobre estos estilos */
   input[list]::-webkit-calendar-picker-indicator {
-    background-color: #161B22;
+    background-color: #0A0A0A;
   }
 }

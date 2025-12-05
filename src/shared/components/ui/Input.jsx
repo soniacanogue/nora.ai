@@ -1,4 +1,5 @@
 import React from "react";
+import { twMerge } from "tailwind-merge";
 
 // Fíjate que añadimos `required` a las props que desestructuramos
 const Input = ({
@@ -9,6 +10,7 @@ const Input = ({
   value,
   onChange,
   required = false,
+  className,
   ...props
 }) => {
   return (
@@ -28,9 +30,12 @@ const Input = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full px-3 py-2 bg-white border border-secondary rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+        className={twMerge(
+          "w-full px-3 py-2 bg-neutral-800/50 border border-white/10 rounded-md text-dt-foreground placeholder-dt-subtle focus:outline-none focus:ring-2 focus:ring-dt-accent focus:border-dt-accent focus:shadow-glow transition-all duration-300 ease-bezier-out focus:bg-neutral-700/50",
+          className
+        )}
         style={{
-          colorScheme: "light",
+          colorScheme: "dark",
         }}
         autoComplete="off"
         required={required} // Pasamos el prop al input real

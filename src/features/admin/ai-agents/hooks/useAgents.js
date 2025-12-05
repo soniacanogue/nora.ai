@@ -16,7 +16,7 @@ export const useAgents = (sort = { key: "nombre", order: "asc" }) => {
     // La queryKey incluye el ordenamiento para que sea única, como en useTickets
     queryKey: [AGENTS_QUERY_KEY, sort],
     queryFn: () => getAgents({}, sort),
-    staleTime: 60 * 1000, // 1 minuto de cache, igual que en useTickets
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
   });
 };
 
