@@ -10,6 +10,11 @@ import {
   FiXCircle,
   FiSearch,
   FiShield,
+  FiKey,
+  FiMail,
+  FiActivity,
+  FiPieChart,
+  FiBarChart2,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import {
@@ -17,12 +22,215 @@ import {
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
+  useChangePassword,
+  useRequestPasswordReset,
+  useResetPasswordWithToken,
 } from "../hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
 import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
+import Modal from "@/shared/components/ui/Modal";
+
+const PasswordManagerModal = ({ user, onClose }) => {
+  const [mode, setMode] = useState("change");
+  const [formValues, setFormValues] = useState({
+    newPassword: "",
+    confirmPassword: "",
+    token: "",
+  });
+  const changePasswordMutation = useChangePassword();
+  const requestPasswordResetMutation = useRequestPasswordReset();
+  const resetPasswordWithTokenMutation = useResetPasswordWithToken();
+
+  if (!user) return null;
+
+  const resetForm = () =>
+    setFormValues({
+      newPassword: "",
+      confirmPassword: "",
+      token: "",
+    });
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleChangePassword = (event) => {
+    event.preventDefault();
+    if (!formValues.newPassword) {
+      toast.error("Ingresa la nueva contraseña");
+      return;
+    }
+    if (formValues.newPassword !== formValues.confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
+    changePasswordMutation.mutate(
+      {
+        userId: user.id,
+        newPassword: formValues.newPassword,
+        force: true,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Contraseña actualizada");
+          resetForm();
+          onClose();
+        },
+        onError: (error) => {
+          toast.error(error.message || "No fue posible actualizar la contraseña");
+        },
+      }
+    );
+  };
+
+  const handleSendResetEmail = (event) => {
+    event.preventDefault();
+    requestPasswordResetMutation.mutate(
+      { correo: user.correo },
+      {
+        onSuccess: () => {
+          toast.success("Correo de recuperación enviado");
+          onClose();
+        },
+        onError: (error) => {
+          toast.error(error.message || "No fue posible enviar el correo");
+        },
+      }
+    );
+  };
+
+  const handleResetWithToken = (event) => {
+    event.preventDefault();
+    if (!formValues.token) {
+      toast.error("Ingresa el token de recuperación");
+      return;
+    }
+    if (!formValues.newPassword) {
+      toast.error("Ingresa la nueva contraseña");
+      return;
+    }
+    resetPasswordWithTokenMutation.mutate(
+      {
+        token: formValues.token,
+        newPassword: formValues.newPassword,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Contraseña restablecida con token");
+          resetForm();
+          onClose();
+        },
+        onError: (error) => {
+          toast.error(error.message || "No fue posible aplicar el token");
+        },
+      }
+    );
+  };
+
+  const modes = [
+    { key: "change", label: "Cambio directo" },
+    { key: "reset", label: "Enviar correo" },
+    { key: "token", label: "Usar token" },
+  ];
+
+  const isSubmitting =
+    changePasswordMutation.isPending ||
+    requestPasswordResetMutation.isPending ||
+    resetPasswordWithTokenMutation.isPending;
+
+  return (
+    <Modal
+      isOpen={!!user}
+      onClose={() => {
+        resetForm();
+        onClose();
+      }}
+      title={`Gestionar contraseña - ${user.nombre}`}
+    >
+      <div className="flex flex-wrap gap-2 mb-6">
+        {modes.map((option) => (
+          <button
+            key={option.key}
+            type="button"
+            onClick={() => setMode(option.key)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              mode === option.key
+                ? "bg-dt-accent text-white"
+                : "bg-dt-card text-dt-subtle border border-dt-border"
+            }`}
+            disabled={isSubmitting}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "change" && (
+        <form className="space-y-4" onSubmit={handleChangePassword}>
+          <input
+            type="password"
+            name="newPassword"
+            value={formValues.newPassword}
+            onChange={handleInputChange}
+            placeholder="Nueva contraseña"
+            className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg"
+          />
+          <input
+            type="password"
+            name="confirmPassword"
+            value={formValues.confirmPassword}
+            onChange={handleInputChange}
+            placeholder="Confirmar contraseña"
+            className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg"
+          />
+          <Button type="submit" variant="primary" icon={FiKey} disabled={isSubmitting}>
+            Actualizar contraseña
+          </Button>
+        </form>
+      )}
+
+      {mode === "reset" && (
+        <form className="space-y-4" onSubmit={handleSendResetEmail}>
+          <p className="text-sm text-dt-subtle">
+            Enviaremos un correo a <strong>{user.correo}</strong> con un enlace para
+            restablecer la contraseña.
+          </p>
+          <Button type="submit" variant="secondary" icon={FiMail} disabled={isSubmitting}>
+            Enviar correo de recuperación
+          </Button>
+        </form>
+      )}
+
+      {mode === "token" && (
+        <form className="space-y-4" onSubmit={handleResetWithToken}>
+          <input
+            type="text"
+            name="token"
+            value={formValues.token}
+            onChange={handleInputChange}
+            placeholder="Token proporcionado por backend"
+            className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg"
+          />
+          <input
+            type="password"
+            name="newPassword"
+            value={formValues.newPassword}
+            onChange={handleInputChange}
+            placeholder="Nueva contraseña"
+            className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg"
+          />
+          <Button type="submit" variant="primary" icon={FiShield} disabled={isSubmitting}>
+            Aplicar token y restablecer
+          </Button>
+        </form>
+      )}
+    </Modal>
+  );
+};
 
 /**
  * UC-16: Users Management Page
@@ -33,11 +241,90 @@ export const UsersListPage = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [teamFilter, setTeamFilter] = useState("");
+  const [passwordManagerUser, setPasswordManagerUser] = useState(null);
 
   const { data: users = [], isLoading, error } = useUsers();
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
+
+  const availableTeams = useMemo(() => {
+    const uniqueTeams = new Set();
+    users.forEach((user) => {
+      if (user.equipo) {
+        uniqueTeams.add(user.equipo);
+      }
+    });
+    return Array.from(uniqueTeams);
+  }, [users]);
+
+  const userStats = useMemo(() => {
+    if (!users.length) {
+      return {
+        total: 0,
+        active: 0,
+        inactive: 0,
+        assigned: 0,
+        resolved: 0,
+        slaAvg: 0,
+      };
+    }
+
+    const total = users.length;
+    const active = users.filter((user) => user.activo).length;
+    const inactive = total - active;
+    const assigned = users.reduce(
+      (sum, user) => sum + (user.metricas?.ticketsAsignados ?? user.ticketsAsignados ?? 0),
+      0
+    );
+    const resolved = users.reduce(
+      (sum, user) => sum + (user.metricas?.ticketsResueltos ?? user.ticketsResueltos ?? 0),
+      0
+    );
+    const slaAvg = Math.round(
+      users.reduce(
+        (sum, user) => sum + (user.metricas?.slaCumplido ?? user.slaCumplido ?? 0),
+        0
+      ) / total
+    );
+
+    return { total, active, inactive, assigned, resolved, slaAvg };
+  }, [users]);
+
+  const userKpiCards = [
+    {
+      label: "Usuarios totales",
+      value: userStats.total,
+      icon: FiUsers,
+      tone: "text-dt-foreground",
+    },
+    {
+      label: "Activos",
+      value: userStats.active,
+      icon: FiActivity,
+      tone: "text-green-400",
+    },
+    {
+      label: "Tickets asignados",
+      value: userStats.assigned,
+      icon: FiBarChart2,
+      tone: "text-blue-400",
+    },
+    {
+      label: "Tickets resueltos",
+      value: userStats.resolved,
+      icon: FiCheckCircle,
+      tone: "text-emerald-400",
+    },
+    {
+      label: "SLA promedio",
+      value: `${userStats.slaAvg || 0}%`,
+      icon: FiPieChart,
+      tone: "text-purple-400",
+    },
+  ];
 
   // Filter users by search term and role
   const filteredUsers = useMemo(() => {
@@ -58,8 +345,18 @@ export const UsersListPage = () => {
       result = result.filter((user) => user.rol === roleFilter);
     }
 
+    if (statusFilter) {
+      result = result.filter((user) =>
+        statusFilter === "active" ? user.activo : !user.activo
+      );
+    }
+
+    if (teamFilter) {
+      result = result.filter((user) => (user.equipo || "") === teamFilter);
+    }
+
     return result;
-  }, [users, searchTerm, roleFilter]);
+  }, [users, searchTerm, roleFilter, statusFilter, teamFilter]);
 
   const handleCreate = (formData) => {
     createUserMutation.mutate(formData, {
@@ -194,6 +491,18 @@ export const UsersListPage = () => {
     }
   };
 
+  const getUserMetrics = (user) => ({
+    assigned: user.metricas?.ticketsAsignados ?? user.ticketsAsignados ?? 0,
+    resolved: user.metricas?.ticketsResueltos ?? user.ticketsResueltos ?? 0,
+    sla: user.metricas?.slaCumplido ?? user.slaCumplido ?? 0,
+  });
+
+  const getSlaVariant = (value) => {
+    if (value >= 90) return "success";
+    if (value >= 75) return "warning";
+    return "error";
+  };
+
   if (error) {
     return (
       <div className="p-6">
@@ -229,8 +538,30 @@ export const UsersListPage = () => {
         </Button>
       </div>
 
+        {/* KPI Summary */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {userKpiCards.map((card) => (
+            <div
+              key={card.label}
+              className="bg-dt-card border border-dt-border rounded-xl p-4 flex items-center gap-3 shadow-sm"
+            >
+              <div className={`text-2xl ${card.tone}`}>
+                <card.icon />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-dt-subtle">{card.label}</p>
+                <p className="text-2xl font-semibold text-dt-foreground">
+                  {typeof card.value === "number"
+                    ? card.value.toLocaleString("es-MX")
+                    : card.value}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
       {/* Filters */}
-      <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
         {/* Search Bar */}
         <div className="relative flex-1">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
@@ -254,6 +585,31 @@ export const UsersListPage = () => {
           <option value="AGENTE">Agentes</option>
           <option value="CLIENTE">Clientes</option>
         </select>
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
+        >
+          <option value="">Todos los estados</option>
+          <option value="active">Activos</option>
+          <option value="inactive">Inactivos</option>
+        </select>
+
+        {availableTeams.length > 0 && (
+          <select
+            value={teamFilter}
+            onChange={(e) => setTeamFilter(e.target.value)}
+            className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
+          >
+            <option value="">Todos los equipos</option>
+            {availableTeams.map((team) => (
+              <option key={team} value={team}>
+                {team}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Users Table */}
@@ -300,82 +656,122 @@ export const UsersListPage = () => {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase">
                     Estado
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase">
+                    KPIs
+                  </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-dt-subtle uppercase">
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-dt-border">
-                {filteredUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-dt-background/50 transition-colors"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-dt-accent/20 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-dt-accent">
-                            {user.nombre.charAt(0).toUpperCase()}
-                          </span>
+                {filteredUsers.map((user) => {
+                  const metrics = getUserMetrics(user);
+                  return (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-dt-background/50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-dt-accent/20 flex items-center justify-center">
+                            <span className="text-sm font-semibold text-dt-accent">
+                              {user.nombre.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-dt-foreground block">
+                              {user.nombre}
+                            </span>
+                            <span className="text-xs text-dt-subtle">
+                              {user.equipo || "Sin equipo"}
+                            </span>
+                          </div>
                         </div>
-                        <span className="font-medium text-dt-foreground">
-                          {user.nombre}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-dt-subtle">
-                      {user.correo}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge
-                        variant={getRoleBadgeVariant(user.rol)}
-                        icon={FiShield}
-                      >
-                        {user.rol}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge
-                        variant={user.activo ? "success" : "neutral"}
-                        icon={user.activo ? FiCheckCircle : FiXCircle}
-                      >
-                        {user.activo ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleToggleActive(user)}
-                          className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                          title={user.activo ? "Desactivar" : "Activar"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-dt-subtle">
+                        {user.correo}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={getRoleBadgeVariant(user.rol)}
+                          icon={FiShield}
                         >
-                          {user.activo ? (
-                            <FiToggleRight
-                              size={20}
-                              className="text-green-500"
-                            />
-                          ) : (
-                            <FiToggleLeft size={20} />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setEditingUser(user)}
-                          className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                          title="Editar"
+                          {user.rol}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={user.activo ? "success" : "neutral"}
+                          icon={user.activo ? FiCheckCircle : FiXCircle}
                         >
-                          <FiEdit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(user)}
-                          className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
-                          title="Eliminar"
-                        >
-                          <FiTrash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {user.activo ? "Activo" : "Inactivo"}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-dt-subtle">
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>Asignados</span>
+                            <span className="font-semibold text-dt-foreground">
+                              {metrics.assigned}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Resueltos</span>
+                            <span className="font-semibold text-dt-foreground">
+                              {metrics.resolved}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span>SLA</span>
+                            <Badge variant={getSlaVariant(metrics.sla)}>
+                              {Math.round(metrics.sla || 0)}%
+                            </Badge>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => handleToggleActive(user)}
+                            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+                            title={user.activo ? "Desactivar" : "Activar"}
+                          >
+                            {user.activo ? (
+                              <FiToggleRight
+                                size={20}
+                                className="text-green-500"
+                              />
+                            ) : (
+                              <FiToggleLeft size={20} />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setPasswordManagerUser(user)}
+                            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+                            title="Gestionar contraseña"
+                          >
+                            <FiKey size={16} />
+                          </button>
+                          <button
+                            onClick={() => setEditingUser(user)}
+                            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+                            title="Editar"
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user)}
+                            className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
+                            title="Eliminar"
+                          >
+                            <FiTrash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -405,6 +801,13 @@ export const UsersListPage = () => {
           }}
           onClose={() => setEditingUser(null)}
           isLoading={updateUserMutation.isPending}
+        />
+      )}
+
+      {passwordManagerUser && (
+        <PasswordManagerModal
+          user={passwordManagerUser}
+          onClose={() => setPasswordManagerUser(null)}
         />
       )}
     </div>

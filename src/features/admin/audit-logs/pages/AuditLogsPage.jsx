@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FiFileText,
   FiSearch,
@@ -11,6 +11,7 @@ import {
   FiEdit,
   FiLogIn,
   FiSettings,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useAuditLogs, exportAuditLogs } from "../hooks";
@@ -19,6 +20,7 @@ import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
 import { formatDistanceToNow } from "@/shared/utils/formatters";
+import { useUsers } from "@/features/admin/users/hooks";
 
 /**
  * UC-22: Audit Logs Page
@@ -32,13 +34,41 @@ export const AuditLogsPage = () => {
     action: "",
     startDate: "",
     endDate: "",
+    userId: "",
+    resource: "",
   });
   const [showFilters, setShowFilters] = useState(false);
 
   const { data, isLoading, error } = useAuditLogs(filters);
+  const { data: usersList = [] } = useUsers();
   const logs = data?.data || [];
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / filters.limit);
+  const isCriticalEvent = (log) => {
+    const haystack = `${log.accion || ""} ${log.detalles || ""} ${
+      log.recurso || ""
+    }`.toLowerCase();
+    const criticalKeywords = [
+      "delete",
+      "permis",
+      "security",
+      "seguridad",
+      "password",
+      "token",
+      "role",
+      "permiso",
+    ];
+    return criticalKeywords.some((keyword) => haystack.includes(keyword));
+  };
+
+  const timelineLogs = useMemo(() => {
+    return [...logs]
+      .filter((log) => log.timestamp)
+      .sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )
+      .slice(0, 8);
+  }, [logs]);
 
   const handleSearch = (e) => {
     setFilters({ ...filters, search: e.target.value, page: 1 });
@@ -108,7 +138,7 @@ export const AuditLogsPage = () => {
     if (actionLower.includes("create")) return "success";
     if (actionLower.includes("update") || actionLower.includes("edit"))
       return "warning";
-    if (actionLower.includes("delete")) return "danger";
+    if (actionLower.includes("delete")) return "error";
     if (actionLower.includes("login")) return "info";
     return "neutral";
   };
@@ -170,7 +200,7 @@ export const AuditLogsPage = () => {
         {/* Advanced Filters */}
         {showFilters && (
           <div className="bg-dt-card border border-dt-border rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-dt-foreground mb-2">
                   Tipo de Acción
@@ -211,6 +241,35 @@ export const AuditLogsPage = () => {
                   onChange={(e) =>
                     handleFilterChange("endDate", e.target.value)
                   }
+                  className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dt-foreground mb-2">
+                  Usuario
+                </label>
+                <select
+                  value={filters.userId}
+                  onChange={(e) => handleFilterChange("userId", e.target.value)}
+                  className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
+                >
+                  <option value="">Todos</option>
+                  {usersList.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dt-foreground mb-2">
+                  Recurso
+                </label>
+                <input
+                  type="text"
+                  value={filters.resource}
+                  onChange={(e) => handleFilterChange("resource", e.target.value)}
+                  placeholder="tickets, usuarios, plantillas..."
                   className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
                 />
               </div>
@@ -267,46 +326,120 @@ export const AuditLogsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-dt-border">
-                  {logs.map((log, index) => (
-                    <tr
-                      key={log.id || index}
-                      className="hover:bg-dt-background/50 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-dt-foreground">
-                        <div className="flex items-center gap-2">
-                          <FiClock className="text-dt-subtle" size={14} />
-                          <span>
-                            {log.timestamp
-                              ? formatDistanceToNow(new Date(log.timestamp))
-                              : "N/A"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-dt-foreground">
-                        <div className="flex items-center gap-2">
-                          <FiUser className="text-dt-subtle" size={14} />
-                          <span>{log.usuario?.nombre || "Sistema"}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge
-                          variant={getActionColor(log.accion)}
-                          icon={getActionIcon(log.accion)}
-                        >
-                          {log.accion}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-dt-subtle">
-                        {log.recurso || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-dt-subtle max-w-md truncate">
-                        {log.detalles || log.mensaje || "-"}
-                      </td>
-                    </tr>
-                  ))}
+                  {logs.map((log, index) => {
+                    const critical = isCriticalEvent(log);
+                    const ActionIcon = getActionIcon(log.accion);
+                    return (
+                      <tr
+                        key={log.id || index}
+                        className={`transition-colors ${
+                          critical
+                            ? "bg-red-500/5 border-l-2 border-red-500"
+                            : "hover:bg-dt-background/50"
+                        }`}
+                      >
+                        <td className="px-4 py-3 text-sm text-dt-foreground">
+                          <div className="flex items-center gap-2">
+                            <FiClock className="text-dt-subtle" size={14} />
+                            <span>
+                              {log.timestamp
+                                ? formatDistanceToNow(new Date(log.timestamp))
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-dt-foreground">
+                          <div className="flex items-center gap-2">
+                            <FiUser className="text-dt-subtle" size={14} />
+                            <span>{log.usuario?.nombre || "Sistema"}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant={critical ? "danger" : getActionColor(log.accion)}
+                            >
+                              <span className="flex items-center gap-1">
+                                <ActionIcon size={12} />
+                                {log.accion}
+                              </span>
+                            </Badge>
+                            {critical && (
+                              <span className="text-xs text-red-400 flex items-center gap-1">
+                                <FiAlertTriangle size={12} /> Crítico
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-dt-subtle">
+                          {log.recurso || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-dt-subtle max-w-md truncate">
+                          {log.detalles || log.mensaje || "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <div className="bg-dt-card border border-dt-border rounded-lg p-5 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-dt-foreground">
+                  Timeline de eventos recientes
+                </h3>
+                <p className="text-xs text-dt-subtle">
+                  Últimos {timelineLogs.length} eventos registrados
+                </p>
+              </div>
+            </div>
+            {timelineLogs.length === 0 ? (
+              <p className="text-sm text-dt-subtle">
+                Aún no hay eventos con timestamp para mostrar en el timeline.
+              </p>
+            ) : (
+              <div className="relative pl-6">
+                <div className="absolute left-2 top-0 bottom-0 w-px bg-dt-border"></div>
+                {timelineLogs.map((log, index) => {
+                  const critical = isCriticalEvent(log);
+                  const ActionIcon = getActionIcon(log.accion);
+                  return (
+                    <div key={log.id || index} className="mb-6 last:mb-0 relative">
+                      <span
+                        className={`absolute -left-[7px] w-3.5 h-3.5 rounded-full border-2 ${
+                          critical
+                            ? "border-red-500 bg-red-500/40"
+                            : "border-dt-border bg-dt-background"
+                        }`}
+                      ></span>
+                      <div className="flex items-center gap-2 text-xs text-dt-subtle">
+                        <FiClock size={12} />
+                        {log.timestamp
+                          ? formatDistanceToNow(new Date(log.timestamp))
+                          : "N/A"}
+                        <span className="text-[10px] uppercase tracking-wide">
+                          {log.usuario?.nombre || "Sistema"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={critical ? "danger" : getActionColor(log.accion)}>
+                          <span className="flex items-center gap-1">
+                            <ActionIcon size={12} />
+                            {log.accion}
+                          </span>
+                        </Badge>
+                        <span className="text-sm text-dt-foreground">
+                          {log.detalles || log.mensaje || log.recurso || "Evento"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Pagination */}

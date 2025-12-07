@@ -9,6 +9,10 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiSearch,
+  FiPlay,
+  FiList,
+  FiActivity,
+  FiClock,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import {
@@ -17,12 +21,73 @@ import {
   useUpdateIntegration,
   useDeleteIntegration,
   useTestIntegration,
+  useIntegrationLogs,
 } from "../hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
 import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
+import Modal from "@/shared/components/ui/Modal";
+import { formatDistanceToNow } from "@/shared/utils/formatters";
+
+const IntegrationLogsModal = ({ integration, onClose }) => {
+  const { data: logs = [], isLoading, error } = useIntegrationLogs(
+    integration?.id
+  );
+
+  if (!integration) return null;
+
+  return (
+    <Modal
+      isOpen={!!integration}
+      onClose={onClose}
+      title={`Logs de ${integration.nombre}`}
+    >
+      {isLoading && <p className="text-sm text-dt-subtle">Cargando logs...</p>}
+      {error && (
+        <p className="text-sm text-red-400">
+          {error.message || "No fue posible obtener los logs"}
+        </p>
+      )}
+      {!isLoading && !error && logs.length === 0 && (
+        <p className="text-sm text-dt-subtle">
+          No hay registros disponibles para esta integración.
+        </p>
+      )}
+      {!isLoading && !error && logs.length > 0 && (
+        <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
+          {logs.map((log, index) => (
+            <div
+              key={log.id || index}
+              className="bg-dt-card border border-dt-border rounded-lg p-3"
+            >
+              <div className="flex items-center justify-between text-xs text-dt-subtle mb-2">
+                <span className="flex items-center gap-1">
+                  <FiClock />
+                  {log.timestamp
+                    ? formatDistanceToNow(new Date(log.timestamp))
+                    : "Sin marca"}
+                </span>
+                <Badge variant={log.level === "error" ? "danger" : "info"}>
+                  {log.level?.toUpperCase() || "INFO"}
+                </Badge>
+              </div>
+              <p className="text-sm text-dt-foreground font-medium">
+                {log.message || log.descripcion || "Evento registrado"}
+              </p>
+              {log.meta && (
+                <pre className="mt-2 text-[11px] text-dt-subtle bg-black/30 rounded p-2 overflow-x-auto">
+                  {JSON.stringify(log.meta, null, 2)}
+                </pre>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Modal>
+  );
+};
 
 /**
  * UC-18: Integrations Management Page
@@ -32,12 +97,55 @@ export const IntegrationsListPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingIntegration, setEditingIntegration] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedIntegrationForLogs, setSelectedIntegrationForLogs] =
+    useState(null);
 
   const { data: integrations = [], isLoading, error } = useIntegrations();
   const createIntegrationMutation = useCreateIntegration();
   const updateIntegrationMutation = useUpdateIntegration();
   const deleteIntegrationMutation = useDeleteIntegration();
   const testIntegrationMutation = useTestIntegration();
+
+  const getHealthSnapshot = (integration) => ({
+    status:
+      integration.health?.status ||
+      (integration.activo ? "HEALTHY" : "INACTIVE"),
+    lastCheck:
+      integration.health?.lastCheck || integration.updatedAt || integration.createdAt,
+    uptime: integration.health?.uptime ?? integration.uptime ?? null,
+    latencyMs:
+      integration.health?.latencyMs ?? integration.latencyMs ?? null,
+    errors24h:
+      integration.health?.errors24h ?? integration.errores24h ?? 0,
+  });
+
+  const getHealthVariant = (status) => {
+    switch (status) {
+      case "HEALTHY":
+        return "success";
+      case "DEGRADED":
+        return "warning";
+      case "DOWN":
+        return "danger";
+      default:
+        return "neutral";
+    }
+  };
+
+  const getHealthLabel = (status) => {
+    switch (status) {
+      case "HEALTHY":
+        return "Operativa";
+      case "DEGRADED":
+        return "Degradada";
+      case "DOWN":
+        return "Caída";
+      case "INACTIVE":
+        return "Inactiva";
+      default:
+        return status || "Sin estado";
+    }
+  };
 
   // Filter integrations by search term
   const filteredIntegrations = useMemo(() => {
@@ -117,14 +225,15 @@ export const IntegrationsListPage = () => {
   };
 
   const handleTest = async (integration) => {
-    toast.loading("Probando conexión...", { id: "test-integration" });
+    const toastId = `test-integration-${integration.id}`;
+    toast.loading("Probando conexión...", { id: toastId });
     testIntegrationMutation.mutate(integration.id, {
       onSuccess: () => {
-        toast.success("Conexión exitosa", { id: "test-integration" });
+        toast.success("Conexión exitosa", { id: toastId });
       },
       onError: (err) => {
         toast.error(err.message || "Error en la conexión", {
-          id: "test-integration",
+          id: toastId,
         });
       },
     });
@@ -272,71 +381,135 @@ export const IntegrationsListPage = () => {
         />
       ) : (
         <div className="space-y-4">
-          {filteredIntegrations.map((integration) => (
-            <div
-              key={integration.id}
-              className="bg-dt-card border border-dt-border rounded-lg p-6 hover:border-dt-accent/50 transition-colors group"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-dt-foreground">
-                      {integration.nombre}
-                    </h3>
-                    <Badge
-                      variant={integration.activo ? "success" : "neutral"}
-                      icon={
-                        integration.activo ? FiCheckCircle : FiAlertCircle
+          {filteredIntegrations.map((integration) => {
+            const health = getHealthSnapshot(integration);
+            const healthVariant = getHealthVariant(health.status);
+            const lastCheckLabel = health.lastCheck
+              ? formatDistanceToNow(new Date(health.lastCheck))
+              : "Sin verificación";
+
+            return (
+              <div
+                key={integration.id}
+                className="bg-dt-card border border-dt-border rounded-lg p-6 hover:border-dt-accent/50 transition-colors group"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-dt-foreground">
+                        {integration.nombre}
+                      </h3>
+                      <Badge variant={integration.activo ? "success" : "neutral"}>
+                        {integration.activo ? "Activo" : "Inactivo"}
+                      </Badge>
+                      <Badge variant={healthVariant}>
+                        <span className="flex items-center gap-1">
+                          <FiActivity /> {getHealthLabel(health.status)}
+                        </span>
+                      </Badge>
+                    </div>
+                    {integration.endpoint && (
+                      <p className="text-sm text-dt-subtle mb-1">
+                        <span className="font-medium">Endpoint:</span>{" "}
+                        {integration.endpoint}
+                      </p>
+                    )}
+                    {integration.urlWebhook && (
+                      <p className="text-sm text-dt-subtle">
+                        <span className="font-medium">Webhook:</span>{" "}
+                        {integration.urlWebhook}
+                      </p>
+                    )}
+                    <p className="text-xs text-dt-subtle mt-2 flex items-center gap-1">
+                      <FiClock /> Última verificación: {lastCheckLabel}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => handleToggleActive(integration)}
+                      className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+                      title={
+                        integration.activo ? "Desactivar" : "Activar"
                       }
                     >
-                      {integration.activo ? "Activo" : "Inactivo"}
-                    </Badge>
+                      {integration.activo ? (
+                        <FiToggleRight size={20} className="text-green-500" />
+                      ) : (
+                        <FiToggleLeft size={20} />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setEditingIntegration(integration)}
+                      className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+                      title="Editar"
+                    >
+                      <FiEdit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(integration)}
+                      className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
+                      title="Eliminar"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
                   </div>
-                  {integration.endpoint && (
-                    <p className="text-sm text-dt-subtle mb-1">
-                      <span className="font-medium">Endpoint:</span>{" "}
-                      {integration.endpoint}
-                    </p>
-                  )}
-                  {integration.urlWebhook && (
-                    <p className="text-sm text-dt-subtle">
-                      <span className="font-medium">Webhook:</span>{" "}
-                      {integration.urlWebhook}
-                    </p>
-                  )}
                 </div>
-                <div className="flex gap-2 ml-4">
-                  <button
-                    onClick={() => handleToggleActive(integration)}
-                    className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                    title={
-                      integration.activo ? "Desactivar" : "Activar"
-                    }
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                  <div className="bg-dt-background border border-dt-border rounded-lg p-3">
+                    <p className="text-xs text-dt-subtle uppercase tracking-wide">
+                      Uptime
+                    </p>
+                    <p className="text-xl font-semibold text-dt-foreground">
+                      {health.uptime != null ? `${health.uptime}%` : "N/D"}
+                    </p>
+                  </div>
+                  <div className="bg-dt-background border border-dt-border rounded-lg p-3">
+                    <p className="text-xs text-dt-subtle uppercase tracking-wide">
+                      Latencia promedio
+                    </p>
+                    <p className="text-xl font-semibold text-dt-foreground">
+                      {health.latencyMs != null
+                        ? `${health.latencyMs} ms`
+                        : "N/D"}
+                    </p>
+                  </div>
+                  <div className="bg-dt-background border border-dt-border rounded-lg p-3">
+                    <p className="text-xs text-dt-subtle uppercase tracking-wide">
+                      Errores últimas 24h
+                    </p>
+                    <p className="text-xl font-semibold text-dt-foreground">
+                      {health.errors24h}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mt-4">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    fullWidth={false}
+                    onClick={() => handleTest(integration)}
+                    isLoading={testIntegrationMutation.isPending}
                   >
-                    {integration.activo ? (
-                      <FiToggleRight size={20} className="text-green-500" />
-                    ) : (
-                      <FiToggleLeft size={20} />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setEditingIntegration(integration)}
-                    className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                    title="Editar"
+                    <span className="flex items-center gap-2">
+                      <FiPlay /> Probar conexión
+                    </span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    fullWidth={false}
+                    onClick={() => setSelectedIntegrationForLogs(integration)}
                   >
-                    <FiEdit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(integration)}
-                    className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
-                    title="Eliminar"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
+                    <span className="flex items-center gap-2">
+                      <FiList /> Ver logs
+                    </span>
+                  </Button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -363,6 +536,13 @@ export const IntegrationsListPage = () => {
           }}
           onClose={() => setEditingIntegration(null)}
           isLoading={updateIntegrationMutation.isPending}
+        />
+      )}
+
+      {selectedIntegrationForLogs && (
+        <IntegrationLogsModal
+          integration={selectedIntegrationForLogs}
+          onClose={() => setSelectedIntegrationForLogs(null)}
         />
       )}
     </div>

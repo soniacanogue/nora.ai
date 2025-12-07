@@ -106,3 +106,21 @@ export const useChangePassword = () => {
     mutationFn: usersApi.changePassword,
   });
 };
+
+/**
+ * Hook to request password reset token/email
+ */
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: usersApi.requestPasswordReset,
+  });
+};
+
+/**
+ * Hook to reset password with admin/token flow
+ */
+export const useResetPasswordWithToken = () => {
+  return useMutation({
+    mutationFn: usersApi.resetPasswordWithToken,
+  });
+};

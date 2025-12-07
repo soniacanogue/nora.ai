@@ -13,6 +13,8 @@ const Badge = ({ children, variant = "default", className = "" }) => {
     error: "bg-dt-error/10 text-dt-error border-dt-error/20 shadow-glow-error",
     warning: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
     info: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    danger: "bg-red-500/15 text-red-300 border-red-500/30",
+    neutral: "bg-white/5 text-dt-subtle border-white/10",
   };
 
   return (

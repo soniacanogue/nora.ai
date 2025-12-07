@@ -112,4 +112,41 @@ export const usersApi = {
       throw error;
     }
   },
+
+  /**
+   * Request password reset email/token
+   * @param {Object} data
+   * @param {string} data.correo - User email to recover
+   * @returns {Promise<void>}
+   */
+  requestPasswordReset: async (data) => {
+    try {
+      const response = await apiClient.post("/auth/forgot-password", data);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        throw new Error("Endpoint de recuperación no disponible");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Reset password with token (admin/manual flow)
+   * @param {Object} data
+   * @param {string} data.token - Reset token provided by backend
+   * @param {string} data.newPassword - New password to set
+   * @returns {Promise<void>}
+   */
+  resetPasswordWithToken: async (data) => {
+    try {
+      const response = await apiClient.post("/auth/reset-password", data);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        throw new Error("Endpoint de reseteo no disponible");
+      }
+      throw error;
+    }
+  },
 };

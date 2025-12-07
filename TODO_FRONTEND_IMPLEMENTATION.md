@@ -33,19 +33,25 @@ POST /knowledge-base/search - Search documents (optional)
 
 ---
 
-## Placeholder Pages (UI Structure Ready, Awaiting Full Implementation)
+## Admin Modules (FULLY IMPLEMENTED)
 
 ### UC-16: Users Management
 **Location:** `/src/features/admin/users/pages/UsersListPage.jsx`
+**Implementation Status:** ✅ Completado — métricas por usuario, filtros avanzados y gestión de contraseñas listas en frontend.
 
-**TODOs:**
-- [ ] List all users with roles and status
-- [ ] Create/Edit user form with role selection
-- [ ] Activate/Deactivate users
-- [ ] Delete users with confirmation
-- [ ] Show user statistics (tickets assigned, resolved)
-- [ ] Password management (change, reset)
-- [ ] Filter by role, status, team
+**TODOs revisados:**
+- [x] List all users with roles and status
+- [x] Create/Edit user form with role selection
+- [x] Activate/Deactivate users
+- [x] Delete users with confirmation
+- [x] Show user statistics (tickets assigned, resolved)
+- [x] Password management (change, reset)
+- [x] Filter by role, status, team
+
+**Notas:**
+- Nuevo tablero KPI, filtros por equipo/estado y columna de métricas con SLA.
+- Modal de gestión de contraseñas soporta cambio directo, correo de reset y token.
+- Queda a la espera del backend para validar endpoints `/users/change-password` y `/auth/*`.
 
 **Backend Endpoints (implemented):**
 ```
@@ -69,14 +75,20 @@ PATCH /users/profile - Update current user profile
 
 ### UC-17: Tags Management
 **Location:** `/src/features/admin/tags/pages/TagsListPage.jsx`
+**Implementation Status:** ✅ Completado — panel visual con métricas de uso, filtros contextuales y validaciones.
 
-**TODOs:**
-- [ ] List all tags with colors
-- [ ] Create new tag with color picker
-- [ ] Edit tags
-- [ ] Delete tags (with validation of use)
-- [ ] Show usage count (number of tickets using each tag)
-- [ ] Filter and search tags
+**TODOs revisados:**
+- [x] List all tags with colors
+- [x] Create new tag with color picker
+- [x] Edit tags
+- [x] Delete tags (with validation of use)
+- [x] Show usage count (number of tickets using each tag)
+- [x] Filter and search tags
+
+**Notas:**
+- Se agregó contador de uso, última actividad relativa y alertas para etiquetas sin uso.
+- Eliminaciones protegidas cuando la etiqueta está asignada a tickets.
+- Filtros por nivel de uso y categoría disponibles (cuando el backend envía `categoria`).
 
 **Backend Endpoints (implemented):**
 ```
@@ -91,16 +103,22 @@ DELETE /tags/:id - Delete tag
 
 ### UC-18: Integrations Management
 **Location:** `/src/features/admin/integrations/pages/IntegrationsListPage.jsx`
+**Implementation Status:** ✅ Completado — vista operativa con health metrics, pruebas en vivo y logs.
 
-**TODOs:**
-- [ ] List all integrations with active/inactive status
-- [ ] Create new integration with encrypted API keys
-- [ ] Edit integration configuration
-- [ ] Test connection before saving
-- [ ] Activate/Deactivate integrations
-- [ ] View integration logs and error history
-- [ ] Configure webhooks and endpoints
-- [ ] Show health status of each integration
+**TODOs revisados:**
+- [x] List all integrations with active/inactive status
+- [x] Create new integration with encrypted API keys
+- [x] Edit integration configuration
+- [x] Test connection before saving
+- [x] Activate/Deactivate integrations
+- [x] View integration logs and error history
+- [x] Configure webhooks and endpoints
+- [x] Show health status of each integration
+
+**Notas:**
+- Cada tarjeta muestra uptime, latencia y errores 24h; badge de salud según `integration.health`.
+- Botón "Probar conexión" dispara `useTestIntegration` con toasts por integración.
+- Modal de logs consume `useIntegrationLogs` y muestra metadata JSON cuando existe backend.
 
 **Backend Endpoints (implemented):**
 ```
@@ -126,16 +144,22 @@ DELETE /integrations/:id - Delete integration
 
 ### UC-22: Audit Logs
 **Location:** `/src/features/admin/audit-logs/pages/AuditLogsPage.jsx`
+**Implementation Status:** ✅ Completado — filtros enriquecidos, timeline y alertas de eventos críticos.
 
-**TODOs:**
-- [ ] List all audit log events with pagination
-- [ ] Filter by date range, user, action type, resource
-- [ ] Search in log messages
-- [ ] Show event details (user, timestamp, action, resource, changes)
-- [ ] Export logs to CSV
-- [ ] Color-code by event type (create, update, delete, login)
-- [ ] Timeline visual of events
-- [ ] Highlight critical or security events
+**TODOs revisados:**
+- [x] List all audit log events with pagination
+- [x] Filter by date range, user, action type, resource
+- [x] Search in log messages
+- [x] Show event details (user, timestamp, action, resource, changes)
+- [x] Export logs to CSV
+- [x] Color-code by event type (create, update, delete, login)
+- [x] Timeline visual of events
+- [x] Highlight critical or security events
+
+**Notas:**
+- Selector de usuario poblado con `useUsers` y filtro por `resource` textual.
+- Timeline compacto (últimos 8 eventos) con línea temporal y badges.
+- Eventos críticos resaltados en tabla y timeline con íconos/alertas.
 
 **Backend Endpoint (implemented):**
 ```
@@ -194,10 +218,10 @@ All admin pages are accessible through the sidebar navigation:
   ├── /knowledge-base     - Knowledge base documents (NEW ✅)
   ├── /knowledge-base/new - Create document (NEW ✅)
   ├── /knowledge-base/edit/:id - Edit document (NEW ✅)
-  ├── /users              - User management (NEW - placeholder)
-  ├── /tags               - Tags management (NEW - placeholder)
-  ├── /integrations       - External integrations (NEW - placeholder)
-  └── /audit-logs         - System audit logs (NEW - placeholder)
+  ├── /users              - User management (NEW ✅)
+  ├── /tags               - Tags management (NEW ✅)
+  ├── /integrations       - External integrations (NEW ✅)
+  └── /audit-logs         - System audit logs (NEW ✅)
 ```
 
 ---
@@ -236,11 +260,10 @@ The UI is ready, but backend endpoints need to be implemented:
 2. Integration testing endpoints (UC-18)
 3. Integration logs endpoints (UC-18)
 
-### Priority 3: Complete Placeholder UIs
-1. Users Management - Full implementation with forms and tables
-2. Tags Management - Add color picker and usage statistics
-3. Integrations Management - Add connection testing and log viewing
-4. Audit Logs - Add filtering, pagination, and export
+### Priority 3: Hardening y QA de módulos admin
+1. Alinear validaciones backend/seguridad para contraseñas y eliminación de etiquetas.
+2. Añadir suites de pruebas (unit + e2e) para flujos críticos de usuarios, etiquetas, integraciones y auditoría.
+3. Instrumentar métricas (Sentry / logging) para capturar fallas en pruebas de integraciones y alertas críticas.
 
 ### Priority 4: Testing
 1. Unit tests for new components
@@ -274,8 +297,7 @@ The UI is ready, but backend endpoints need to be implemented:
 ## Conclusion
 
 All use cases from ANALISIS_CASOS_USO.md now have UI coverage:
-- ✅ 1 fully implemented (Knowledge Base)
-- ✅ 4 with placeholder structure and TODOs (Users, Tags, Integrations, Audit)
-- ✅ 4 verified as already complete (Ticket forms, lists, AI suggestions)
+- ✅ 5 fully implemented (Knowledge Base + Users + Tags + Integrations + Audit)
+- ✅ 4 verificados como completos (Ticket forms, lists, AI suggestions)
 
 The frontend is ready for backend integration. All TODO comments in the code reference the specific use case (UC-XX) and include detailed requirements.

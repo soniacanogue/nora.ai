@@ -1,11 +1,23 @@
 import React, { useState, useMemo } from "react";
-import { FiTag, FiPlus, FiEdit2, FiTrash2, FiSearch } from "react-icons/fi";
+import {
+  FiTag,
+  FiPlus,
+  FiEdit2,
+  FiTrash2,
+  FiSearch,
+  FiFilter,
+  FiTrendingUp,
+  FiAlertTriangle,
+  FiClock,
+} from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from "../hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
 import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
+import Badge from "@/shared/components/ui/Badge";
+import { formatDistanceToNow } from "@/shared/utils/formatters";
 
 /**
  * UC-17: Tags Management Page
@@ -15,22 +27,74 @@ export const TagsListPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTag, setEditingTag] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [usageFilter, setUsageFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   const { data: tags = [], isLoading, error } = useTags();
   const createTagMutation = useCreateTag();
   const updateTagMutation = useUpdateTag();
   const deleteTagMutation = useDeleteTag();
 
-  // Filter tags by search term
+  const availableCategories = useMemo(() => {
+    const categories = new Set();
+    tags.forEach((tag) => {
+      if (tag.categoria) {
+        categories.add(tag.categoria);
+      }
+    });
+    return Array.from(categories);
+  }, [tags]);
+
+  const getUsageCount = (tag) =>
+    tag.usageCount ?? tag.ticketsAsociados ?? tag.totalUso ?? 0;
+
+  const getUsageVariant = (count) => {
+    if (count >= 50) return "accent";
+    if (count >= 10) return "success";
+    if (count > 0) return "info";
+    return "neutral";
+  };
+
+  const getLastUsageLabel = (tag) => {
+    if (!tag.ultimaActividad) return "Sin actividad";
+    try {
+      return formatDistanceToNow(new Date(tag.ultimaActividad));
+    } catch (error) {
+      return "Sin registro";
+    }
+  };
+
   const filteredTags = useMemo(() => {
-    if (!searchTerm) return tags;
     const search = searchTerm.toLowerCase();
-    return tags.filter(
-      (tag) =>
+
+    return tags.filter((tag) => {
+      const matchesSearch =
+        !searchTerm ||
         tag.nombre.toLowerCase().includes(search) ||
-        (tag.descripcion && tag.descripcion.toLowerCase().includes(search))
-    );
-  }, [tags, searchTerm]);
+        (tag.descripcion && tag.descripcion.toLowerCase().includes(search));
+
+      const matchesCategory =
+        !categoryFilter || tag.categoria === categoryFilter;
+
+      const usageCount = getUsageCount(tag);
+      const matchesUsage = (() => {
+        switch (usageFilter) {
+          case "high":
+            return usageCount >= 50;
+          case "medium":
+            return usageCount >= 10 && usageCount < 50;
+          case "low":
+            return usageCount > 0 && usageCount < 10;
+          case "unused":
+            return usageCount === 0;
+          default:
+            return true;
+        }
+      })();
+
+      return matchesSearch && matchesCategory && matchesUsage;
+    });
+  }, [tags, searchTerm, usageFilter, categoryFilter]);
 
   const handleCreate = (formData) => {
     createTagMutation.mutate(formData, {
@@ -60,6 +124,16 @@ export const TagsListPage = () => {
   };
 
   const handleDelete = (tag) => {
+    const usageCount = getUsageCount(tag);
+    if (usageCount > 0) {
+      toast.error(
+        `No puedes eliminar etiquetas en uso. ${tag.nombre} está presente en ${usageCount} ${
+          usageCount === 1 ? "ticket" : "tickets"
+        }`
+      );
+      return;
+    }
+
     if (
       window.confirm(
         `¿Estás seguro de que quieres eliminar la etiqueta "${tag.nombre}"?`
@@ -160,6 +234,40 @@ export const TagsListPage = () => {
         />
       </div>
 
+      {/* Advanced Filters */}
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2 text-sm text-dt-subtle uppercase tracking-wide">
+          <FiFilter />
+          <span>Filtros</span>
+        </div>
+        <select
+          value={usageFilter}
+          onChange={(event) => setUsageFilter(event.target.value)}
+          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
+        >
+          <option value="all">Todos los niveles de uso</option>
+          <option value="high">Alto uso (50+)</option>
+          <option value="medium">Medio (10-49)</option>
+          <option value="low">Bajo (&lt;10)</option>
+          <option value="unused">Sin uso</option>
+        </select>
+
+        {availableCategories.length > 0 && (
+          <select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
+          >
+            <option value="">Todas las categorías</option>
+            {availableCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
       {/* Tags Grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -191,43 +299,79 @@ export const TagsListPage = () => {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTags.map((tag) => (
-            <div
-              key={tag.id}
-              className="bg-dt-card border border-dt-border rounded-lg p-4 hover:border-dt-accent/50 transition-colors group"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: tag.color }}
-                  ></div>
-                  <h3 className="font-semibold text-dt-foreground">
-                    {tag.nombre}
-                  </h3>
+          {filteredTags.map((tag) => {
+            const usageCount = getUsageCount(tag);
+            const usageVariant = getUsageVariant(usageCount);
+            const lastUsage = getLastUsageLabel(tag);
+
+            return (
+              <div
+                key={tag.id}
+                className="bg-dt-card border border-dt-border rounded-lg p-4 hover:border-dt-accent/50 transition-colors group"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: tag.color }}
+                    ></div>
+                    <div>
+                      <h3 className="font-semibold text-dt-foreground">
+                        {tag.nombre}
+                      </h3>
+                      {tag.categoria && (
+                        <Badge variant="neutral" className="mt-1">
+                          {tag.categoria}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setEditingTag(tag)}
+                      className="p-1 text-dt-subtle hover:text-dt-accent transition-colors"
+                      title="Editar"
+                    >
+                      <FiEdit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tag)}
+                      className="p-1 text-dt-subtle hover:text-red-500 transition-colors"
+                      title="Eliminar"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setEditingTag(tag)}
-                    className="p-1 text-dt-subtle hover:text-dt-accent transition-colors"
-                    title="Editar"
-                  >
-                    <FiEdit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(tag)}
-                    className="p-1 text-dt-subtle hover:text-red-500 transition-colors"
-                    title="Eliminar"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
+                {tag.descripcion && (
+                  <p className="text-sm text-dt-subtle mb-3">{tag.descripcion}</p>
+                )}
+
+                <div className="space-y-2 text-xs text-dt-subtle">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <FiTrendingUp /> Uso
+                    </span>
+                    <Badge variant={usageVariant}>
+                      {usageCount} {usageCount === 1 ? "ticket" : "tickets"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <FiClock /> Último uso
+                    </span>
+                    <span className="text-dt-foreground">{lastUsage}</span>
+                  </div>
+                  {usageCount === 0 && (
+                    <div className="flex items-center gap-1 text-amber-400">
+                      <FiAlertTriangle />
+                      <span>Esta etiqueta aún no se usa</span>
+                    </div>
+                  )}
                 </div>
               </div>
-              {tag.descripcion && (
-                <p className="text-sm text-dt-subtle">{tag.descripcion}</p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

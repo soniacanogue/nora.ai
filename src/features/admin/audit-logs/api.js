@@ -22,7 +22,7 @@ export const auditLogsApi = {
    * @returns {Promise<Object>} Paginated audit logs
    */
   getAll: async (params = {}) => {
-    const response = await apiClient.get("/audit", { params });
+    const response = await apiClient.get("/audit/logs", { params });
     return response.data;
   },
 
