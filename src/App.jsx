@@ -30,6 +30,10 @@ import { AgentFormPage } from "./features/admin/ai-agents/pages/AgentFormPage";
 import { TemplateListPage } from "./features/admin/templates/TemplateListPage";
 import { TemplateFormPage } from "./features/admin/templates/TemplateFormPage";
 
+// --- NUEVO: Importaciones para Base de Conocimiento ---
+import { KnowledgeBaseListPage } from "./features/admin/knowledge-base/pages/KnowledgeBaseListPage";
+import { KnowledgeBaseFormPage } from "./features/admin/knowledge-base/pages/KnowledgeBaseFormPage";
+
 // Componente simple para una página 404
 const NotFoundPage = () => (
   <div className="flex h-screen flex-col items-center justify-center bg-dt-background text-dt-foreground">
@@ -77,6 +81,9 @@ const AnimatedRoutes = () => {
             <Route path="ai-agents/edit/:id" element={<PageTransition><AgentFormPage /></PageTransition>} />
             <Route path="templates" element={<PageTransition><TemplateListPage /></PageTransition>} />
             <Route path="templates/edit/:id" element={<PageTransition><TemplateFormPage /></PageTransition>} />
+            <Route path="knowledge-base" element={<PageTransition><KnowledgeBaseListPage /></PageTransition>} />
+            <Route path="knowledge-base/new" element={<PageTransition><KnowledgeBaseFormPage /></PageTransition>} />
+            <Route path="knowledge-base/edit/:id" element={<PageTransition><KnowledgeBaseFormPage /></PageTransition>} />
           </Route>
         </Route>
 
