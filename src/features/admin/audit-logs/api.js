@@ -32,18 +32,10 @@ export const auditLogsApi = {
    * @returns {Promise<Blob>} CSV file blob
    */
   exportToCSV: async (params = {}) => {
-    try {
-      const response = await apiClient.get("/audit/export", {
-        params,
-        responseType: "blob",
-      });
-      return response.data;
-    } catch (error) {
-      // If endpoint doesn't exist, client-side export will be used
-      if (error.response?.status === 404) {
-        throw new Error("Endpoint de exportación no disponible");
-      }
-      throw error;
-    }
+    const response = await apiClient.get("/audit/export", {
+      params,
+      responseType: "blob",
+    });
+    return response.data;
   },
 };

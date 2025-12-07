@@ -19,7 +19,6 @@ import OrderListPage from "./features/orders/pages/OrderListPage";
 import NewTicketPage from "./features/tickets/pages/NewTicketPage";
 import TicketConfirmationPage from "./features/tickets/pages/TicketConfirmationPage";
 import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
-import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import HomePage from "./features/dashboard/pages/HomePage";
 
 // --- NUEVO: Importaciones para las páginas de administración de Agentes AI ---
