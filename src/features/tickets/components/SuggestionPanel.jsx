@@ -19,7 +19,12 @@ const getConfidenceColor = (confidence) => {
   return "text-orange-500";
 };
 
-const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalContext }) => {
+const SuggestionPanel = ({
+  suggestion,
+  ticketId,
+  onApprovalSuccess,
+  approvalContext,
+}) => {
   const [editedReply, setEditedReply] = useState(suggestion.reply_text || "");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [collisionDetected, setCollisionDetected] = useState(false);
@@ -44,7 +49,8 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
       setSelectedFiles([]);
       setCollisionDetected(false);
       setCollisionAcknowledged(false);
-      baselineFingerprintRef.current = approvalContext?.latestMessageFingerprint || null;
+      baselineFingerprintRef.current =
+        approvalContext?.latestMessageFingerprint || null;
       if (onApprovalSuccess) {
         onApprovalSuccess(...args);
       }
@@ -52,7 +58,8 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
   });
   const { mutate: escalate, isPending: isEscalating } = useEscalateTicket();
   const { mutate: reassign, isPending: isReassigning } = useReassignTicket();
-  const { mutate: retrySuggestion, isPending: isRetrying } = useRetrySuggestion();
+  const { mutate: retrySuggestion, isPending: isRetrying } =
+    useRetrySuggestion();
 
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [escalationNote, setEscalationNote] = useState("");
@@ -115,7 +122,8 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
             content: rawBase64 || result,
           });
         };
-        reader.onerror = () => reject(reader.error || new Error("No se pudo leer el archivo"));
+        reader.onerror = () =>
+          reject(reader.error || new Error("No se pudo leer el archivo"));
         reader.readAsDataURL(file);
       });
 
@@ -138,7 +146,9 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
         nextState,
         replyChannel,
         conversationFingerprint: latestMessageFingerprint,
-        collisionAcknowledged: collisionDetected ? collisionAcknowledged : false,
+        collisionAcknowledged: collisionDetected
+          ? collisionAcknowledged
+          : false,
       });
     } catch (fileError) {
       toast.error(fileError.message || "No se pudieron preparar los adjuntos.");
@@ -175,7 +185,11 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
   };
 
   const disableApproveAction =
-    isApproving || isPreparingReply || isEscalating || isReassigning || isRetrying ||
+    isApproving ||
+    isPreparingReply ||
+    isEscalating ||
+    isReassigning ||
+    isRetrying ||
     (collisionDetected && !collisionAcknowledged);
 
   const handleEscalateConfirm = () => {
@@ -188,7 +202,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
           // La navegación la manejaría el componente padre si el ticket desaparece de la cola
           onApprovalSuccess();
         },
-      }
+      },
     );
   };
 
@@ -200,7 +214,7 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
           setIsReassignModalOpen(false);
           onApprovalSuccess();
         },
-      }
+      },
     );
   };
 
@@ -212,33 +226,53 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
     isRetrying ||
     isPreparingReply;
 
-  const confidencePercent = suggestion.confidence ? Math.round(suggestion.confidence * 100) : 0;
-  const confidenceColorClass = confidencePercent >= 90 ? "bg-dt-success shadow-glow-success" : confidencePercent >= 70 ? "bg-yellow-500" : "bg-dt-error shadow-glow-error";
-  const confidenceTextClass = confidencePercent >= 90 ? "text-dt-success" : confidencePercent >= 70 ? "text-yellow-500" : "text-dt-error";
+  const confidencePercent = suggestion.confidence
+    ? Math.round(suggestion.confidence * 100)
+    : 0;
+  const confidenceColorClass =
+    confidencePercent >= 90
+      ? "bg-dt-success shadow-glow-success"
+      : confidencePercent >= 70
+        ? "bg-yellow-500"
+        : "bg-dt-error shadow-glow-error";
+  const confidenceTextClass =
+    confidencePercent >= 90
+      ? "text-dt-success"
+      : confidencePercent >= 70
+        ? "text-yellow-500"
+        : "text-dt-error";
 
   return (
     <>
       <div className="bg-dt-accent/5 border border-dt-accent/20 rounded-lg p-6 shadow-glow relative overflow-hidden">
         {/* Decorative AI header line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-dt-accent to-transparent opacity-50"></div>
-        
+
         <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-dt-foreground flex items-center gap-2">
-            <span className="material-symbols-outlined text-dt-accent animate-pulse">smart_toy</span>
+          <h2 className="text-lg font-bold text-dt-foreground flex items-center gap-2">
+            <span className="material-symbols-outlined text-dt-accent animate-pulse">
+              smart_toy
+            </span>
             Sugerencia de Nora AI
-            </h2>
-            <div className="flex items-center gap-3">
-                <span className="text-xs font-mono text-dt-subtle uppercase tracking-wider">Confianza</span>
-                <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${confidenceColorClass}`} 
-                            style={{ width: `${confidencePercent}%` }}
-                        ></div>
-                    </div>
-                    <span className={`text-sm font-bold font-mono ${confidenceTextClass}`}>{confidencePercent}%</span>
-                </div>
+          </h2>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono text-dt-subtle uppercase tracking-wider">
+              Confianza
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ease-out ${confidenceColorClass}`}
+                  style={{ width: `${confidencePercent}%` }}
+                ></div>
+              </div>
+              <span
+                className={`text-sm font-bold font-mono ${confidenceTextClass}`}
+              >
+                {confidencePercent}%
+              </span>
             </div>
+          </div>
         </div>
 
         <div className="mb-6">
@@ -250,16 +284,16 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
               Respuesta Generada
             </label>
             {/* {!suggestion.reply_text && ( */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => retrySuggestion(ticketId)}
-                disabled={isRetrying}
-                fullWidth={false}
-                className="h-6 px-2 text-[10px] border border-dt-accent/20 hover:bg-dt-accent/10"
-              >
-                {isRetrying ? "Generando..." : "Retry ↻"}
-              </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => retrySuggestion(ticketId)}
+              disabled={isRetrying}
+              fullWidth={false}
+              className="h-6 px-2 text-[10px] border border-dt-accent/20 hover:bg-dt-accent/10"
+            >
+              {isRetrying ? "Generando..." : "Retry ↻"}
+            </Button>
             {/* )} */}
           </div>
           <textarea
@@ -308,7 +342,8 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
                   <div className="flex flex-col">
                     <span className="font-semibold">{file.name}</span>
                     <span className="text-xs text-dt-subtle">
-                      {(file.size / 1024).toFixed(1)} KB • {file.type || "sin tipo"}
+                      {(file.size / 1024).toFixed(1)} KB •{" "}
+                      {file.type || "sin tipo"}
                     </span>
                   </div>
                   <button
@@ -326,12 +361,16 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
 
         {collisionDetected && (
           <div className="mb-6 rounded-lg border border-amber-400/30 bg-amber-500/10 p-4 text-amber-100">
-            <p className="text-xs font-bold uppercase tracking-wider">Nuevo mensaje del cliente</p>
+            <p className="text-xs font-bold uppercase tracking-wider">
+              Nuevo mensaje del cliente
+            </p>
             <p className="text-sm mt-2 text-amber-50">
-              Detectamos actividad en la conversación mientras editabas la respuesta.
+              Detectamos actividad en la conversación mientras editabas la
+              respuesta.
               {latestMessageTimestamp && (
                 <>
-                  {" "}Último mensaje recibido el {" "}
+                  {" "}
+                  Último mensaje recibido el{" "}
                   {new Date(latestMessageTimestamp).toLocaleString()}
                 </>
               )}
@@ -391,22 +430,22 @@ const SuggestionPanel = ({ suggestion, ticketId, onApprovalSuccess, approvalCont
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsEscalateModalOpen(true)}
-                disabled={isLoading}
-                className="justify-center"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsEscalateModalOpen(true)}
+              disabled={isLoading}
+              className="justify-center"
             >
-                {isEscalating ? "..." : "➡️ Escalar (Nivel 2)"}
+              {isEscalating ? "..." : "➡️ Escalar (Nivel 2)"}
             </Button>
             <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsReassignModalOpen(true)}
-                disabled={isLoading}
-                className="justify-center"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsReassignModalOpen(true)}
+              disabled={isLoading}
+              className="justify-center"
             >
-                {isReassigning ? "..." : "👤 Reasignar"}
+              {isReassigning ? "..." : "👤 Reasignar"}
             </Button>
           </div>
         </div>

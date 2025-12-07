@@ -1,5 +1,5 @@
-import React from 'react';
-import { FiTag, FiPlus } from 'react-icons/fi';
+import React from "react";
+import { FiTag, FiPlus } from "react-icons/fi";
 
 // TODO: UC-17 - Tags Management UI
 // Backend endpoints are implemented:
@@ -24,15 +24,15 @@ export const TagsListPage = () => {
         <div className="flex items-center gap-3">
           <FiTag className="text-2xl text-dt-accent" />
           <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">Gestión de Etiquetas</h1>
+            <h1 className="text-2xl font-bold text-dt-foreground">
+              Gestión de Etiquetas
+            </h1>
             <p className="text-sm text-dt-subtle">
               Administra etiquetas maestras para categorizar tickets
             </p>
           </div>
         </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors"
-        >
+        <button className="flex items-center gap-2 px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors">
           <FiPlus />
           Nueva Etiqueta
         </button>
@@ -48,7 +48,9 @@ export const TagsListPage = () => {
           Esta página permitirá gestionar etiquetas maestras del sistema.
         </p>
         <div className="bg-dt-background border border-dt-border rounded-lg p-4 text-left max-w-2xl mx-auto">
-          <p className="text-sm text-dt-foreground font-semibold mb-2">TODO: Implementar</p>
+          <p className="text-sm text-dt-foreground font-semibold mb-2">
+            TODO: Implementar
+          </p>
           <ul className="text-xs text-dt-subtle space-y-1 list-disc list-inside">
             <li>Listar todas las etiquetas con sus colores</li>
             <li>Crear nueva etiqueta con selector de color</li>

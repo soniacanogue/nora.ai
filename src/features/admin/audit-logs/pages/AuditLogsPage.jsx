@@ -1,5 +1,5 @@
-import React from 'react';
-import { FiFileText, FiSearch } from 'react-icons/fi';
+import React from "react";
+import { FiFileText, FiSearch } from "react-icons/fi";
 
 // TODO: UC-22 - Audit Logs UI
 // Backend endpoint is implemented:
@@ -21,15 +21,15 @@ export const AuditLogsPage = () => {
         <div className="flex items-center gap-3">
           <FiFileText className="text-2xl text-dt-accent" />
           <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">Auditoría del Sistema</h1>
+            <h1 className="text-2xl font-bold text-dt-foreground">
+              Auditoría del Sistema
+            </h1>
             <p className="text-sm text-dt-subtle">
               Registro de eventos y acciones en el sistema
             </p>
           </div>
         </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 bg-dt-accent/10 text-dt-accent border border-dt-accent/20 rounded-lg hover:bg-dt-accent/20 transition-colors"
-        >
+        <button className="flex items-center gap-2 px-4 py-2 bg-dt-accent/10 text-dt-accent border border-dt-accent/20 rounded-lg hover:bg-dt-accent/20 transition-colors">
           <FiSearch />
           Filtros Avanzados
         </button>
@@ -42,22 +42,31 @@ export const AuditLogsPage = () => {
           Página de Auditoría
         </h3>
         <p className="text-dt-subtle mb-4">
-          Esta página mostrará el log completo de eventos del sistema para auditoría y seguridad.
+          Esta página mostrará el log completo de eventos del sistema para
+          auditoría y seguridad.
         </p>
         <div className="bg-dt-background border border-dt-border rounded-lg p-4 text-left max-w-2xl mx-auto">
-          <p className="text-sm text-dt-foreground font-semibold mb-2">TODO: Implementar</p>
+          <p className="text-sm text-dt-foreground font-semibold mb-2">
+            TODO: Implementar
+          </p>
           <ul className="text-xs text-dt-subtle space-y-1 list-disc list-inside">
             <li>Listar todos los eventos de auditoría con paginación</li>
             <li>Filtrar por fecha, usuario, tipo de acción, recurso</li>
             <li>Buscar en mensajes de log</li>
-            <li>Mostrar detalles de cada evento (usuario, timestamp, cambios)</li>
+            <li>
+              Mostrar detalles de cada evento (usuario, timestamp, cambios)
+            </li>
             <li>Exportar logs a CSV para análisis externo</li>
-            <li>Color-code por tipo de evento (create, update, delete, login)</li>
+            <li>
+              Color-code por tipo de evento (create, update, delete, login)
+            </li>
             <li>Timeline visual de eventos</li>
             <li>Resaltar eventos críticos o de seguridad</li>
           </ul>
           <div className="mt-3 pt-3 border-t border-dt-border">
-            <p className="text-xs text-dt-foreground font-semibold mb-1">Eventos típicos a auditar:</p>
+            <p className="text-xs text-dt-foreground font-semibold mb-1">
+              Eventos típicos a auditar:
+            </p>
             <ul className="text-xs text-dt-subtle list-disc list-inside">
               <li>Inicio y cierre de sesión de usuarios</li>
               <li>Creación, modificación y eliminación de tickets</li>

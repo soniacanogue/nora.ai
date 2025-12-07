@@ -144,49 +144,53 @@ const DashboardPage = () => {
 
           <div>
             <h2 className="text-lg font-bold text-dt-foreground mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-dt-accent">queue_music</span>
-                Mis Colas de Trabajo
+              <span className="material-symbols-outlined text-dt-accent">
+                queue_music
+              </span>
+              Mis Colas de Trabajo
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <QueueLinkCard
+              <QueueLinkCard
                 title="Tickets Reabiertos"
                 count={myQueues.reopened}
                 linkTo="/tickets?status=reabierto"
                 description="Máxima prioridad. Clientes que respondieron a tickets cerrados."
-                />
-                <QueueLinkCard
+              />
+              <QueueLinkCard
                 title="Respuestas de Clientes"
                 count={myQueues.customerReplied}
                 linkTo="/tickets?status=respuesta_cliente"
                 description="Conversaciones activas que esperan tu respuesta."
-                />
-                <QueueLinkCard
+              />
+              <QueueLinkCard
                 title="Tickets para Triaje"
                 count={myQueues.forTriage}
                 linkTo="/tickets?status=ia_sugerido,nuevo"
                 description="Nuevos tickets y sugerencias de Nora AI por revisar."
-                />
-                <QueueLinkCard
+              />
+              <QueueLinkCard
                 title="Mis Tickets Escalados"
                 count={myQueues.myEscalated}
                 linkTo="/tickets?status=escalado_nivel_2&assignee=me"
                 description="Casos complejos que requieren tu atención manual."
-                />
-                {/* --- CORRECCIÓN AÑADIDA --- */}
-                <QueueLinkCard
+              />
+              {/* --- CORRECCIÓN AÑADIDA --- */}
+              <QueueLinkCard
                 title="Esperando Respuesta"
                 count={myQueues.waitingForCustomer}
                 linkTo="/tickets?status=esperando_cliente"
                 description="Tickets en los que has respondido y se espera acción del cliente."
-                />
-                {/* --- FIN DE LA CORRECCIÓN --- */}
+              />
+              {/* --- FIN DE LA CORRECCIÓN --- */}
             </div>
           </div>
         </div>
 
         <div className="lg:col-span-1">
           <h2 className="text-lg font-bold text-dt-foreground mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-dt-accent">history</span>
+            <span className="material-symbols-outlined text-dt-accent">
+              history
+            </span>
             Actividad Reciente
           </h2>
           <RecentActivityFeed activities={recentActivity} />

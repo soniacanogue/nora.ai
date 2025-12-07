@@ -10,22 +10,25 @@ const OrderListPage = () => {
   const { orders, isLoading, error } = useOrders(); // 2. Obtener datos, loading y error
 
   // Configuración de búsqueda
-  const searchConfig = useMemo(() => ({
-    searchKeys: [
-      "id",
-      "cliente.correo",
-      "numeroSeguimiento",
-      "transportista",
-      "estado"
-    ]
-  }), []);
+  const searchConfig = useMemo(
+    () => ({
+      searchKeys: [
+        "id",
+        "cliente.correo",
+        "numeroSeguimiento",
+        "transportista",
+        "estado",
+      ],
+    }),
+    [],
+  );
 
   // Hook de búsqueda dinámica
-  const { 
-    searchTerm, 
-    setSearchTerm, 
-    filteredData: searchedOrders, 
-    suggestions: searchSuggestions 
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredData: searchedOrders,
+    suggestions: searchSuggestions,
   } = useDynamicSearch(orders, searchConfig);
 
   const filteredOrders = useMemo(() => {
@@ -36,16 +39,16 @@ const OrderListPage = () => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        if (sortConfig.key === 'cliente') {
-             aValue = a.cliente?.correo || '';
-             bValue = b.cliente?.correo || '';
+        if (sortConfig.key === "cliente") {
+          aValue = a.cliente?.correo || "";
+          bValue = b.cliente?.correo || "";
         }
 
         if (aValue < bValue) {
-          return sortConfig.order === 'asc' ? -1 : 1;
+          return sortConfig.order === "asc" ? -1 : 1;
         }
         if (aValue > bValue) {
-          return sortConfig.order === 'asc' ? 1 : -1;
+          return sortConfig.order === "asc" ? 1 : -1;
         }
         return 0;
       });
@@ -62,57 +65,64 @@ const OrderListPage = () => {
     setSortConfig({ key, order });
   };
 
-  const columns = useMemo(() => [
-    {
-      key: "id",
-      label: "ID de Orden",
-      sortable: true,
-      className: "font-mono text-dt-foreground whitespace-nowrap",
-      render: (order) => (
-        <Link
-          to={`/orders/${order.id}`}
-          className="hover:text-dt-accent transition-colors"
-        >
-          {order.id}
-        </Link>
-      )
-    },
-    {
-      key: "cliente",
-      label: "Email del Cliente",
-      sortable: true,
-      className: "text-dt-subtle whitespace-nowrap",
-      render: (order) => order.cliente?.correo || "N/A"
-    },
-    {
-      key: "estado",
-      label: "Estado",
-      sortable: true,
-      className: "whitespace-nowrap",
-      render: (order) => (
-        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
-            order.estado === 'entregado' ? 'bg-dt-success/10 text-dt-success border border-dt-success/20' :
-            order.estado === 'en_transito' ? 'bg-dt-accent/10 text-dt-accent border border-dt-accent/20' :
-            'bg-white/10 text-dt-subtle border border-white/10'
-        }`}>
+  const columns = useMemo(
+    () => [
+      {
+        key: "id",
+        label: "ID de Orden",
+        sortable: true,
+        className: "font-mono text-dt-foreground whitespace-nowrap",
+        render: (order) => (
+          <Link
+            to={`/orders/${order.id}`}
+            className="hover:text-dt-accent transition-colors"
+          >
+            {order.id}
+          </Link>
+        ),
+      },
+      {
+        key: "cliente",
+        label: "Email del Cliente",
+        sortable: true,
+        className: "text-dt-subtle whitespace-nowrap",
+        render: (order) => order.cliente?.correo || "N/A",
+      },
+      {
+        key: "estado",
+        label: "Estado",
+        sortable: true,
+        className: "whitespace-nowrap",
+        render: (order) => (
+          <span
+            className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+              order.estado === "entregado"
+                ? "bg-dt-success/10 text-dt-success border border-dt-success/20"
+                : order.estado === "en_transito"
+                  ? "bg-dt-accent/10 text-dt-accent border border-dt-accent/20"
+                  : "bg-white/10 text-dt-subtle border border-white/10"
+            }`}
+          >
             {order.estado}
-        </span>
-      )
-    },
-    {
-      key: "numeroSeguimiento",
-      label: "Nº de Seguimiento",
-      sortable: true,
-      className: "font-mono text-dt-subtle whitespace-nowrap text-xs",
-      render: (order) => order.numeroSeguimiento || "N/A"
-    },
-    {
-      key: "transportista",
-      label: "Transportista",
-      sortable: true,
-      className: "text-dt-foreground whitespace-nowrap",
-    }
-  ], []);
+          </span>
+        ),
+      },
+      {
+        key: "numeroSeguimiento",
+        label: "Nº de Seguimiento",
+        sortable: true,
+        className: "font-mono text-dt-subtle whitespace-nowrap text-xs",
+        render: (order) => order.numeroSeguimiento || "N/A",
+      },
+      {
+        key: "transportista",
+        label: "Transportista",
+        sortable: true,
+        className: "text-dt-foreground whitespace-nowrap",
+      },
+    ],
+    [],
+  );
 
   if (isLoading) {
     return <div>Cargando órdenes...</div>;

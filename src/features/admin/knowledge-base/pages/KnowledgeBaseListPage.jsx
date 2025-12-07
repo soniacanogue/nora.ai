@@ -1,42 +1,58 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiSearch, FiBook, FiEdit2, FiTrash2, FiFileText } from 'react-icons/fi';
-import { useKnowledgeBaseDocs, useDeleteKnowledgeBaseDoc } from '../hooks/useKnowledgeBase';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FiPlus,
+  FiSearch,
+  FiBook,
+  FiEdit2,
+  FiTrash2,
+  FiFileText,
+} from "react-icons/fi";
+import {
+  useKnowledgeBaseDocs,
+  useDeleteKnowledgeBaseDoc,
+} from "../hooks/useKnowledgeBase";
 
 // TODO: UC-14 - Knowledge Base Management UI
 // This component requires backend implementation of:
 // GET /knowledge-base endpoint
 
 const CATEGORY_LABELS = {
-  FAQ: 'FAQ',
-  POLITICA: 'Política',
-  PROCEDIMIENTO: 'Procedimiento',
-  GUIA: 'Guía',
-  OTRO: 'Otro',
+  FAQ: "FAQ",
+  POLITICA: "Política",
+  PROCEDIMIENTO: "Procedimiento",
+  GUIA: "Guía",
+  OTRO: "Otro",
 };
 
 const CATEGORY_COLORS = {
-  FAQ: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  POLITICA: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  PROCEDIMIENTO: 'bg-green-500/10 text-green-400 border-green-500/20',
-  GUIA: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  OTRO: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+  FAQ: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  POLITICA: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  PROCEDIMIENTO: "bg-green-500/10 text-green-400 border-green-500/20",
+  GUIA: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  OTRO: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
 
 export const KnowledgeBaseListPage = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  
-  const { data: documents = [], isLoading, error } = useKnowledgeBaseDocs({
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+
+  const {
+    data: documents = [],
+    isLoading,
+    error,
+  } = useKnowledgeBaseDocs({
     search: searchTerm,
     category: categoryFilter,
   });
-  
+
   const deleteDocMutation = useDeleteKnowledgeBaseDoc();
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+    if (
+      window.confirm("¿Estás seguro de que deseas eliminar este documento?")
+    ) {
       deleteDocMutation.mutate(id);
     }
   };
@@ -46,7 +62,7 @@ export const KnowledgeBaseListPage = () => {
   };
 
   const handleCreate = () => {
-    navigate('/admin/knowledge-base/new');
+    navigate("/admin/knowledge-base/new");
   };
 
   if (isLoading) {
@@ -61,9 +77,11 @@ export const KnowledgeBaseListPage = () => {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 mb-4">Error al cargar la base de conocimiento</p>
+          <p className="text-red-400 mb-4">
+            Error al cargar la base de conocimiento
+          </p>
           <p className="text-dt-subtle text-sm">
-            {error.message || 'Backend endpoint no implementado aún'}
+            {error.message || "Backend endpoint no implementado aún"}
           </p>
         </div>
       </div>
@@ -77,7 +95,9 @@ export const KnowledgeBaseListPage = () => {
         <div className="flex items-center gap-3">
           <FiBook className="text-2xl text-dt-accent" />
           <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">Base de Conocimiento</h1>
+            <h1 className="text-2xl font-bold text-dt-foreground">
+              Base de Conocimiento
+            </h1>
             <p className="text-sm text-dt-subtle">
               Gestiona documentos, FAQs y políticas para la IA
             </p>
@@ -122,7 +142,9 @@ export const KnowledgeBaseListPage = () => {
       {documents.length === 0 ? (
         <div className="text-center py-12 bg-dt-card rounded-lg border border-dt-border">
           <FiFileText className="text-5xl text-dt-subtle mx-auto mb-4" />
-          <p className="text-dt-subtle mb-2">No hay documentos en la base de conocimiento</p>
+          <p className="text-dt-subtle mb-2">
+            No hay documentos en la base de conocimiento
+          </p>
           <button
             onClick={handleCreate}
             className="text-dt-accent hover:underline text-sm"
@@ -185,9 +207,14 @@ export const KnowledgeBaseListPage = () => {
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-dt-border flex items-center gap-4 text-xs text-dt-subtle">
-                <span>Creado: {new Date(doc.creadoEn).toLocaleDateString()}</span>
+                <span>
+                  Creado: {new Date(doc.creadoEn).toLocaleDateString()}
+                </span>
                 {doc.actualizadoEn && (
-                  <span>Actualizado: {new Date(doc.actualizadoEn).toLocaleDateString()}</span>
+                  <span>
+                    Actualizado:{" "}
+                    {new Date(doc.actualizadoEn).toLocaleDateString()}
+                  </span>
                 )}
               </div>
             </div>

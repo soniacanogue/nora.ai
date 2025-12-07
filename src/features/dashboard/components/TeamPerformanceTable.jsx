@@ -28,12 +28,12 @@ const TeamPerformanceTable = ({ teamPerformance = [] }) => {
       result.sort((a, b) => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            aValue = aValue.toLowerCase();
-            bValue = bValue.toLowerCase();
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
         }
-        if (aValue < bValue) return sortConfig.order === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.order === 'asc' ? 1 : -1;
+        if (aValue < bValue) return sortConfig.order === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.order === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -60,19 +60,19 @@ const TeamPerformanceTable = ({ teamPerformance = [] }) => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/10">
-              <th 
+              <th
                 className="text-left py-3 px-4 text-xs uppercase tracking-wider font-semibold text-dt-subtle cursor-pointer hover:text-dt-foreground transition-colors"
                 onClick={() => handleSort("agentName")}
               >
                 Agente {getSortIcon("agentName")}
               </th>
-              <th 
+              <th
                 className="text-center py-3 px-4 text-xs uppercase tracking-wider font-semibold text-dt-subtle cursor-pointer hover:text-dt-foreground transition-colors"
                 onClick={() => handleSort("assigned")}
               >
                 Tickets Asignados {getSortIcon("assigned")}
               </th>
-              <th 
+              <th
                 className="text-center py-3 px-4 text-xs uppercase tracking-wider font-semibold text-dt-subtle cursor-pointer hover:text-dt-foreground transition-colors"
                 onClick={() => handleSort("resolvedToday")}
               >

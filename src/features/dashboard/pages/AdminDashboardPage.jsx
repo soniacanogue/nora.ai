@@ -45,7 +45,11 @@ const AdminDashboardPage = () => {
     return (
       <EmptyState
         message="No se encontraron datos para el dashboard del administrador."
-        icon={<span className="material-symbols-outlined text-xl relative z-10">inbox</span>}
+        icon={
+          <span className="material-symbols-outlined text-xl relative z-10">
+            inbox
+          </span>
+        }
       />
     );
   }
@@ -91,25 +95,49 @@ const AdminDashboardPage = () => {
           variant="minimal"
           title="Tickets Creados"
           value={<RollingNumber value={currentKpis.created} />}
-          icon={<span className="material-symbols-outlined text-xl relative z-10">trending_up</span>}
+          icon={
+            <span className="material-symbols-outlined text-xl relative z-10">
+              trending_up
+            </span>
+          }
         />
         <StatCard
           variant="minimal"
           title="Tickets Resueltos"
           value={<RollingNumber value={currentKpis.resolved} />}
-          icon={<span className="material-symbols-outlined text-xl relative z-10">check_circle</span>}
+          icon={
+            <span className="material-symbols-outlined text-xl relative z-10">
+              check_circle
+            </span>
+          }
         />
         <StatCard
           variant="minimal"
           title="Tiempo 1ra Resp"
-          value={<><RollingNumber value={currentKpis.avgFirstResponseTime} />m</>}
-          icon={<span className="material-symbols-outlined text-xl relative z-10">timer</span>}
+          value={
+            <>
+              <RollingNumber value={currentKpis.avgFirstResponseTime} />m
+            </>
+          }
+          icon={
+            <span className="material-symbols-outlined text-xl relative z-10">
+              timer
+            </span>
+          }
         />
         <StatCard
           variant="minimal"
           title="Tiempo Resolución"
-          value={<><RollingNumber value={currentKpis.avgResolutionTime} />m</>}
-          icon={<span className="material-symbols-outlined text-xl relative z-10">hourglass_bottom</span>}
+          value={
+            <>
+              <RollingNumber value={currentKpis.avgResolutionTime} />m
+            </>
+          }
+          icon={
+            <span className="material-symbols-outlined text-xl relative z-10">
+              hourglass_bottom
+            </span>
+          }
         />
       </div>
 
@@ -117,15 +145,15 @@ const AdminDashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Main Chart - Spans 2 columns */}
         <div className="lg:col-span-2">
-            <SimpleBarChart
+          <SimpleBarChart
             data={workload}
             title="Carga de Trabajo Actual"
             nameFormatter={formatTicketStatus}
-            />
+          />
         </div>
         {/* Team Performance - Spans 1 column */}
         <div className="lg:col-span-1">
-            <TeamPerformanceTable teamPerformance={teamPerformance} />
+          <TeamPerformanceTable teamPerformance={teamPerformance} />
         </div>
       </div>
 

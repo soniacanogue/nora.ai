@@ -13,9 +13,7 @@ import {
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div
-        className="bg-dt-background/90 backdrop-blur-md border border-dt-accent/50 rounded p-3 shadow-glow"
-      >
+      <div className="bg-dt-background/90 backdrop-blur-md border border-dt-accent/50 rounded p-3 shadow-glow">
         <p className="text-dt-accent font-bold text-xs uppercase tracking-wider mb-1">
           {payload[0].name}
         </p>
@@ -49,7 +47,9 @@ const PieChart = ({
   if (!data || data.length === 0) {
     return (
       <div className="bg-white/5 backdrop-blur-md p-6 rounded-lg border border-white/10 flex flex-col h-full shadow-sharp">
-        <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-6">{title}</h3>
+        <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-6">
+          {title}
+        </h3>
         <div className="flex-grow flex items-center justify-center text-dt-subtle text-sm italic">
           No hay datos para mostrar
         </div>
@@ -65,7 +65,9 @@ const PieChart = ({
   return (
     // --- CORRECCIÓN 1: Quitar la altura fija de aquí ---
     <div className="bg-white/5 backdrop-blur-md p-6 rounded-lg border border-white/10 flex flex-col h-full shadow-sharp">
-      <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-6">{title}</h3>
+      <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-6">
+        {title}
+      </h3>
       {/* --- CORRECCIÓN 2: Dar altura explícita al contenedor del gráfico --- */}
       <div className="flex-grow">
         <ResponsiveContainer width="100%" height={300}>
@@ -99,7 +101,7 @@ const PieChart = ({
                 color: "#8B949E",
                 fontSize: "12px",
                 bottom: 0,
-                fontFamily: "monospace"
+                fontFamily: "monospace",
               }}
             />
           </RechartsPieChart>

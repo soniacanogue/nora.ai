@@ -95,8 +95,14 @@ const AppLayout = () => {
                         {isActive && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                         )}
-                        <span className="material-symbols-outlined text-xl relative z-10">dashboard</span>
-                        {sidebarOpen && <span className="ml-3 text-sm font-medium relative z-10">Dashboard</span>}
+                        <span className="material-symbols-outlined text-xl relative z-10">
+                          dashboard
+                        </span>
+                        {sidebarOpen && (
+                          <span className="ml-3 text-sm font-medium relative z-10">
+                            Dashboard
+                          </span>
+                        )}
                       </>
                     )}
                   </NavLink>
@@ -116,8 +122,14 @@ const AppLayout = () => {
                         {isActive && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                         )}
-                        <span className="material-symbols-outlined text-xl relative z-10">confirmation_number</span>
-                        {sidebarOpen && <span className="ml-3 text-sm font-medium relative z-10">Tickets</span>}
+                        <span className="material-symbols-outlined text-xl relative z-10">
+                          confirmation_number
+                        </span>
+                        {sidebarOpen && (
+                          <span className="ml-3 text-sm font-medium relative z-10">
+                            Tickets
+                          </span>
+                        )}
                       </>
                     )}
                   </NavLink>
@@ -136,8 +148,14 @@ const AppLayout = () => {
                         {isActive && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                         )}
-                        <span className="material-symbols-outlined text-xl relative z-10">upload_file</span>
-                        {sidebarOpen && <span className="ml-3 text-sm font-medium relative z-10">Importar</span>}
+                        <span className="material-symbols-outlined text-xl relative z-10">
+                          upload_file
+                        </span>
+                        {sidebarOpen && (
+                          <span className="ml-3 text-sm font-medium relative z-10">
+                            Importar
+                          </span>
+                        )}
                       </>
                     )}
                   </NavLink>
@@ -156,8 +174,14 @@ const AppLayout = () => {
                         {isActive && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                         )}
-                        <span className="material-symbols-outlined text-xl relative z-10">inventory_2</span>
-                        {sidebarOpen && <span className="ml-3 text-sm font-medium relative z-10">Órdenes</span>}
+                        <span className="material-symbols-outlined text-xl relative z-10">
+                          inventory_2
+                        </span>
+                        {sidebarOpen && (
+                          <span className="ml-3 text-sm font-medium relative z-10">
+                            Órdenes
+                          </span>
+                        )}
                       </>
                     )}
                   </NavLink>
@@ -198,9 +222,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">admin_panel_settings</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              admin_panel_settings
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Admin Dashboard</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Admin Dashboard
+                              </span>
                             )}
                           </>
                         )}
@@ -222,9 +250,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">smart_toy</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              smart_toy
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Agentes IA</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Agentes IA
+                              </span>
                             )}
                           </>
                         )}
@@ -246,9 +278,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">description</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              description
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Plantillas</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Plantillas
+                              </span>
                             )}
                           </>
                         )}
@@ -270,9 +306,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">book</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              book
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Base de Conocimiento</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Base de Conocimiento
+                              </span>
                             )}
                           </>
                         )}
@@ -294,9 +334,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">group</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              group
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Usuarios</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Usuarios
+                              </span>
                             )}
                           </>
                         )}
@@ -318,9 +362,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">label</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              label
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Etiquetas</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Etiquetas
+                              </span>
                             )}
                           </>
                         )}
@@ -342,9 +390,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">link</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              link
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Integraciones</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Integraciones
+                              </span>
                             )}
                           </>
                         )}
@@ -366,9 +418,13 @@ const AppLayout = () => {
                             {isActive && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
                             )}
-                            <span className="material-symbols-outlined text-xl relative z-10">fact_check</span>
+                            <span className="material-symbols-outlined text-xl relative z-10">
+                              fact_check
+                            </span>
                             {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">Auditoría</span>
+                              <span className="ml-3 text-sm font-medium relative z-10">
+                                Auditoría
+                              </span>
                             )}
                           </>
                         )}
@@ -416,11 +472,11 @@ const AppLayout = () => {
       <main className="flex-1 p-8 overflow-y-auto relative">
         {/* Background ambient glow */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-dt-accent/5 rounded-full blur-[100px]"></div>
-            <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px]"></div>
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-dt-accent/5 rounded-full blur-[100px]"></div>
+          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px]"></div>
         </div>
         <div className="relative z-10">
-            <Outlet />
+          <Outlet />
         </div>
       </main>
     </div>

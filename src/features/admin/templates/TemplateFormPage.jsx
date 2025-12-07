@@ -47,7 +47,7 @@ export function TemplateFormPage() {
             navigate("/admin/templates");
           },
           onError: (err) => toast.error(err.message || "Error"),
-        }
+        },
       );
     } else {
       createTemplate.mutate(form, {

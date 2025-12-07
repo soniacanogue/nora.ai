@@ -1,5 +1,5 @@
-import React from 'react';
-import { FiLink, FiPlus } from 'react-icons/fi';
+import React from "react";
+import { FiLink, FiPlus } from "react-icons/fi";
 
 // TODO: UC-18 - Integrations Management UI
 // Backend endpoints are implemented:
@@ -30,15 +30,15 @@ export const IntegrationsListPage = () => {
         <div className="flex items-center gap-3">
           <FiLink className="text-2xl text-dt-accent" />
           <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">Gestión de Integraciones</h1>
+            <h1 className="text-2xl font-bold text-dt-foreground">
+              Gestión de Integraciones
+            </h1>
             <p className="text-sm text-dt-subtle">
               Configura conexiones con servicios externos
             </p>
           </div>
         </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors"
-        >
+        <button className="flex items-center gap-2 px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors">
           <FiPlus />
           Nueva Integración
         </button>
@@ -51,10 +51,13 @@ export const IntegrationsListPage = () => {
           Página de Gestión de Integraciones
         </h3>
         <p className="text-dt-subtle mb-4">
-          Esta página permitirá configurar integraciones con servicios externos como Mailgun, OpenRouter, etc.
+          Esta página permitirá configurar integraciones con servicios externos
+          como Mailgun, OpenRouter, etc.
         </p>
         <div className="bg-dt-background border border-dt-border rounded-lg p-4 text-left max-w-2xl mx-auto">
-          <p className="text-sm text-dt-foreground font-semibold mb-2">TODO: Implementar</p>
+          <p className="text-sm text-dt-foreground font-semibold mb-2">
+            TODO: Implementar
+          </p>
           <ul className="text-xs text-dt-subtle space-y-1 list-disc list-inside">
             <li>Listar todas las integraciones con estado activo/inactivo</li>
             <li>Crear nueva integración con configuración de API keys</li>
@@ -66,10 +69,13 @@ export const IntegrationsListPage = () => {
             <li>Mostrar estado de salud de cada integración</li>
           </ul>
           <p className="text-xs text-yellow-400 mt-3 font-mono">
-            ⚠️ Nota: Faltan endpoints de backend para test y logs de integraciones
+            ⚠️ Nota: Faltan endpoints de backend para test y logs de
+            integraciones
           </p>
           <div className="mt-3 pt-3 border-t border-dt-border">
-            <p className="text-xs text-dt-foreground font-semibold mb-1">Integraciones clave:</p>
+            <p className="text-xs text-dt-foreground font-semibold mb-1">
+              Integraciones clave:
+            </p>
             <ul className="text-xs text-dt-subtle list-disc list-inside">
               <li>Mailgun - Envío y recepción de correos</li>
               <li>OpenRouter - API de IA para generación de respuestas</li>

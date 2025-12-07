@@ -22,7 +22,7 @@ export function AgentFormPage() {
         { id, ...payload },
         {
           onSuccess: () => navigate("/admin/agents"),
-        }
+        },
       );
     } else {
       createAgentMutation.mutate(payload, {

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FiSave, FiX, FiBook } from 'react-icons/fi';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { FiSave, FiX, FiBook } from "react-icons/fi";
 import {
   useKnowledgeBaseDoc,
   useCreateKnowledgeBaseDoc,
   useUpdateKnowledgeBaseDoc,
-} from '../hooks/useKnowledgeBase';
+} from "../hooks/useKnowledgeBase";
 
 // TODO: UC-14 - Knowledge Base Form
 // This component requires backend implementation of:
@@ -14,11 +14,11 @@ import {
 // GET /knowledge-base/:id (get for editing)
 
 const CATEGORIES = [
-  { value: 'FAQ', label: 'FAQ - Preguntas Frecuentes' },
-  { value: 'POLITICA', label: 'Política - Reglas y normativas' },
-  { value: 'PROCEDIMIENTO', label: 'Procedimiento - Guías paso a paso' },
-  { value: 'GUIA', label: 'Guía - Información general' },
-  { value: 'OTRO', label: 'Otro' },
+  { value: "FAQ", label: "FAQ - Preguntas Frecuentes" },
+  { value: "POLITICA", label: "Política - Reglas y normativas" },
+  { value: "PROCEDIMIENTO", label: "Procedimiento - Guías paso a paso" },
+  { value: "GUIA", label: "Guía - Información general" },
+  { value: "OTRO", label: "Otro" },
 ];
 
 export const KnowledgeBaseFormPage = () => {
@@ -27,12 +27,12 @@ export const KnowledgeBaseFormPage = () => {
   const isEditing = !!id;
 
   const [formData, setFormData] = useState({
-    titulo: '',
-    contenido: '',
-    categoria: 'FAQ',
+    titulo: "",
+    contenido: "",
+    categoria: "FAQ",
     etiquetas: [],
   });
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
 
   const { data: document, isLoading: isLoadingDoc } = useKnowledgeBaseDoc(id);
   const createMutation = useCreateKnowledgeBaseDoc();
@@ -41,9 +41,9 @@ export const KnowledgeBaseFormPage = () => {
   useEffect(() => {
     if (document) {
       setFormData({
-        titulo: document.titulo || '',
-        contenido: document.contenido || '',
-        categoria: document.categoria || 'FAQ',
+        titulo: document.titulo || "",
+        contenido: document.contenido || "",
+        categoria: document.categoria || "FAQ",
         etiquetas: document.etiquetas || [],
       });
     }
@@ -56,12 +56,12 @@ export const KnowledgeBaseFormPage = () => {
       updateMutation.mutate(
         { id, data: formData },
         {
-          onSuccess: () => navigate('/admin/knowledge-base'),
-        }
+          onSuccess: () => navigate("/admin/knowledge-base"),
+        },
       );
     } else {
       createMutation.mutate(formData, {
-        onSuccess: () => navigate('/admin/knowledge-base'),
+        onSuccess: () => navigate("/admin/knowledge-base"),
       });
     }
   };
@@ -72,7 +72,7 @@ export const KnowledgeBaseFormPage = () => {
         ...formData,
         etiquetas: [...formData.etiquetas, tagInput.trim()],
       });
-      setTagInput('');
+      setTagInput("");
     }
   };
 
@@ -84,7 +84,7 @@ export const KnowledgeBaseFormPage = () => {
   };
 
   const handleCancel = () => {
-    navigate('/admin/knowledge-base');
+    navigate("/admin/knowledge-base");
   };
 
   if (isEditing && isLoadingDoc) {
@@ -102,12 +102,12 @@ export const KnowledgeBaseFormPage = () => {
         <FiBook className="text-2xl text-dt-accent" />
         <div>
           <h1 className="text-2xl font-bold text-dt-foreground">
-            {isEditing ? 'Editar Documento' : 'Nuevo Documento'}
+            {isEditing ? "Editar Documento" : "Nuevo Documento"}
           </h1>
           <p className="text-sm text-dt-subtle">
             {isEditing
-              ? 'Actualiza la información del documento'
-              : 'Agrega un nuevo documento a la base de conocimiento'}
+              ? "Actualiza la información del documento"
+              : "Agrega un nuevo documento a la base de conocimiento"}
           </p>
         </div>
       </div>
@@ -122,7 +122,9 @@ export const KnowledgeBaseFormPage = () => {
           <input
             type="text"
             value={formData.titulo}
-            onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, titulo: e.target.value })
+            }
             required
             className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground placeholder-dt-subtle focus:outline-none focus:border-dt-accent"
             placeholder="Ej: ¿Cómo hacer una devolución?"
@@ -136,7 +138,9 @@ export const KnowledgeBaseFormPage = () => {
           </label>
           <select
             value={formData.categoria}
-            onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, categoria: e.target.value })
+            }
             required
             className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:border-dt-accent"
           >
@@ -155,14 +159,17 @@ export const KnowledgeBaseFormPage = () => {
           </label>
           <textarea
             value={formData.contenido}
-            onChange={(e) => setFormData({ ...formData, contenido: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, contenido: e.target.value })
+            }
             required
             rows={12}
             className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground placeholder-dt-subtle focus:outline-none focus:border-dt-accent resize-none"
             placeholder="Escribe el contenido del documento aquí..."
           />
           <p className="text-xs text-dt-subtle mt-1">
-            Este contenido será utilizado por la IA para generar respuestas a los clientes.
+            Este contenido será utilizado por la IA para generar respuestas a
+            los clientes.
           </p>
         </div>
 
@@ -177,7 +184,7 @@ export const KnowledgeBaseFormPage = () => {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyPress={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleAddTag();
                 }
@@ -222,7 +229,7 @@ export const KnowledgeBaseFormPage = () => {
             className="flex items-center gap-2 px-6 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiSave />
-            {isEditing ? 'Guardar Cambios' : 'Crear Documento'}
+            {isEditing ? "Guardar Cambios" : "Crear Documento"}
           </button>
           <button
             type="button"

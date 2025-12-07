@@ -124,7 +124,7 @@ const ImportOrdersPage = () => {
       });
 
       try {
-        const result = await importBatch( mappedBatch );
+        const result = await importBatch(mappedBatch);
 
         // Update summary based on result
         const batchImported =
@@ -139,7 +139,7 @@ const ImportOrdersPage = () => {
         console.error("Batch failed", err);
         currentSummary.failed += batch.length;
         currentSummary.errors.push(
-          `Lote ${Math.floor(i / BATCH_SIZE) + 1} falló: ${err.message}`
+          `Lote ${Math.floor(i / BATCH_SIZE) + 1} falló: ${err.message}`,
         );
       }
 
@@ -220,7 +220,7 @@ const Step1Upload = ({ onFileSelect }) => (
       status
     </p>
     <div className="relative group">
-        <input
+      <input
         type="file"
         accept=".csv"
         onChange={(e) => e.target.files[0] && onFileSelect(e.target.files[0])}
@@ -233,7 +233,7 @@ const Step1Upload = ({ onFileSelect }) => (
             file:cursor-pointer cursor-pointer
             bg-black/20 rounded-lg border border-white/10 p-2
             focus:outline-none focus:border-dt-accent/50 transition-colors"
-        />
+      />
     </div>
   </div>
 );
@@ -284,12 +284,7 @@ const Step2Mapping = ({
       >
         Cancelar
       </Button>
-      <Button
-        size="md"
-        fullWidth={false}
-        variant="primary"
-        onClick={onConfirm}
-      >
+      <Button size="md" fullWidth={false} variant="primary" onClick={onConfirm}>
         Confirmar e Importar
       </Button>
     </div>
@@ -351,19 +346,25 @@ const Step4Summary = ({ summary, onReset }) => (
           <div className="text-3xl font-bold text-dt-foreground font-mono">
             {summary.total || 0}
           </div>
-          <div className="text-xs uppercase tracking-wider text-dt-subtle mt-1">Total de Filas</div>
+          <div className="text-xs uppercase tracking-wider text-dt-subtle mt-1">
+            Total de Filas
+          </div>
         </div>
         <div className="p-4 bg-dt-success/5 rounded-lg border border-dt-success/10">
           <div className="text-3xl font-bold text-dt-success font-mono">
             {summary.imported || 0}
           </div>
-          <div className="text-xs uppercase tracking-wider text-dt-success/70 mt-1">Importadas</div>
+          <div className="text-xs uppercase tracking-wider text-dt-success/70 mt-1">
+            Importadas
+          </div>
         </div>
         <div className="p-4 bg-red-500/5 rounded-lg border border-red-500/10">
           <div className="text-3xl font-bold text-red-400 font-mono">
             {summary.failed || 0}
           </div>
-          <div className="text-xs uppercase tracking-wider text-red-400/70 mt-1">Fallidas</div>
+          <div className="text-xs uppercase tracking-wider text-red-400/70 mt-1">
+            Fallidas
+          </div>
         </div>
       </div>
 
@@ -375,7 +376,10 @@ const Step4Summary = ({ summary, onReset }) => (
           </h3>
           <ul className="list-none space-y-2 text-sm text-dt-subtle max-h-40 overflow-y-auto pr-2 custom-scrollbar">
             {summary.errors.slice(0, 10).map((error, idx) => (
-              <li key={idx} className="bg-red-500/10 text-red-300 p-2 rounded border border-red-500/20 text-xs font-mono">
+              <li
+                key={idx}
+                className="bg-red-500/10 text-red-300 p-2 rounded border border-red-500/20 text-xs font-mono"
+              >
                 {error}
               </li>
             ))}

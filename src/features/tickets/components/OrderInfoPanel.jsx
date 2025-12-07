@@ -25,15 +25,19 @@ const OrderInfoPanel = ({ order }) => {
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 mb-6 backdrop-blur-md hover:shadow-glow transition-shadow duration-300">
       <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
         <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider">
-            Información de la Orden
+          Información de la Orden
         </h3>
-        <span className="material-symbols-outlined text-dt-subtle">inventory_2</span>
+        <span className="material-symbols-outlined text-dt-subtle">
+          inventory_2
+        </span>
       </div>
 
       <div className="space-y-4 font-mono text-sm">
         <div className="flex justify-between items-center">
           <span className="text-dt-subtle text-xs">ID de Orden</span>
-          <span className="text-dt-foreground font-bold tracking-wide">{order.id}</span>
+          <span className="text-dt-foreground font-bold tracking-wide">
+            {order.id}
+          </span>
         </div>
 
         <div className="flex justify-between items-center">
@@ -71,7 +75,9 @@ const OrderInfoPanel = ({ order }) => {
                   className="text-dt-foreground flex justify-between items-center bg-black/20 p-2 rounded border border-white/5"
                 >
                   <span className="font-sans text-xs">{item.nombre}</span>
-                  <span className="text-dt-subtle text-xs">x{item.cantidad}</span>
+                  <span className="text-dt-subtle text-xs">
+                    x{item.cantidad}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -80,8 +86,12 @@ const OrderInfoPanel = ({ order }) => {
 
         {order.total && (
           <div className="flex justify-between pt-4 border-t border-white/10 mt-4">
-            <span className="text-dt-subtle font-bold text-xs uppercase">Total</span>
-            <span className="text-dt-success font-bold text-lg">${order.total}</span>
+            <span className="text-dt-subtle font-bold text-xs uppercase">
+              Total
+            </span>
+            <span className="text-dt-success font-bold text-lg">
+              ${order.total}
+            </span>
           </div>
         )}
       </div>

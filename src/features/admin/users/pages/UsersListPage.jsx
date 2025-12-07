@@ -1,5 +1,5 @@
-import React from 'react';
-import { FiUsers, FiPlus } from 'react-icons/fi';
+import React from "react";
+import { FiUsers, FiPlus } from "react-icons/fi";
 
 // TODO: UC-16 - User Management UI
 // Backend endpoints are implemented:
@@ -32,15 +32,15 @@ export const UsersListPage = () => {
         <div className="flex items-center gap-3">
           <FiUsers className="text-2xl text-dt-accent" />
           <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">Gestión de Usuarios</h1>
+            <h1 className="text-2xl font-bold text-dt-foreground">
+              Gestión de Usuarios
+            </h1>
             <p className="text-sm text-dt-subtle">
               Administra usuarios y permisos del sistema
             </p>
           </div>
         </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors"
-        >
+        <button className="flex items-center gap-2 px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors">
           <FiPlus />
           Nuevo Usuario
         </button>
@@ -56,7 +56,9 @@ export const UsersListPage = () => {
           Esta página permitirá gestionar usuarios y sus roles en el sistema.
         </p>
         <div className="bg-dt-background border border-dt-border rounded-lg p-4 text-left max-w-2xl mx-auto">
-          <p className="text-sm text-dt-foreground font-semibold mb-2">TODO: Implementar</p>
+          <p className="text-sm text-dt-foreground font-semibold mb-2">
+            TODO: Implementar
+          </p>
           <ul className="text-xs text-dt-subtle space-y-1 list-disc list-inside">
             <li>Listar todos los usuarios con roles y estado</li>
             <li>Crear nuevo usuario con asignación de rol</li>

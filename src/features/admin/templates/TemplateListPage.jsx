@@ -25,12 +25,12 @@ export function TemplateListPage() {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
         // Handle case-insensitive string comparison
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            aValue = aValue.toLowerCase();
-            bValue = bValue.toLowerCase();
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
         }
-        if (aValue < bValue) return sortConfig.order === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.order === 'asc' ? 1 : -1;
+        if (aValue < bValue) return sortConfig.order === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.order === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -137,7 +137,7 @@ export function TemplateListPage() {
               >
                 Nombre {getSortIcon("nombre")}
               </th>
-              <th 
+              <th
                 className="p-4 text-left cursor-pointer"
                 onClick={() => handleSort("plantillaAsunto")}
               >

@@ -25,9 +25,12 @@ const Button = ({
       "bg-gradient-to-r from-dt-accent to-dt-accent-hover text-white shadow-lg shadow-dt-accent/20 hover:shadow-dt-accent/40 border border-transparent",
     secondary:
       "bg-white/5 text-dt-foreground hover:bg-white/10 border border-white/10 hover:border-dt-accent/50 backdrop-blur-sm",
-    ghost: "text-dt-foreground hover:bg-white/5 border border-transparent hover:text-dt-accent",
-    outline: "bg-transparent text-dt-foreground border border-white/10 hover:border-dt-accent hover:text-dt-accent hover:shadow-glow",
-    danger: "bg-dt-error/10 text-dt-error border border-dt-error/20 hover:bg-dt-error/20 hover:shadow-glow-error",
+    ghost:
+      "text-dt-foreground hover:bg-white/5 border border-transparent hover:text-dt-accent",
+    outline:
+      "bg-transparent text-dt-foreground border border-white/10 hover:border-dt-accent hover:text-dt-accent hover:shadow-glow",
+    danger:
+      "bg-dt-error/10 text-dt-error border border-dt-error/20 hover:bg-dt-error/20 hover:shadow-glow-error",
   };
 
   // Tamaños - más balanceados y profesionales
@@ -46,7 +49,7 @@ const Button = ({
     variantStyles[variant],
     sizeStyles[size],
     widthClass,
-    className
+    className,
   );
 
   return (

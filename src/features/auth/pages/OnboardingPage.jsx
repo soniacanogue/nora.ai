@@ -29,7 +29,7 @@ const OnboardingPage = () => {
         ...formData,
         primeraVez: false,
       });
-      
+
       updateUser(updatedUser);
       toast.success("Perfil actualizado correctamente");
       navigate("/");
@@ -48,7 +48,7 @@ const OnboardingPage = () => {
       const updatedUser = await updateUserApi(currentUser.id, {
         primeraVez: false,
       });
-      
+
       updateUser(updatedUser);
       toast.success("Bienvenido a Nora");
       navigate("/");
@@ -117,7 +117,7 @@ const OnboardingPage = () => {
             >
               Guardar y Continuar
             </Button>
-            
+
             <Button
               type="button"
               variant="ghost"

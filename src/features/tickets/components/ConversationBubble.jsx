@@ -51,10 +51,10 @@ const ConversationBubble = ({ message }) => {
 
   const bubbleAlignment = isCustomer ? "items-start" : "items-end";
   // Customer: Glassmorphism dark. Agent: Electric Violet Gradient.
-  const bubbleColor = isCustomer 
-    ? "bg-white/5 border border-white/10 backdrop-blur-sm" 
+  const bubbleColor = isCustomer
+    ? "bg-white/5 border border-white/10 backdrop-blur-sm"
     : "bg-gradient-to-br from-dt-accent to-dt-accent-hover shadow-glow border border-transparent";
-  
+
   const textColor = "text-dt-foreground";
   const hasAttachments = attachments.length > 0;
   const rawBody = typeof text === "string" ? text : "";
@@ -71,7 +71,9 @@ const ConversationBubble = ({ message }) => {
 
   return (
     <div className={`flex flex-col mb-6 ${bubbleAlignment} group`}>
-      <div className={`max-w-xl rounded-2xl p-5 ${bubbleColor} transition-transform duration-200 hover:scale-[1.01]`}>
+      <div
+        className={`max-w-xl rounded-2xl p-5 ${bubbleColor} transition-transform duration-200 hover:scale-[1.01]`}
+      >
         <div className="flex items-center justify-between text-[10px] uppercase tracking-wider mb-4 font-semibold text-dt-subtle">
           <div className="flex items-center gap-2">
             <span className="material-symbols-rounded text-xs opacity-70">
@@ -97,7 +99,11 @@ const ConversationBubble = ({ message }) => {
               const downloadUrl = file.url || file.downloadUrl || null;
               const AttachmentWrapper = downloadUrl ? "a" : "div";
               const commonProps = downloadUrl
-                ? { href: downloadUrl, target: "_blank", rel: "noopener noreferrer" }
+                ? {
+                    href: downloadUrl,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                  }
                 : {};
               const previewIsImage = isImageAttachment(file) && downloadUrl;
 
@@ -110,7 +116,9 @@ const ConversationBubble = ({ message }) => {
                   {previewIsImage ? (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs text-dt-subtle font-mono">
-                        <span className="uppercase">{file.name || "Imagen adjunta"}</span>
+                        <span className="uppercase">
+                          {file.name || "Imagen adjunta"}
+                        </span>
                         {formatFileSize(file.size) && (
                           <span>{formatFileSize(file.size)}</span>
                         )}
@@ -153,7 +161,7 @@ const ConversationBubble = ({ message }) => {
           {author}
         </span>
         <span className="text-[10px] text-dt-subtle font-mono">
-            {new Date(timestamp).toLocaleString()}
+          {new Date(timestamp).toLocaleString()}
         </span>
       </div>
     </div>

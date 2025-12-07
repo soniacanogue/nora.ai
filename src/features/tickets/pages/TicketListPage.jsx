@@ -35,28 +35,29 @@ const TicketListPage = () => {
     isLoading,
     isError,
     error,
-  } = useTickets(
-    { status: statusFilter, assigneeId: assigneeFilter }
-  );
+  } = useTickets({ status: statusFilter, assigneeId: assigneeFilter });
 
   // Configuración de búsqueda
-  const searchConfig = useMemo(() => ({
-    searchKeys: [
-      "id",
-      "asunto",
-      "cliente.nombre",
-      "cliente.correo",
-      "prioridad",
-      "estado"
-    ]
-  }), []);
+  const searchConfig = useMemo(
+    () => ({
+      searchKeys: [
+        "id",
+        "asunto",
+        "cliente.nombre",
+        "cliente.correo",
+        "prioridad",
+        "estado",
+      ],
+    }),
+    [],
+  );
 
   // Hook de búsqueda dinámica
-  const { 
-    searchTerm, 
-    setSearchTerm, 
-    filteredData: searchedTickets, 
-    suggestions: searchSuggestions 
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredData: searchedTickets,
+    suggestions: searchSuggestions,
   } = useDynamicSearch(tickets, searchConfig);
 
   const sortedTickets = useMemo(() => {
@@ -68,16 +69,16 @@ const TicketListPage = () => {
         let bValue = b[sortConfig.key];
 
         // Handle nested properties or special cases
-        if (sortConfig.key === 'cliente') {
-             aValue = a.cliente?.nombre || '';
-             bValue = b.cliente?.nombre || '';
+        if (sortConfig.key === "cliente") {
+          aValue = a.cliente?.nombre || "";
+          bValue = b.cliente?.nombre || "";
         }
 
         if (aValue < bValue) {
-          return sortConfig.order === 'asc' ? -1 : 1;
+          return sortConfig.order === "asc" ? -1 : 1;
         }
         if (aValue > bValue) {
-          return sortConfig.order === 'asc' ? 1 : -1;
+          return sortConfig.order === "asc" ? 1 : -1;
         }
         return 0;
       });
@@ -104,89 +105,106 @@ const TicketListPage = () => {
     setIsModalOpen(true);
   };
 
-  const columns = useMemo(() => [
-    {
-      key: "prioridad",
-      label: "Prioridad",
-      sortable: true,
-      className: "pl-6 font-mono text-xs relative",
-      render: (ticket) => (
-        <>
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-dt-accent opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
-          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
-            ticket.prioridad === 'baja' ? 'bg-dt-error/10 text-dt-error border-transparent' :
-            ticket.prioridad === 'urgente' ? 'bg-red-500/10 text-red-500 border-transparent' : 
-            ticket.prioridad === 'alta' ? 'bg-yellow-500/10 text-yellow-500 border-transparent' : 
-            ticket.prioridad === 'media' ? 'bg-green-500/10 text-green-500 border-transparent' :
-            'bg-gray-500/10 text-gray-500 border-transparent'
-          }`}>
-            {ticket.prioridad}
-          </span>
-        </>
-      )
-    },
-    {
-      key: "asunto",
-      label: "Asunto",
-      sortable: true,
-      className: "text-dt-foreground font-medium cursor-pointer group-hover:text-white transition-colors",
-      render: (ticket) => (
-        <div onClick={() => navigate(`/tickets/${ticket.id}`)}>
-          {ticket.asunto}
-          <div className="text-xs text-dt-subtle font-mono mt-0.5 opacity-50 group-hover:opacity-100 transition-opacity">ID: {ticket.id}</div>
-        </div>
-      )
-    },
-    {
-      key: "cliente",
-      label: "Cliente",
-      sortable: true,
-      className: "text-dt-subtle",
-      render: (ticket) => ticket.cliente?.nombre || "Anónimo"
-    },
-    {
-      key: "assigneeId",
-      label: "Agente",
-      sortable: true,
-      className: "text-dt-subtle",
-      render: (ticket) => {
-        // Si el backend devuelve el objeto completo (futuro)
-        if (ticket.assignee && typeof ticket.assignee === 'object') {
-          return ticket.assignee.nombre || "Agente";
-        }
-        // Si el backend devuelve solo el ID (actual, pero se va a arreglar)
-        // O si el campo se llama diferente, intentamos mostrar algo sensato
-        return ticket.assigneeId || <span className="text-dt-subtle/50 italic">Sin Asignar</span>;
-      }
-    },
-    {
-      key: "creadoEn",
-      label: "Actualización",
-      sortable: true,
-      className: "text-dt-subtle font-mono text-xs",
-      render: (ticket) => new Date(ticket.creadoEn).toLocaleDateString()
-    },
-    {
-      key: "actions",
-      label: "Acción",
-      render: (ticket) => !ticket.assigneeId && (
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <Button
-            variant="primary"
-            size="sm"
-            fullWidth={false}
-            onClick={() =>
-              claim({ ticketId: ticket.id, agentId: currentUser?.id })
-            }
-            disabled={isClaiming}
-            className="text-xs py-1 px-3 h-8"
-          >
-            Tomar
-          </Button>
-        </div>
-      )
-    }
-  ], [isClaiming, currentUser, navigate, claim]);
+  const columns = useMemo(
+    () => [
+      {
+        key: "prioridad",
+        label: "Prioridad",
+        sortable: true,
+        className: "pl-6 font-mono text-xs relative",
+        render: (ticket) => (
+          <>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-dt-accent opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
+            <span
+              className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
+                ticket.prioridad === "baja"
+                  ? "bg-dt-error/10 text-dt-error border-transparent"
+                  : ticket.prioridad === "urgente"
+                    ? "bg-red-500/10 text-red-500 border-transparent"
+                    : ticket.prioridad === "alta"
+                      ? "bg-yellow-500/10 text-yellow-500 border-transparent"
+                      : ticket.prioridad === "media"
+                        ? "bg-green-500/10 text-green-500 border-transparent"
+                        : "bg-gray-500/10 text-gray-500 border-transparent"
+              }`}
+            >
+              {ticket.prioridad}
+            </span>
+          </>
+        ),
+      },
+      {
+        key: "asunto",
+        label: "Asunto",
+        sortable: true,
+        className:
+          "text-dt-foreground font-medium cursor-pointer group-hover:text-white transition-colors",
+        render: (ticket) => (
+          <div onClick={() => navigate(`/tickets/${ticket.id}`)}>
+            {ticket.asunto}
+            <div className="text-xs text-dt-subtle font-mono mt-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
+              ID: {ticket.id}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: "cliente",
+        label: "Cliente",
+        sortable: true,
+        className: "text-dt-subtle",
+        render: (ticket) => ticket.cliente?.nombre || "Anónimo",
+      },
+      {
+        key: "assigneeId",
+        label: "Agente",
+        sortable: true,
+        className: "text-dt-subtle",
+        render: (ticket) => {
+          // Si el backend devuelve el objeto completo (futuro)
+          if (ticket.assignee && typeof ticket.assignee === "object") {
+            return ticket.assignee.nombre || "Agente";
+          }
+          // Si el backend devuelve solo el ID (actual, pero se va a arreglar)
+          // O si el campo se llama diferente, intentamos mostrar algo sensato
+          return (
+            ticket.assigneeId || (
+              <span className="text-dt-subtle/50 italic">Sin Asignar</span>
+            )
+          );
+        },
+      },
+      {
+        key: "creadoEn",
+        label: "Actualización",
+        sortable: true,
+        className: "text-dt-subtle font-mono text-xs",
+        render: (ticket) => new Date(ticket.creadoEn).toLocaleDateString(),
+      },
+      {
+        key: "actions",
+        label: "Acción",
+        render: (ticket) =>
+          !ticket.assigneeId && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <Button
+                variant="primary"
+                size="sm"
+                fullWidth={false}
+                onClick={() =>
+                  claim({ ticketId: ticket.id, agentId: currentUser?.id })
+                }
+                disabled={isClaiming}
+                className="text-xs py-1 px-3 h-8"
+              >
+                Tomar
+              </Button>
+            </div>
+          ),
+      },
+    ],
+    [isClaiming, currentUser, navigate, claim],
+  );
 
   const formConfig = {
     fields: {
@@ -276,24 +294,24 @@ const TicketListPage = () => {
           Tickets de Nivel 2
         </h1>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <div className="w-full md:w-64 lg:w-80">
-              <DynamicSearch
-                id="search-tickets"
-                placeholder="Buscar tickets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                suggestions={searchSuggestions}
-              />
-            </div>
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth={false}
-              onClick={openModal}
-              className="whitespace-nowrap"
-            >
-              Crear Ticket
-            </Button>
+          <div className="w-full md:w-64 lg:w-80">
+            <DynamicSearch
+              id="search-tickets"
+              placeholder="Buscar tickets..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              suggestions={searchSuggestions}
+            />
+          </div>
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth={false}
+            onClick={openModal}
+            className="whitespace-nowrap"
+          >
+            Crear Ticket
+          </Button>
         </div>
       </div>
 

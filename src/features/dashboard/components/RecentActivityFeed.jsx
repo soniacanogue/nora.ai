@@ -12,7 +12,9 @@ const RecentActivityFeed = ({ activities }) => {
           // If activity has a ticketId, make it a link
           const content = (
             <>
-              <p className="text-dt-foreground text-sm font-medium">{activity.message}</p>
+              <p className="text-dt-foreground text-sm font-medium">
+                {activity.message}
+              </p>
               <p className="text-dt-subtle text-[10px] font-mono mt-1 uppercase tracking-wider opacity-70">
                 {new Date(activity.timestamp).toLocaleTimeString()}
               </p>
@@ -27,20 +29,25 @@ const RecentActivityFeed = ({ activities }) => {
                 className="block hover:bg-white/5 p-3 rounded border border-transparent hover:border-white/10 transition-all duration-200 group"
               >
                 <div className="group-hover:translate-x-1 transition-transform duration-200">
-                    {content}
+                  {content}
                 </div>
               </Link>
             );
           }
 
           return (
-            <div key={activity.eventId} className="p-3 border-b border-white/5 last:border-0">
+            <div
+              key={activity.eventId}
+              className="p-3 border-b border-white/5 last:border-0"
+            >
               {content}
             </div>
           );
         })
       ) : (
-        <p className="text-dt-subtle text-sm p-4 text-center italic">No hay actividad reciente.</p>
+        <p className="text-dt-subtle text-sm p-4 text-center italic">
+          No hay actividad reciente.
+        </p>
       )}
     </div>
   );

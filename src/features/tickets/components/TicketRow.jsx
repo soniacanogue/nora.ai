@@ -31,11 +31,17 @@ const TicketRow = ({ ticket, onClick }) => {
   // Adapt properties to match the component's expected structure
   const status = ticket.status || ticket.prioridad || "NORMAL";
   const title = ticket.title || ticket.asunto || "Sin asunto";
-  const client = ticket.client || ticket.cliente?.nombre || "Cliente desconocido";
+  const client =
+    ticket.client || ticket.cliente?.nombre || "Cliente desconocido";
   const id = ticket.id;
 
-  const isUrgent = status === 'URGENTE' || status === 'alta';
-  const rawChannel = (ticket.canalOrigen || ticket.canal || ticket.channel || "web").toLowerCase();
+  const isUrgent = status === "URGENTE" || status === "alta";
+  const rawChannel = (
+    ticket.canalOrigen ||
+    ticket.canal ||
+    ticket.channel ||
+    "web"
+  ).toLowerCase();
   let channelKey = rawChannel;
   if (rawChannel.includes("mail")) channelKey = "email";
   else if (rawChannel.includes("tel")) channelKey = "telefono";
@@ -43,19 +49,22 @@ const TicketRow = ({ ticket, onClick }) => {
   const channelMeta = CHANNEL_STYLES[channelKey] || CHANNEL_STYLES.default;
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className="group grid grid-cols-12 gap-4 border-b border-white/5 p-4 transition-colors hover:bg-white/[0.02] items-center text-sm cursor-pointer"
     >
-      
       {/* Badge de estado: Minimalist pill */}
       <div className="col-span-2 flex flex-col gap-2">
-        <span className={`
+        <span
+          className={`
           px-2.5 py-1 rounded text-[10px] font-mono uppercase tracking-wide border
-          ${isUrgent
-            ? 'bg-red-500/10 text-red-400 border-red-500/20' 
-            : 'bg-dt-accent-dim text-dt-accent-text border-dt-accent/20'}
-        `}>
+          ${
+            isUrgent
+              ? "bg-red-500/10 text-red-400 border-red-500/20"
+              : "bg-dt-accent-dim text-dt-accent-text border-dt-accent/20"
+          }
+        `}
+        >
           {status}
         </span>
         <span
@@ -76,14 +85,12 @@ const TicketRow = ({ ticket, onClick }) => {
       </div>
 
       {/* Metadatos alineados */}
-      <div className="col-span-3 text-dt-subtle text-xs">
-        {client}
-      </div>
+      <div className="col-span-3 text-dt-subtle text-xs">{client}</div>
 
       <div className="col-span-3 flex justify-end">
-         <button className="opacity-0 group-hover:opacity-100 transition-all duration-200 px-4 py-1.5 text-xs font-medium bg-white text-black hover:bg-dt-accent hover:text-white rounded shadow-glow">
-            Procesar AI
-         </button>
+        <button className="opacity-0 group-hover:opacity-100 transition-all duration-200 px-4 py-1.5 text-xs font-medium bg-white text-black hover:bg-dt-accent hover:text-white rounded shadow-glow">
+          Procesar AI
+        </button>
       </div>
     </div>
   );

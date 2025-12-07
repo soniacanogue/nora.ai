@@ -54,13 +54,41 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* --- RUTAS PÚBLICAS --- */}
-        <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
-        <Route path="/new-ticket" element={<PageTransition><NewTicketPage /></PageTransition>} />
-        <Route path="/new-ticket/confirmation" element={<PageTransition><TicketConfirmationPage /></PageTransition>} />
+        <Route
+          path="/login"
+          element={
+            <PageTransition>
+              <LoginPage />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/new-ticket"
+          element={
+            <PageTransition>
+              <NewTicketPage />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/new-ticket/confirmation"
+          element={
+            <PageTransition>
+              <TicketConfirmationPage />
+            </PageTransition>
+          }
+        />
 
         {/* --- RUTA DE ONBOARDING (PROTEGIDA) --- */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/onboarding" element={<PageTransition><OnboardingPage /></PageTransition>} />
+          <Route
+            path="/onboarding"
+            element={
+              <PageTransition>
+                <OnboardingPage />
+              </PageTransition>
+            }
+          />
         </Route>
 
         {/* --- GRUPO DE RUTAS PROTEGIDAS (AGENTE Y ADMIN) --- */}
@@ -71,34 +99,160 @@ const AnimatedRoutes = () => {
         >
           {/* Todas estas rutas usan el layout principal */}
           <Route element={<AppLayout />}>
-            <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
-            <Route path="/tickets" element={<PageTransition><TicketListPage /></PageTransition>} />
-            <Route path="/tickets/:ticketId" element={<PageTransition><TicketDetailPage /></PageTransition>} />
-            <Route path="/import" element={<PageTransition><ImportOrdersPage /></PageTransition>} />
-            <Route path="/orders" element={<PageTransition><OrderListPage /></PageTransition>} />
+            <Route
+              path="/"
+              element={
+                <PageTransition>
+                  <HomePage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/tickets"
+              element={
+                <PageTransition>
+                  <TicketListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/tickets/:ticketId"
+              element={
+                <PageTransition>
+                  <TicketDetailPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/import"
+              element={
+                <PageTransition>
+                  <ImportOrdersPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <PageTransition>
+                  <OrderListPage />
+                </PageTransition>
+              }
+            />
           </Route>
         </Route>
 
         {/* --- NUEVO: GRUPO DE RUTAS DE ADMINISTRACIÓN (SOLO ADMIN) --- */}
         <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR"]} />}>
           <Route path="/admin" element={<AppLayout />}>
-            <Route path="dashboard" element={<PageTransition><AdminDashboardPage /></PageTransition>} />
-            <Route path="ai-agents" element={<PageTransition><AgentListPage /></PageTransition>} />
-            <Route path="ai-agents/edit/:id" element={<PageTransition><AgentFormPage /></PageTransition>} />
-            <Route path="templates" element={<PageTransition><TemplateListPage /></PageTransition>} />
-            <Route path="templates/edit/:id" element={<PageTransition><TemplateFormPage /></PageTransition>} />
-            <Route path="knowledge-base" element={<PageTransition><KnowledgeBaseListPage /></PageTransition>} />
-            <Route path="knowledge-base/new" element={<PageTransition><KnowledgeBaseFormPage /></PageTransition>} />
-            <Route path="knowledge-base/edit/:id" element={<PageTransition><KnowledgeBaseFormPage /></PageTransition>} />
-            <Route path="users" element={<PageTransition><UsersListPage /></PageTransition>} />
-            <Route path="tags" element={<PageTransition><TagsListPage /></PageTransition>} />
-            <Route path="integrations" element={<PageTransition><IntegrationsListPage /></PageTransition>} />
-            <Route path="audit-logs" element={<PageTransition><AuditLogsPage /></PageTransition>} />
+            <Route
+              path="dashboard"
+              element={
+                <PageTransition>
+                  <AdminDashboardPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="ai-agents"
+              element={
+                <PageTransition>
+                  <AgentListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="ai-agents/edit/:id"
+              element={
+                <PageTransition>
+                  <AgentFormPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="templates"
+              element={
+                <PageTransition>
+                  <TemplateListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="templates/edit/:id"
+              element={
+                <PageTransition>
+                  <TemplateFormPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="knowledge-base"
+              element={
+                <PageTransition>
+                  <KnowledgeBaseListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="knowledge-base/new"
+              element={
+                <PageTransition>
+                  <KnowledgeBaseFormPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="knowledge-base/edit/:id"
+              element={
+                <PageTransition>
+                  <KnowledgeBaseFormPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="users"
+              element={
+                <PageTransition>
+                  <UsersListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="tags"
+              element={
+                <PageTransition>
+                  <TagsListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="integrations"
+              element={
+                <PageTransition>
+                  <IntegrationsListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="audit-logs"
+              element={
+                <PageTransition>
+                  <AuditLogsPage />
+                </PageTransition>
+              }
+            />
           </Route>
         </Route>
 
         {/* --- RUTA CATCH-ALL PARA PÁGINAS NO ENCONTRADAS --- */}
-        <Route path="*" element={<PageTransition><NotFoundPage /></PageTransition>} />
+        <Route
+          path="*"
+          element={
+            <PageTransition>
+              <NotFoundPage />
+            </PageTransition>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );

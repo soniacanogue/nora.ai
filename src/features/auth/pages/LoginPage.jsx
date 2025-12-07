@@ -28,7 +28,9 @@ const LoginPage = () => {
       navigate("/");
     } catch (error) {
       console.error("Login error:", error);
-      toast.error(error.message || "Error al iniciar sesión. Verifica tus credenciales.");
+      toast.error(
+        error.message || "Error al iniciar sesión. Verifica tus credenciales.",
+      );
     } finally {
       setLoading(false);
     }
@@ -39,12 +41,14 @@ const LoginPage = () => {
       <div className="bg-white/5 backdrop-blur-md p-8 rounded-lg border border-white/10 shadow-glow w-full relative overflow-hidden">
         {/* Decorative top line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-dt-accent to-transparent"></div>
-        
+
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-dt-foreground tracking-tight">
             Bienvenido de Nuevo
           </h2>
-          <p className="text-dt-subtle text-sm mt-2">Ingresa a tu cuenta de ASCI</p>
+          <p className="text-dt-subtle text-sm mt-2">
+            Ingresa a tu cuenta de ASCI
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -78,9 +82,11 @@ const LoginPage = () => {
             {loading ? "Autenticando..." : "Iniciar Sesión"}
           </Button>
         </form>
-        
+
         <div className="mt-6 text-center">
-            <p className="text-xs text-dt-subtle font-mono opacity-50">SECURE SYSTEM ACCESS V2.0</p>
+          <p className="text-xs text-dt-subtle font-mono opacity-50">
+            SECURE SYSTEM ACCESS V2.0
+          </p>
         </div>
       </div>
     </AuthLayout>

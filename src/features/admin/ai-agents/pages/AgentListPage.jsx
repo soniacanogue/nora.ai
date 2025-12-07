@@ -28,12 +28,12 @@ export function AgentListPage() {
       result.sort((a, b) => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            aValue = aValue.toLowerCase();
-            bValue = bValue.toLowerCase();
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
         }
-        if (aValue < bValue) return sortConfig.order === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.order === 'asc' ? 1 : -1;
+        if (aValue < bValue) return sortConfig.order === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.order === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -169,7 +169,7 @@ export function AgentListPage() {
               >
                 Nombre {getSortIcon("nombre")}
               </th>
-              <th 
+              <th
                 className="p-4 text-left cursor-pointer hover:text-dt-accent transition-colors"
                 onClick={() => handleSort("descripcion")}
               >
@@ -190,11 +190,15 @@ export function AgentListPage() {
                 key={agent.id}
                 className="hover:bg-white/5 transition-colors group"
               >
-                <td className="p-4 text-dt-foreground font-medium">{agent.nombre}</td>
+                <td className="p-4 text-dt-foreground font-medium">
+                  {agent.nombre}
+                </td>
                 <td className="p-4 text-dt-subtle truncate max-w-md text-sm">
                   {agent.descripcion}
                 </td>
-                <td className="p-4 text-dt-subtle font-mono">{agent.umbralConfianza}</td>
+                <td className="p-4 text-dt-subtle font-mono">
+                  {agent.umbralConfianza}
+                </td>
                 <td className="p-4 text-right space-x-4">
                   <Button
                     variant="link"

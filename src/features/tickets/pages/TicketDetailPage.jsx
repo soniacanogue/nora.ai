@@ -54,11 +54,7 @@ const normalizeAttachments = (message) => {
         file.descarga ||
         "",
       mimeType:
-        file.mimeType ||
-        file.tipoMime ||
-        file.tipoContenido ||
-        file.tipo ||
-        "",
+        file.mimeType || file.tipoMime || file.tipoContenido || file.tipo || "",
       size,
     };
   });
@@ -79,12 +75,12 @@ const TicketDetailSkeleton = () => (
   <div className="animate-pulse max-w-7xl mx-auto">
     <div className="h-4 bg-white/5 rounded w-32 mb-4"></div>
     <div className="flex justify-between items-start mb-8">
-        <div className="w-2/3">
-            <div className="h-10 bg-white/10 rounded w-3/4 mb-2"></div>
-            <div className="h-5 bg-white/5 rounded w-1/2"></div>
-        </div>
+      <div className="w-2/3">
+        <div className="h-10 bg-white/10 rounded w-3/4 mb-2"></div>
+        <div className="h-5 bg-white/5 rounded w-1/2"></div>
+      </div>
     </div>
-    
+
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-6">
         <div className="h-32 bg-white/5 rounded-lg border border-white/5"></div>
@@ -146,8 +142,7 @@ const TicketDetailPage = () => {
               const messageIds = [msg.id, msg.mensajeId, msg.uuid];
               const payloadIds = [payload.id, payload.mensajeId, payload.uuid];
               return messageIds.some(
-                (identifier) =>
-                  identifier && payloadIds.includes(identifier),
+                (identifier) => identifier && payloadIds.includes(identifier),
               );
             });
 
@@ -187,14 +182,15 @@ const TicketDetailPage = () => {
   const normalizedChannel = (ticketChannel || "").toLowerCase();
   const fallbackChannelLabel =
     typeof ticketChannel === "string" ? ticketChannel.toUpperCase() : "WEB";
-  const ticketChannelLabel = formatChannel(normalizedChannel) || fallbackChannelLabel;
+  const ticketChannelLabel =
+    formatChannel(normalizedChannel) || fallbackChannelLabel;
   const isEmailChannel = /mail|correo/i.test(normalizedChannel);
   const shouldAutoCloseOnReply = Boolean(
     ticket?.autoCloseOnReply ??
-      ticket?.cerrarAlResponder ??
-      ticket?.cierraAlEnviar ??
-      ticket?.closeOnReply ??
-      false,
+    ticket?.cerrarAlResponder ??
+    ticket?.cierraAlEnviar ??
+    ticket?.closeOnReply ??
+    false,
   );
   const nextStateAfterApproval = shouldAutoCloseOnReply
     ? "cerrado"
@@ -220,10 +216,7 @@ const TicketDetailPage = () => {
     return ticket.mensajes.map((msg) => {
       const attachments = normalizeAttachments(msg);
       const resolvedChannel =
-        msg?.canalOrigen ||
-        msg?.canal ||
-        msg?.channel ||
-        ticketChannel;
+        msg?.canalOrigen || msg?.canal || msg?.channel || ticketChannel;
 
       return {
         id: msg.id || msg.mensajeId || msg.uuid || msg.conversacionId,
@@ -387,19 +380,21 @@ const TicketDetailPage = () => {
 
           <div className="bg-transparent">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-bold text-dt-subtle uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-dt-subtle uppercase tracking-wider">
                 Historial de la Conversación
-                </h2>
-                <span className="text-xs text-dt-subtle font-mono opacity-50">ENCRIPTADO E2E</span>
+              </h2>
+              <span className="text-xs text-dt-subtle font-mono opacity-50">
+                ENCRIPTADO E2E
+              </span>
             </div>
-            
+
             <div className="space-y-2 relative">
-                {/* Linea de tiempo vertical decorativa */}
-                <div className="absolute left-4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent z-0 hidden md:block"></div>
-                
+              {/* Linea de tiempo vertical decorativa */}
+              <div className="absolute left-4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent z-0 hidden md:block"></div>
+
               {adaptedConversation.map((msg, index) => (
                 <div key={index} className="relative z-10">
-                    <ConversationBubble message={msg} />
+                  <ConversationBubble message={msg} />
                 </div>
               ))}
             </div>
@@ -415,24 +410,26 @@ const TicketDetailPage = () => {
               onApprovalSuccess={handleApprovalSuccess} // Pasamos el callback
               approvalContext={approvalContext}
             />
-            
+
             {/* Metadata adicional del ticket podría ir aquí */}
             <div className="bg-white/5 rounded-lg p-4 border border-white/5">
-                <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-3">Detalles Técnicos</h3>
-                <div className="space-y-2 text-xs font-mono text-dt-subtle">
-                    <div className="flex justify-between">
-                        <span>ID:</span>
-                        <span className="text-dt-foreground">{ticket.id}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Creado:</span>
-                        <span>{new Date(ticket.creadoEn).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Canal:</span>
-                      <span className="uppercase">{ticketChannelLabel}</span>
-                    </div>
+              <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-3">
+                Detalles Técnicos
+              </h3>
+              <div className="space-y-2 text-xs font-mono text-dt-subtle">
+                <div className="flex justify-between">
+                  <span>ID:</span>
+                  <span className="text-dt-foreground">{ticket.id}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span>Creado:</span>
+                  <span>{new Date(ticket.creadoEn).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Canal:</span>
+                  <span className="uppercase">{ticketChannelLabel}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

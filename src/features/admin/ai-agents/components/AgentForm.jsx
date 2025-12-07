@@ -47,7 +47,7 @@ export function AgentForm({ initialData, onSubmit, isSubmitting, onCancel }) {
       promptsPorCanal: JSON.stringify(
         initialData?.promptsPorCanal || {},
         null,
-        2
+        2,
       ),
     },
   });

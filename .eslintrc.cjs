@@ -19,13 +19,12 @@ module.exports = {
   },
   settings: {
     "import/resolver": {
-      "node": { "extensions": [".js", ".jsx", ".ts", ".tsx"] }
+      "node": { 
+        "extensions": [".js", ".jsx", ".ts", ".tsx"],
+        "paths": ["./src"]
+      }
     },
     react: { version: "detect" }
-  },
-  "paths": {
-    "@/*": ["./src/*"],
-    "src/*": ["./src/*"]
   },
   parserOptions: {
     ecmaVersion: 2021,
