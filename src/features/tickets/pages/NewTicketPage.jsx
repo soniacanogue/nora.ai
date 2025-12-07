@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Input from "../../../shared/components/ui/Input";
 import Button from "../../../shared/components/ui/Button";
 import FileUpload from "../../../shared/components/ui/FileUpload";
@@ -16,9 +17,14 @@ const NewTicketPage = () => {
   } = useForm();
 
   const [files, setFiles] = useState([]);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
+    if (data.companyField) {
+      toast.error("No pudimos enviar tu solicitud. Intenta nuevamente.");
+      return;
+    }
+
     try {
       const payload = {
         canal: "web",
@@ -36,12 +42,27 @@ const NewTicketPage = () => {
         })),
       };
 
-      await createTicket(payload);
+      const createdTicket = await createTicket(payload);
+      const returnedTicketId =
+        createdTicket?.id ||
+        createdTicket?.ticketId ||
+        createdTicket?.reference ||
+        null;
 
       console.log("--- NUEVO TICKET ENVIADO (VALIDADO) ---");
       console.log("Datos:", payload);
       toast.success("¡Consulta enviada con éxito!");
-      setIsSubmitted(true);
+
+      const confirmationPath = returnedTicketId
+        ? `/new-ticket/confirmation?ticketId=${encodeURIComponent(returnedTicketId)}`
+        : "/new-ticket/confirmation";
+
+      reset();
+      setFiles([]);
+
+      navigate(confirmationPath, {
+        state: { ticketId: returnedTicketId },
+      });
     } catch (error) {
       console.error("Error creating ticket:", error);
       toast.error(
@@ -50,45 +71,6 @@ const NewTicketPage = () => {
     }
   };
 
-  const handleCreateAnother = () => {
-    reset();
-    setFiles([]);
-    setIsSubmitted(false);
-  };
-
-  if (isSubmitted) {
-    return (
-      <PublicLayout>
-        <div className="bg-dt-primary p-8 rounded-lg border border-secondary text-center">
-          <h2 className="text-2xl font-bold text-green-400 mb-4">¡Gracias!</h2>
-          <p className="text-dt-foreground">
-            Hemos recibido tu consulta. Recibirás una confirmación por correo
-            electrónico en breve.
-          </p>
-          <p className="text-dt-subtle mt-2">
-            Tu número de ticket de referencia es: TKT-005.
-          </p>
-          <div className="mt-8 flex flex-col items-center gap-4">
-            <Button
-              onClick={handleCreateAnother}
-              size="md"
-              fullWidth={false}
-              variant="secondary"
-            >
-              Crear otro ticket
-            </Button>
-            <a
-              href="/"
-              className="text-sm text-dt-subtle hover:text-dt-foreground hover:underline"
-            >
-              o volver a la página principal
-            </a>
-          </div>
-        </div>
-      </PublicLayout>
-    );
-  }
-
   return (
     <PublicLayout>
       <div className="bg-dt-primary p-8 rounded-lg border border-secondary">
@@ -96,6 +78,19 @@ const NewTicketPage = () => {
           Contacta con Soporte
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div
+            className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden"
+            aria-hidden="true"
+          >
+            <label htmlFor="companyField">No completar este campo</label>
+            <input
+              id="companyField"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              {...register("companyField")}
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Input

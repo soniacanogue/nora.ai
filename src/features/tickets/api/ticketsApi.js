@@ -115,22 +115,56 @@ export const enrichTicketsWithDetails = async (tickets) => {
 };
 
 /**
- * Approves a ticket.
+ * Approves a ticket and dispatches the crafted reply.
  * @param {string} ticketId - The ID of the ticket.
- * @param {object} payload - The payload for the action (e.g., { editedBody: "..." }).
+ * @param {object} payload - Extra fields such as editedBody, attachments, nextState, etc.
  * @returns {Promise<object>}
  */
-export const approveTicket = async (ticketId, payload) => {
+export const approveTicket = async (ticketId, payload = {}) => {
   console.log(
     `Executing action 'approve' on ticket ${ticketId} with payload:`,
     payload,
   );
 
+  const {
+    nextState,
+    replyChannel,
+    attachments,
+    manualEdit,
+    conversationFingerprint,
+    collisionAcknowledged,
+    ...rest
+  } = payload;
+
+  const body = {
+    estado: nextState || rest.estado || "esperando_cliente",
+    replyChannel,
+    canalRespuesta: replyChannel,
+    manualEdit,
+    manual_edit: manualEdit,
+    conversationFingerprint,
+    collisionAcknowledged,
+    replyMetadata: {
+      fingerprint: conversationFingerprint,
+      collisionAcknowledged: Boolean(collisionAcknowledged),
+      channel: replyChannel,
+      manualEdit,
+      attachments: Array.isArray(attachments) ? attachments.length : 0,
+    },
+    ...rest,
+  };
+
+  if (Array.isArray(attachments) && attachments.length > 0) {
+    body.attachments = attachments;
+    body.adjuntosRespuesta = attachments;
+  }
+
+  const sanitizedBody = Object.fromEntries(
+    Object.entries(body).filter(([, value]) => value !== undefined && value !== null),
+  );
+
   try {
-    const { data } = await apiClient.patch(`/tickets/${ticketId}`, {
-      estado: "aprobado",
-      ...payload,
-    });
+    const { data } = await apiClient.patch(`/tickets/${ticketId}`, sanitizedBody);
     return { success: true, ticketId, data };
   } catch (error) {
     console.error(`Failed to approve ticket ${ticketId}:`, error);
@@ -232,6 +266,22 @@ export const createTicket = async (ticketData) => {
     return data;
   } catch (error) {
     console.error("Failed to create ticket:", error);
+    throw error;
+  }
+};
+
+/**
+ * Retries the AI suggestion for a ticket.
+ * @param {string} ticketId - The ID of the ticket.
+ * @returns {Promise<object>}
+ */
+export const retryTicketSuggestion = async (ticketId) => {
+  console.log(`Retrying AI suggestion for ticket ${ticketId}`);
+  try {
+    const { data } = await apiClient.post(`/ai/retry/${ticketId}`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to retry suggestion for ticket ${ticketId}:`, error);
     throw error;
   }
 };

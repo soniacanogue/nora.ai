@@ -17,6 +17,7 @@ import TicketDetailPage from "./features/tickets/pages/TicketDetailPage";
 import ImportOrdersPage from "./features/orders/pages/ImportOrdersPage";
 import OrderListPage from "./features/orders/pages/OrderListPage";
 import NewTicketPage from "./features/tickets/pages/NewTicketPage";
+import TicketConfirmationPage from "./features/tickets/pages/TicketConfirmationPage";
 import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
 import DashboardPage from "./features/dashboard/pages/DashboardPage";
 import HomePage from "./features/dashboard/pages/HomePage";
@@ -45,6 +46,7 @@ const AnimatedRoutes = () => {
         {/* --- RUTAS PÚBLICAS --- */}
         <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
         <Route path="/new-ticket" element={<PageTransition><NewTicketPage /></PageTransition>} />
+        <Route path="/new-ticket/confirmation" element={<PageTransition><TicketConfirmationPage /></PageTransition>} />
 
         {/* --- RUTA DE ONBOARDING (PROTEGIDA) --- */}
         <Route element={<ProtectedRoute />}>

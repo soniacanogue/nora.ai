@@ -1,5 +1,32 @@
 import React from "react";
 
+const CHANNEL_STYLES = {
+  email: {
+    label: "Email",
+    icon: "@",
+    badgeClass:
+      "bg-amber-500/10 text-amber-200 border-amber-500/30 shadow-[0_0_10px_rgba(251,191,36,0.25)]",
+  },
+  web: {
+    label: "Web",
+    icon: "//",
+    badgeClass:
+      "bg-sky-500/10 text-sky-200 border-sky-500/30 shadow-[0_0_10px_rgba(56,189,248,0.2)]",
+  },
+  telefono: {
+    label: "Teléfono",
+    icon: "TEL",
+    badgeClass:
+      "bg-emerald-500/10 text-emerald-200 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
+  },
+  default: {
+    label: "Manual",
+    icon: "-",
+    badgeClass:
+      "bg-white/5 text-dt-subtle border-white/15 shadow-[0_0_10px_rgba(255,255,255,0.08)]",
+  },
+};
+
 const TicketRow = ({ ticket, onClick }) => {
   // Adapt properties to match the component's expected structure
   const status = ticket.status || ticket.prioridad || "NORMAL";
@@ -8,6 +35,12 @@ const TicketRow = ({ ticket, onClick }) => {
   const id = ticket.id;
 
   const isUrgent = status === 'URGENTE' || status === 'alta';
+  const rawChannel = (ticket.canalOrigen || ticket.canal || ticket.channel || "web").toLowerCase();
+  let channelKey = rawChannel;
+  if (rawChannel.includes("mail")) channelKey = "email";
+  else if (rawChannel.includes("tel")) channelKey = "telefono";
+  else if (rawChannel.includes("web")) channelKey = "web";
+  const channelMeta = CHANNEL_STYLES[channelKey] || CHANNEL_STYLES.default;
 
   return (
     <div 
@@ -16,7 +49,7 @@ const TicketRow = ({ ticket, onClick }) => {
     >
       
       {/* Badge de estado: Minimalist pill */}
-      <div className="col-span-2">
+      <div className="col-span-2 flex flex-col gap-2">
         <span className={`
           px-2.5 py-1 rounded text-[10px] font-mono uppercase tracking-wide border
           ${isUrgent
@@ -24,6 +57,13 @@ const TicketRow = ({ ticket, onClick }) => {
             : 'bg-dt-accent-dim text-dt-accent-text border-dt-accent/20'}
         `}>
           {status}
+        </span>
+        <span
+          className={`px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border flex items-center gap-1 ${channelMeta.badgeClass}`}
+          title={`Origen: ${channelMeta.label}`}
+        >
+          <span className="font-mono text-[9px]">{channelMeta.icon}</span>
+          {channelMeta.label}
         </span>
       </div>
 

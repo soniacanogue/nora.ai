@@ -1,11 +1,78 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTicket } from "../hooks/useTicket"; // Hook ya refactorizado
 import ConversationBubble from "../components/ConversationBubble";
 import SuggestionPanel from "../components/SuggestionPanel";
 import OrderInfoPanel from "../components/OrderInfoPanel";
 import Button from "src/shared/components/ui/Button";
 import { useTicketQueue } from "../hooks/useTicketQueue"; // NUEVO Hook para navegación
+import { formatChannel } from "@/shared/utils/formatters";
+
+const normalizeAttachments = (message) => {
+  const attachmentSources = [
+    message?.adjuntos,
+    message?.attachments,
+    message?.archivos,
+    message?.archivosAdjuntos,
+    message?.files,
+  ];
+
+  const attachments = attachmentSources.find(Array.isArray) || [];
+
+  if (!attachments.length) return [];
+
+  return attachments.map((file = {}, index) => {
+    const size =
+      file.size ??
+      file.tamano ??
+      file["tamaño"] ??
+      file.bytes ??
+      file.peso ??
+      null;
+
+    return {
+      id:
+        file.id ||
+        file.uuid ||
+        file.storageId ||
+        file.attachmentId ||
+        `${message?.id || message?.mensajeId || "msg"}-${index}`,
+      name:
+        file.nombre ||
+        file.nombreArchivo ||
+        file.fileName ||
+        file.filename ||
+        file.titulo ||
+        `Archivo ${index + 1}`,
+      url:
+        file.url ||
+        file.urlAlmacenamiento ||
+        file.urlFirmado ||
+        file.link ||
+        file.enlace ||
+        file.descarga ||
+        "",
+      mimeType:
+        file.mimeType ||
+        file.tipoMime ||
+        file.tipoContenido ||
+        file.tipo ||
+        "",
+      size,
+    };
+  });
+};
+
+const resolveMessageBody = (message) =>
+  message?.contenidoHtml ||
+  message?.bodyHtml ||
+  message?.html ||
+  message?.contenidoTexto ||
+  message?.textoPlano ||
+  message?.texto ||
+  message?.body ||
+  "";
 
 // El componente Skeleton es una excelente práctica, lo mantenemos.
 const TicketDetailSkeleton = () => (
@@ -33,12 +100,105 @@ const TicketDetailSkeleton = () => (
 const TicketDetailPage = () => {
   const { ticketId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const liveSubscriptionRef = useRef(null);
 
   // Obtenemos la cola de tickets actual y las funciones para navegar
   const { queue, getNextTicketId } = useTicketQueue();
 
   // Usamos el hook useTicket que ahora es useQuery
   const { data: ticket, isLoading, isError, error } = useTicket(ticketId);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof EventSource === "undefined") {
+      return undefined;
+    }
+    if (!ticketId) {
+      return undefined;
+    }
+
+    let reconnectTimer;
+    const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+    const streamUrl = new URL(`/tickets/${ticketId}/stream`, baseUrl);
+    const token = localStorage.getItem("token");
+    if (token) {
+      streamUrl.searchParams.set("token", token);
+    }
+    const streamUrlString = streamUrl.toString();
+
+    const connect = () => {
+      const eventSource = new EventSource(streamUrlString, {
+        withCredentials: true,
+      });
+      liveSubscriptionRef.current = eventSource;
+
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data || "{}");
+          if (!payload) return;
+
+          queryClient.setQueryData(["ticket", ticketId], (previousTicket) => {
+            if (!previousTicket) return previousTicket;
+            const currentMessages = Array.isArray(previousTicket.mensajes)
+              ? previousTicket.mensajes
+              : [];
+            const alreadyExists = currentMessages.some((msg) => {
+              const messageIds = [msg.id, msg.mensajeId, msg.uuid];
+              const payloadIds = [payload.id, payload.mensajeId, payload.uuid];
+              return messageIds.some(
+                (identifier) =>
+                  identifier && payloadIds.includes(identifier),
+              );
+            });
+
+            if (alreadyExists) {
+              return previousTicket;
+            }
+
+            return {
+              ...previousTicket,
+              mensajes: [...currentMessages, payload],
+            };
+          });
+        } catch (parseError) {
+          console.error("Error al procesar evento SSE del ticket", parseError);
+        }
+      };
+
+      eventSource.onerror = () => {
+        eventSource.close();
+        reconnectTimer = window.setTimeout(connect, 5000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      if (liveSubscriptionRef.current) {
+        liveSubscriptionRef.current.close();
+      }
+      if (reconnectTimer) {
+        window.clearTimeout(reconnectTimer);
+      }
+    };
+  }, [ticketId, queryClient]);
+  const ticketChannel =
+    ticket?.canalOrigen || ticket?.canal || ticket?.channel || "web";
+  const normalizedChannel = (ticketChannel || "").toLowerCase();
+  const fallbackChannelLabel =
+    typeof ticketChannel === "string" ? ticketChannel.toUpperCase() : "WEB";
+  const ticketChannelLabel = formatChannel(normalizedChannel) || fallbackChannelLabel;
+  const isEmailChannel = /mail|correo/i.test(normalizedChannel);
+  const shouldAutoCloseOnReply = Boolean(
+    ticket?.autoCloseOnReply ??
+      ticket?.cerrarAlResponder ??
+      ticket?.cierraAlEnviar ??
+      ticket?.closeOnReply ??
+      false,
+  );
+  const nextStateAfterApproval = shouldAutoCloseOnReply
+    ? "cerrado"
+    : "esperando_cliente";
 
   // Lógica para navegar al siguiente ticket al aprobar
   const handleApprovalSuccess = () => {
@@ -57,15 +217,29 @@ const TicketDetailPage = () => {
     //    Si `ticket` es null o undefined, devolvemos un array vacío.
     if (!ticket?.mensajes) return [];
 
-    return ticket.mensajes.map((msg) => ({
-      from: msg.usuarioId ? "agent" : "customer",
-      // El hook ya nos enriquece con ticket.cliente, pero es bueno ser defensivo
-      author: msg.usuarioId ? "Agente" : ticket.cliente?.nombre || "Cliente",
-      text: msg.contenidoTexto,
-      timestamp: msg.enviadoEn,
-      isInternalNote: msg.esNotaInterna,
-    }));
-  }, [ticket]); // La dependencia es correcta: recalcular solo si `ticket` cambia.
+    return ticket.mensajes.map((msg) => {
+      const attachments = normalizeAttachments(msg);
+      const resolvedChannel =
+        msg?.canalOrigen ||
+        msg?.canal ||
+        msg?.channel ||
+        ticketChannel;
+
+      return {
+        id: msg.id || msg.mensajeId || msg.uuid || msg.conversacionId,
+        from: msg.usuarioId ? "agent" : "customer",
+        // El hook ya nos enriquece con ticket.cliente, pero es bueno ser defensivo
+        author: msg.usuarioId
+          ? msg.nombreAgente || "Agente"
+          : msg.remitenteNombre || ticket.cliente?.nombre || "Cliente",
+        text: resolveMessageBody(msg),
+        timestamp: msg.enviadoEn || msg.creadoEn || msg.fecha,
+        attachments,
+        channel: resolvedChannel,
+        isInternalNote: msg.esNotaInterna,
+      };
+    });
+  }, [ticket, ticketChannel]); // La dependencia es correcta: recalcular solo si `ticket` cambia.
 
   const aiSuggestion = useMemo(() => {
     if (!ticket?.mensajes) return {};
@@ -89,6 +263,45 @@ const TicketDetailPage = () => {
       suggested_tags: ticket.etiquetas?.map((tag) => tag.nombre) || [],
     };
   }, [ticket]);
+
+  const latestCustomerMessage = useMemo(() => {
+    if (!ticket?.mensajes?.length) return null;
+    const customerMessages = ticket.mensajes.filter(
+      (msg) => !msg.usuarioId && !msg.esNotaInterna,
+    );
+    if (customerMessages.length) {
+      return customerMessages[customerMessages.length - 1];
+    }
+    return ticket.mensajes[ticket.mensajes.length - 1];
+  }, [ticket]);
+
+  const latestCustomerFingerprint =
+    latestCustomerMessage?.id ||
+    latestCustomerMessage?.mensajeId ||
+    latestCustomerMessage?.uuid ||
+    latestCustomerMessage?.enviadoEn ||
+    null;
+
+  const latestCustomerTimestamp =
+    latestCustomerMessage?.enviadoEn ||
+    latestCustomerMessage?.creadoEn ||
+    latestCustomerMessage?.fecha ||
+    null;
+
+  const approvalContext = useMemo(
+    () => ({
+      replyChannel: normalizedChannel || "web",
+      nextState: nextStateAfterApproval,
+      latestMessageFingerprint: latestCustomerFingerprint,
+      latestMessageTimestamp: latestCustomerTimestamp,
+    }),
+    [
+      normalizedChannel,
+      nextStateAfterApproval,
+      latestCustomerFingerprint,
+      latestCustomerTimestamp,
+    ],
+  );
 
   // 5. AHORA, después de que todos los hooks han sido declarados,
   //    podemos manejar los retornos condicionales de forma segura.
@@ -146,6 +359,17 @@ const TicketDetailPage = () => {
               &lt;{ticket.cliente?.correo || "sin-correo"}&gt;
             </span>
           </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] font-mono uppercase tracking-wider text-dt-subtle">
+            <span className="opacity-60">Origen</span>
+            <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-dt-foreground shadow-glow">
+              {ticketChannelLabel}
+            </span>
+            {isEmailChannel && (
+              <span className="px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-100 font-semibold tracking-normal">
+                Responderás vía Email
+              </span>
+            )}
+          </div>
         </div>
         {/* NAVEGACIÓN ENTRE TICKETS */}
         <div className="flex gap-2">
@@ -189,6 +413,7 @@ const TicketDetailPage = () => {
               suggestion={aiSuggestion}
               ticketId={ticketId}
               onApprovalSuccess={handleApprovalSuccess} // Pasamos el callback
+              approvalContext={approvalContext}
             />
             
             {/* Metadata adicional del ticket podría ir aquí */}
@@ -205,7 +430,7 @@ const TicketDetailPage = () => {
                     </div>
                     <div className="flex justify-between">
                         <span>Canal:</span>
-                        <span className="uppercase">{ticket.canal || "WEB"}</span>
+                      <span className="uppercase">{ticketChannelLabel}</span>
                     </div>
                 </div>
             </div>
