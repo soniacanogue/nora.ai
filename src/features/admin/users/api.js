@@ -1,153 +1,115 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-
-// TODO: UC-16 - User Management
-// Backend endpoints are implemented:
-// GET /users - List all users
-// POST /users - Create new user
-// GET /users/:id - Get user by ID
-// PATCH /users/:id - Update user
-// DELETE /users/:id - Delete user
-// GET /users/profile - Get current user profile
-// PATCH /users/profile - Update current user profile
+// src/features/admin/users/api.js
+import { apiClient } from "@/shared/lib/apiClient";
 
 /**
- * Get all users
- * @param {Object} filters - Filter parameters
- * @returns {Promise<Array>} List of users
+ * UC-16: User Management API
+ * Backend endpoints:
+ * GET /users - List all users
+ * POST /users - Create new user
+ * GET /users/:id - Get user by ID
+ * PATCH /users/:id - Update user
+ * DELETE /users/:id - Delete user
+ * GET /users/profile - Get current user profile
+ * PATCH /users/profile - Update current user profile
+ *
+ * Missing endpoints (noted in analysis):
+ * POST /users/change-password - Change password
+ * POST /auth/forgot-password - Request password reset
+ * POST /auth/reset-password - Reset password with token
  */
-export const getUsers = async (filters = {}) => {
-  const params = new URLSearchParams(filters);
-  const response = await fetch(`${API_BASE_URL}/users?${params}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch users');
-  }
-  
-  return response.json();
-};
 
-/**
- * Get a single user by ID
- * @param {string} id - User ID
- * @returns {Promise<Object>} User object
- */
-export const getUser = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch user');
-  }
-  
-  return response.json();
-};
+export const usersApi = {
+  /**
+   * Fetch all users
+   * @param {Object} filters - Filter parameters
+   * @returns {Promise<Array>} List of users
+   */
+  getAll: async (filters = {}) => {
+    const response = await apiClient.get("/users", { params: filters });
+    return response.data;
+  },
 
-/**
- * Create a new user
- * @param {Object} data - User data
- * @returns {Promise<Object>} Created user
- */
-export const createUser = async (data) => {
-  const response = await fetch(`${API_BASE_URL}/users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify(data),
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to create user');
-  }
-  
-  return response.json();
-};
+  /**
+   * Get a single user by ID
+   * @param {string} id - User ID
+   * @returns {Promise<Object>} User object
+   */
+  getById: async (id) => {
+    const response = await apiClient.get(`/users/${id}`);
+    return response.data;
+  },
 
-/**
- * Update a user
- * @param {string} id - User ID
- * @param {Object} data - Updated user data
- * @returns {Promise<Object>} Updated user
- */
-export const updateUser = async (id, data) => {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify(data),
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to update user');
-  }
-  
-  return response.json();
-};
+  /**
+   * Create a new user
+   * @param {Object} data - User data
+   * @param {string} data.nombre - User name
+   * @param {string} data.correo - User email
+   * @param {string} data.contrasena - User password
+   * @param {string} data.rol - User role (ADMINISTRADOR, AGENTE, CLIENTE)
+   * @param {boolean} data.activo - Active status (optional)
+   * @returns {Promise<Object>} Created user
+   */
+  create: async (data) => {
+    const response = await apiClient.post("/users", data);
+    return response.data;
+  },
 
-/**
- * Delete a user
- * @param {string} id - User ID
- * @returns {Promise<void>}
- */
-export const deleteUser = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to delete user');
-  }
-};
+  /**
+   * Update an existing user
+   * @param {string} id - User ID
+   * @param {Object} data - Updated user data
+   * @returns {Promise<Object>} Updated user
+   */
+  update: async (id, data) => {
+    const response = await apiClient.patch(`/users/${id}`, data);
+    return response.data;
+  },
 
-/**
- * Get current user profile
- * @returns {Promise<Object>} User profile
- */
-export const getUserProfile = async () => {
-  const response = await fetch(`${API_BASE_URL}/users/profile`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch user profile');
-  }
-  
-  return response.json();
-};
+  /**
+   * Delete a user
+   * @param {string} id - User ID
+   * @returns {Promise<void>}
+   */
+  delete: async (id) => {
+    await apiClient.delete(`/users/${id}`);
+  },
 
-/**
- * Update current user profile
- * @param {Object} data - Updated profile data
- * @returns {Promise<Object>} Updated profile
- */
-export const updateUserProfile = async (data) => {
-  const response = await fetch(`${API_BASE_URL}/users/profile`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify(data),
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to update user profile');
-  }
-  
-  return response.json();
+  /**
+   * Get current user profile
+   * @returns {Promise<Object>} User profile
+   */
+  getProfile: async () => {
+    const response = await apiClient.get("/users/profile");
+    return response.data;
+  },
+
+  /**
+   * Update current user profile
+   * @param {Object} data - Updated profile data
+   * @returns {Promise<Object>} Updated profile
+   */
+  updateProfile: async (data) => {
+    const response = await apiClient.patch("/users/profile", data);
+    return response.data;
+  },
+
+  /**
+   * Change password
+   * TODO: Implement when backend endpoint is available
+   * @param {Object} data - Password change data
+   * @param {string} data.currentPassword - Current password
+   * @param {string} data.newPassword - New password
+   * @returns {Promise<void>}
+   */
+  changePassword: async (data) => {
+    try {
+      const response = await apiClient.post("/users/change-password", data);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        throw new Error("Endpoint de cambio de contraseña no disponible");
+      }
+      throw error;
+    }
+  },
 };
