@@ -34,6 +34,12 @@ import { TemplateFormPage } from "./features/admin/templates/TemplateFormPage";
 import { KnowledgeBaseListPage } from "./features/admin/knowledge-base/pages/KnowledgeBaseListPage";
 import { KnowledgeBaseFormPage } from "./features/admin/knowledge-base/pages/KnowledgeBaseFormPage";
 
+// --- NUEVO: Importaciones para otras páginas de administración ---
+import { UsersListPage } from "./features/admin/users/pages/UsersListPage";
+import { TagsListPage } from "./features/admin/tags/pages/TagsListPage";
+import { IntegrationsListPage } from "./features/admin/integrations/pages/IntegrationsListPage";
+import { AuditLogsPage } from "./features/admin/audit-logs/pages/AuditLogsPage";
+
 // Componente simple para una página 404
 const NotFoundPage = () => (
   <div className="flex h-screen flex-col items-center justify-center bg-dt-background text-dt-foreground">
@@ -84,6 +90,10 @@ const AnimatedRoutes = () => {
             <Route path="knowledge-base" element={<PageTransition><KnowledgeBaseListPage /></PageTransition>} />
             <Route path="knowledge-base/new" element={<PageTransition><KnowledgeBaseFormPage /></PageTransition>} />
             <Route path="knowledge-base/edit/:id" element={<PageTransition><KnowledgeBaseFormPage /></PageTransition>} />
+            <Route path="users" element={<PageTransition><UsersListPage /></PageTransition>} />
+            <Route path="tags" element={<PageTransition><TagsListPage /></PageTransition>} />
+            <Route path="integrations" element={<PageTransition><IntegrationsListPage /></PageTransition>} />
+            <Route path="audit-logs" element={<PageTransition><AuditLogsPage /></PageTransition>} />
           </Route>
         </Route>
 
