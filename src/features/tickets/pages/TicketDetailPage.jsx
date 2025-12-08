@@ -124,6 +124,7 @@ const TicketDetailPage = () => {
 
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
   const { mutate: createMessage, isPending: isCreatingMessage } = useCreateMessage();
 
   useEffect(() => {
@@ -225,6 +226,21 @@ const TicketDetailPage = () => {
     } else {
       // Si no hay más tickets, volvemos a la lista
       navigate("/tickets?estado=ia_sugerido");
+    }
+  };
+
+  // Handler para resolver el ticket con confirmación
+  const handleResolveTicket = async () => {
+    try {
+      await updateTicket(ticketId, { nuevoEstado: "resuelto" });
+      toast.success("Ticket marcado como resuelto");
+      setIsResolveModalOpen(false);
+      // Refresh ticket data and lists
+      queryClient.invalidateQueries(["ticket", ticketId]);
+      queryClient.invalidateQueries(["tickets"]);
+    } catch (err) {
+      console.error("Failed to mark ticket resolved:", err);
+      toast.error(err?.message || "No fue posible marcar como resuelto");
     }
   };
 
@@ -366,9 +382,18 @@ const TicketDetailPage = () => {
           </h1>
           <div className="flex items-center gap-2 mt-2 text-sm">
             <span className="text-dt-subtle">Cliente:</span>
-            <span className="text-dt-foreground font-medium bg-white/5 px-2 py-0.5 rounded border border-white/10">
-              {ticket.cliente?.nombre || "Anónimo"}
-            </span>
+            {ticket.cliente?.id ? (
+              <Link
+                to={`/customers/${ticket.cliente.id}`}
+                className="text-dt-foreground font-medium bg-white/5 px-2 py-0.5 rounded border border-white/10 hover:bg-white/10 hover:border-dt-accent/30 transition-colors"
+              >
+                {ticket.cliente.nombre || "Anónimo"}
+              </Link>
+            ) : (
+              <span className="text-dt-foreground font-medium bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                {ticket.cliente?.nombre || "Anónimo"}
+              </span>
+            )}
             <span className="text-dt-subtle font-mono text-xs">
               &lt;{ticket.cliente?.correo || "sin-correo"}&gt;
             </span>
@@ -392,19 +417,7 @@ const TicketDetailPage = () => {
             <Button
               variant="ghost"
               size="md"
-              onClick={async () => {
-                try {
-                  // send only the state change as requested
-                  await updateTicket(ticketId, { nuevoEstado: "resuelto" });
-                  toast.success("Ticket marcado como resuelto");
-                  // Refresh ticket data and lists
-                  queryClient.invalidateQueries(["ticket", ticketId]);
-                  queryClient.invalidateQueries(["tickets"]);
-                } catch (err) {
-                  console.error("Failed to mark ticket resolved:", err);
-                  toast.error(err?.message || "No fue posible marcar como resuelto");
-                }
-              }}
+              onClick={() => setIsResolveModalOpen(true)}
             >
               Marcar como Resuelto
             </Button>
@@ -449,6 +462,7 @@ const TicketDetailPage = () => {
               <SuggestionPanel
                 suggestion={aiSuggestion}
                 ticketId={ticketId}
+                ticket={ticket}
                 onApprovalSuccess={handleApprovalSuccess} // Pasamos el callback
                 approvalContext={approvalContext}
               />
@@ -489,7 +503,12 @@ const TicketDetailPage = () => {
                     variant="primary"
                     size="md"
                     fullWidth={false}
+                    disabled={!noteText.trim()}
                     onClick={() => {
+                      if (!noteText.trim()) {
+                        toast.error("La nota no puede estar vacía");
+                        return;
+                      }
                       createMessage({ ticketId, contenidoTexto: noteText, esNotaInterna: true });
                       setIsNoteModalOpen(false);
                       setNoteText("");
@@ -497,6 +516,42 @@ const TicketDetailPage = () => {
                   >
                     Guardar Nota
                   </Button>
+                </div>
+              </Modal>
+
+              {/* Modal de confirmación para resolver ticket */}
+              <Modal
+                isOpen={isResolveModalOpen}
+                onClose={() => setIsResolveModalOpen(false)}
+                title="Confirmar Resolución del Ticket"
+              >
+                <div className="space-y-4">
+                  <p className="text-dt-foreground">
+                    ¿Estás seguro de que deseas marcar este ticket como resuelto?
+                  </p>
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-md p-3">
+                    <p className="text-sm text-amber-100">
+                      <strong>Nota:</strong> Una vez resuelto, el ticket se moverá a la cola de resueltos y el cliente será notificado.
+                    </p>
+                  </div>
+                  <div className="flex justify-end gap-4 mt-6">
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      fullWidth={false}
+                      onClick={() => setIsResolveModalOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      fullWidth={false}
+                      onClick={handleResolveTicket}
+                    >
+                      Sí, Resolver Ticket
+                    </Button>
+                  </div>
                 </div>
               </Modal>
 

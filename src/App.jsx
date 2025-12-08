@@ -39,6 +39,9 @@ import { TagsListPage } from "./features/admin/tags/pages/TagsListPage";
 import { IntegrationsListPage } from "./features/admin/integrations/pages/IntegrationsListPage";
 import { AuditLogsPage } from "./features/admin/audit-logs/pages/AuditLogsPage";
 
+// --- NUEVO: Importaciones para páginas de Clientes ---
+import CustomerDetailPage from "./features/customers/pages/CustomerDetailPage";
+
 // Componente simple para una página 404
 const NotFoundPage = () => (
   <div className="flex h-screen flex-col items-center justify-center bg-dt-background text-dt-foreground">
@@ -135,6 +138,14 @@ const AnimatedRoutes = () => {
               element={
                 <PageTransition>
                   <OrderListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/customers/:id"
+              element={
+                <PageTransition>
+                  <CustomerDetailPage />
                 </PageTransition>
               }
             />

@@ -13,6 +13,7 @@ import { useRetrySuggestion } from "../hooks/useRetrySuggestion";
 import ReassignTicketModal from "./ReassignTicketModal"; // Importar el nuevo modal
 import { useTemplates } from "@/features/admin/templates/hooks";
 import { useApplyTemplate } from "../hooks/useApplyTemplate";
+import TagManager from "./TagManager";
 // --- FIN DE LAS CORRECCIONES ---
 
 const getConfidenceColor = (confidence) => {
@@ -25,6 +26,7 @@ const getConfidenceColor = (confidence) => {
 const SuggestionPanel = ({
   suggestion,
   ticketId,
+  ticket,
   onApprovalSuccess,
   approvalContext,
 }) => {
@@ -486,21 +488,11 @@ const SuggestionPanel = ({
           </div>
         )}
 
-        <div className="mb-6">
-          <label className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-2 block">
-            Etiquetas Detectadas
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {suggestion.suggested_tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 bg-dt-accent/10 text-dt-accent border border-dt-accent/20 text-xs rounded-full font-mono"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        </div>
+        <TagManager
+          ticketId={ticketId}
+          currentTags={ticket?.etiquetas || []}
+          suggestedTags={suggestion.suggested_tags}
+        />
         {/* --- SECCIÓN DE ACCIONES --- */}
         <div className="grid grid-cols-1 gap-3 border-t border-white/10 pt-6 mt-4">
           <Button
