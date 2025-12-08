@@ -15,7 +15,23 @@ export const useEscalateTicket = (options = {}) => {
     mutationFn: (variables) =>
       escalateTicket(variables.ticketId, variables.note),
     onSuccess: (data, variables) => {
-      toast.success(`Ticket ${variables.ticketId} escalado a Nivel 2.`);
+      // Enhanced feedback with confirmation of Level 2 assignment
+      const newState = data?.data?.estado || data?.estado || data?.newState;
+      const assignedQueue = data?.data?.cola || data?.queue;
+      
+      let successMessage = `✅ Ticket ${variables.ticketId} escalado a Nivel 2`;
+      
+      // Validate automatic L2 queue assignment
+      if (newState === "escalado_nivel_2" || newState === "en_progreso_nivel_2") {
+        successMessage += " correctamente";
+      }
+      
+      if (assignedQueue) {
+        successMessage += ` (Cola: ${assignedQueue})`;
+      }
+      
+      toast.success(successMessage, { duration: 4000 });
+      
       // Invalidate tickets list to refresh the queue
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       // Also invalidate the ticket detail just in case

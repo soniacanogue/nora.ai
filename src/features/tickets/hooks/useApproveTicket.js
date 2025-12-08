@@ -63,8 +63,35 @@ export const useApproveTicket = (options = {}) => {
         options.onSuccess(data, variables);
       }
     },
-    onError: (error) => {
-      toast.error(error.message || "Error al aprobar el ticket.");
+    onError: (error, variables) => {
+      // E1: Email send failure - check for specific email-related errors
+      if (
+        error.message?.toLowerCase().includes("email") ||
+        error.message?.toLowerCase().includes("correo") ||
+        error.message?.toLowerCase().includes("mailgun") ||
+        error.response?.data?.emailError
+      ) {
+        toast.error(
+          `Error al enviar el correo para el ticket ${variables.ticketId}: ${error.message || "Servicio de email no disponible"}`,
+          { duration: 5000 }
+        );
+      }
+      // E2: Concurrent state change detection
+      else if (
+        error.message?.toLowerCase().includes("estado") ||
+        error.message?.toLowerCase().includes("modificado") ||
+        error.message?.toLowerCase().includes("concurrent") ||
+        error.response?.status === 409
+      ) {
+        toast.error(
+          `El ticket ${variables.ticketId} fue modificado por otro usuario. Por favor, recarga la página.`,
+          { duration: 6000 }
+        );
+      }
+      // Generic error
+      else {
+        toast.error(error.message || "Error al aprobar el ticket.");
+      }
     },
   });
 };
