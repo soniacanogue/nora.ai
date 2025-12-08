@@ -6,7 +6,7 @@ import FileUpload from "../../../shared/components/ui/FileUpload";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import PublicLayout from "../../../shared/components/layout/PublicLayout";
-import { createTicket } from "../api/ticketsApi";
+import { createTicket, uploadAttachment } from "../api/ticketsApi";
 
 const NewTicketPage = () => {
   const {
@@ -26,6 +26,32 @@ const NewTicketPage = () => {
     }
 
     try {
+      // If there are files, upload them first and use the returned URLs/ids
+      let uploadedFilesMeta = [];
+      if (files && files.length > 0) {
+        const uploadResults = await Promise.all(
+          files.map(async (f) => {
+            const res = await uploadAttachment(f);
+            return res;
+          }),
+        );
+
+        uploadedFilesMeta = uploadResults.map((meta, idx) => {
+          // Normalize the response to our expected payload shape.
+          // Prefer `url`, `publicUrl`, `path`, or `id` from backend metadata.
+          const url = meta?.url || meta?.publicUrl || meta?.public_url || meta?.path || meta?.fileUrl || meta?.downloadUrl || null;
+          const id = meta?.id || meta?.fileId || meta?.uploadId || null;
+
+          return {
+            nombreArchivo: files[idx].name,
+            urlAlmacenamiento: url || null,
+            storageId: id,
+            tipoMime: files[idx].type,
+            tamano: files[idx].size,
+          };
+        });
+      }
+
       const payload = {
         canal: "web",
         prioridad: "media",
@@ -34,12 +60,7 @@ const NewTicketPage = () => {
         emailCliente: data.email,
         nombreCliente: data.name,
         ordenId: data.orderId || null,
-        archivos: files.map((f) => ({
-          nombreArchivo: f.name,
-          urlAlmacenamiento: "", // Placeholder
-          tipoMime: f.type,
-          tamano: f.size,
-        })),
+        archivos: uploadedFilesMeta,
       };
 
       const createdTicket = await createTicket(payload);

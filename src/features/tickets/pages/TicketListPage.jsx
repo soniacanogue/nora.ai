@@ -7,6 +7,7 @@ import { useAuth } from "@/shared/hooks/useAuth"; // Para obtener el agente actu
 import { useDynamicSearch } from "@/shared/hooks/useDynamicSearch";
 import Button from "@/shared/components/ui/Button";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
+import ExportModal from "../components/ExportModal";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
 import DynamicSearch from "@/shared/components/ui/DynamicSearch";
 import { createTicket } from "../api/ticketsApi";
@@ -14,6 +15,7 @@ import toast from "react-hot-toast";
 
 const TicketListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -309,6 +311,28 @@ const TicketListPage = () => {
         variant: "primary",
         onClick: async (data) => {
           try {
+            // Upload files if any were provided in the modal
+            let archivosPayload = [];
+            if (data.files && data.files.length > 0) {
+              const uploads = await Promise.all(
+                Array.from(data.files).map(async (f) => {
+                  // Lazy import to avoid circular dependency in some bundlers
+                  const { uploadAttachment } = await import("../api/ticketsApi");
+                  const meta = await uploadAttachment(f);
+                  const url = meta?.url || meta?.publicUrl || meta?.public_url || meta?.path || meta?.fileUrl || null;
+                  const id = meta?.id || meta?.fileId || meta?.uploadId || null;
+                  return {
+                    nombreArchivo: f.name,
+                    urlAlmacenamiento: url || null,
+                    storageId: id,
+                    tipoMime: f.type,
+                    tamano: f.size,
+                  };
+                }),
+              );
+              archivosPayload = uploads;
+            }
+
             const payload = {
               canal: "correo",
               prioridad: "media",
@@ -317,12 +341,7 @@ const TicketListPage = () => {
               emailCliente: data.emailCliente,
               nombreCliente: "",
               ordenId: null,
-              archivos: (data.files || []).map((f) => ({
-                nombreArchivo: f.name,
-                urlAlmacenamiento: "",
-                tipoMime: f.type,
-                tamano: f.size,
-              })),
+              archivos: archivosPayload,
             };
             await createTicket(payload);
             toast.success("Ticket creado exitosamente");
@@ -371,15 +390,23 @@ const TicketListPage = () => {
             />
           </div>
             {/* Pagination controls removed here — using DynamicTable's built-in pagination */}
-          <Button
-            variant="secondary"
-            size="md"
-            fullWidth={false}
-            onClick={openModal}
-            className="whitespace-nowrap"
-          >
-            Crear Ticket
-          </Button>
+          <div className="flex gap-2">
+            {currentUser?.rol === "ADMINISTRADOR" && (
+              <Button variant="outline" size="md" onClick={() => setIsExportOpen(true)} className="whitespace-nowrap">
+                Exportar CSV
+              </Button>
+            )}
+
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth={false}
+              onClick={openModal}
+              className="whitespace-nowrap"
+            >
+              Crear Ticket
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -416,6 +443,7 @@ const TicketListPage = () => {
         title="Crear Nuevo Ticket Manualmente"
         config={formConfig}
       />
+      <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />
     </div>
   );
 };

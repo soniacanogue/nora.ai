@@ -8,6 +8,8 @@ import Modal from "src/shared/components/ui/Modal";
 import { useCreateMessage } from "../hooks/useCreateMessage";
 import OrderInfoPanel from "../components/OrderInfoPanel";
 import Button from "src/shared/components/ui/Button";
+import toast from "react-hot-toast";
+import { updateTicket } from "../api/ticketsApi";
 import { useTicketQueue } from "../hooks/useTicketQueue"; // NUEVO Hook para navegación
 import { formatChannel } from "@/shared/utils/formatters";
 
@@ -386,6 +388,27 @@ const TicketDetailPage = () => {
         {/* NAVEGACIÓN ENTRE TICKETS */}
         <div className="flex gap-2">
           {/* Lógica para botones "Anterior" y "Siguiente" usando useTicketQueue */}
+          {ticket && ticket.estado !== "resuelto" && (
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={async () => {
+                try {
+                  // send only the state change as requested
+                  await updateTicket(ticketId, { nuevoEstado: "resuelto" });
+                  toast.success("Ticket marcado como resuelto");
+                  // Refresh ticket data and lists
+                  queryClient.invalidateQueries(["ticket", ticketId]);
+                  queryClient.invalidateQueries(["tickets"]);
+                } catch (err) {
+                  console.error("Failed to mark ticket resolved:", err);
+                  toast.error(err?.message || "No fue posible marcar como resuelto");
+                }
+              }}
+            >
+              Marcar como Resuelto
+            </Button>
+          )}
         </div>
       </div>
 

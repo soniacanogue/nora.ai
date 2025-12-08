@@ -430,6 +430,22 @@ export const createTicket = async (ticketData) => {
 };
 
 /**
+ * Update ticket partial fields.
+ * @param {string} ticketId
+ * @param {object} payload - Partial ticket fields to update (e.g., { nuevoEstado: 'resuelto' })
+ */
+export const updateTicket = async (ticketId, payload = {}) => {
+  if (!ticketId) throw new Error("ticketId is required");
+  try {
+    const { data } = await apiClient.patch(`/tickets/${ticketId}`, payload);
+    return data;
+  } catch (error) {
+    console.error(`Failed to update ticket ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Retries the AI suggestion for a ticket.
  * @param {string} ticketId - The ID of the ticket.
  * @returns {Promise<object>}
@@ -496,6 +512,31 @@ export const getAttachmentMetadata = async (fileId) => {
     return data;
   } catch (error) {
     console.error(`Failed to load metadata for file ${fileId}`, error);
+    throw error;
+  }
+};
+
+/**
+ * Upload a single attachment file to the backend upload endpoint.
+ * The backend is expected to handle persistence (e.g., Supabase Storage)
+ * and return metadata including a public `url` or an `id` that can be
+ * later used to download the file via `/uploads/:id/download`.
+ * @param {File} file
+ * @returns {Promise<object>} metadata returned by server
+ */
+export const uploadAttachment = async (file) => {
+  if (!file) throw new Error("file is required for upload");
+
+  const formData = new FormData();
+  // Use field name 'file' to match backend expectation
+  formData.append("file", file, file.name);
+
+  try {
+    const { data } = await apiClient.uploadFile(`/uploads`, formData);
+    // Return whatever the backend returns (flexible)
+    return data;
+  } catch (error) {
+    console.error("Failed to upload attachment:", error);
     throw error;
   }
 };
