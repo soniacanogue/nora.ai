@@ -105,7 +105,7 @@ Estos son los endpoints operativos que los agentes usarán constantemente a trav
     *   **Propósito:** Obtener el detalle completo de un ticket, incluyendo mensajes, cliente, orden asociada y archivos.
 *   **Crear un Ticket (Interno):** `POST /tickets`
     *   **Propósito:** Crear un ticket manualmente desde el panel de administración.
-    *   **Payload:** `CreateTicketDto` (asunto, mensajeInicial, correoCliente, canal, prioridad, ordenId, archivos).
+    *   **Payload:** `CreateTicketDto` (asunto, mensajeInicial, emailCliente, canal, prioridad, ordenId, archivos).
 *   **Actualizar un Ticket:** `PATCH /tickets/:id`
     *   **Propósito:** Actualizar campos del ticket como estado, prioridad o asignación.
     *   **Payload:** `UpdateTicketDto` (estado, prioridad, assigneeId).
@@ -128,7 +128,7 @@ Estos son los endpoints operativos que los agentes usarán constantemente a trav
 #### API-10: Creación de Ticket desde Formulario Web (Ref: UI-12)
 *   **Endpoint:** `POST /public/tickets`
 *   **Autenticación:** Ninguna (Público).
-*   **Payload:** `CreateTicketDto` (asunto, mensajeInicial, correoCliente, nombreCliente, canal='formulario_web', ordenId, archivos).
+*   **Payload:** `CreateTicketDto` (asunto, mensajeInicial, emailCliente, nombreCliente, canal='formulario_web', ordenId, archivos).
 
 ### C. Gestión de Usuarios (Internos)
 

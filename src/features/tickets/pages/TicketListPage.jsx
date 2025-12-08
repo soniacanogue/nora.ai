@@ -26,8 +26,10 @@ const TicketListPage = () => {
   });
 
   // -- Filtros desde la URL --
-  const statusFilter = searchParams.get("status");
+  const estadoFilter = searchParams.get("estado");
   const assigneeFilter = searchParams.get("assignee");
+  const pageParam = Number(searchParams.get("page") || 1);
+  const limitParam = Number(searchParams.get("limit") || 25);
 
   // -- Hook de datos con filtros y ordenamiento --
   const {
@@ -35,7 +37,18 @@ const TicketListPage = () => {
     isLoading,
     isError,
     error,
-  } = useTickets({ status: statusFilter, assigneeId: assigneeFilter });
+  } = useTickets({
+    estado: estadoFilter,
+    assigneeId: assigneeFilter,
+    page: pageParam,
+    limit: limitParam,
+  });
+
+  // Note: previously we reset `page=1` when filters changed. That behavior
+  // caused the page query param to be overwritten on page load (e.g. when
+  // pasting a URL with `?page=2`). To avoid surprising navigation, the
+  // automatic reset was removed. If you want to re-enable it, consider
+  // triggering the reset from explicit filter UI interactions instead.
 
   // Configuración de búsqueda
   const searchConfig = useMemo(
@@ -65,6 +78,55 @@ const TicketListPage = () => {
     let result = [...searchedTickets];
     if (sortConfig.key) {
       result.sort((a, b) => {
+        // Special case: prioridad needs a domain-specific order
+        if (sortConfig.key === "prioridad") {
+          const orderMap = {
+            urgente: 4,
+            alta: 3,
+            mediana: 2,
+            media: 2, // legacy value
+            baja: 1,
+          };
+          const aRank = orderMap[(a.prioridad || "").toString().toLowerCase()] || 0;
+          const bRank = orderMap[(b.prioridad || "").toString().toLowerCase()] || 0;
+          if (aRank === bRank) {
+            // fallback to string compare
+            const aStr = (a.prioridad || "").toString();
+            const bStr = (b.prioridad || "").toString();
+            if (aStr < bStr) return sortConfig.order === "asc" ? -1 : 1;
+            if (aStr > bStr) return sortConfig.order === "asc" ? 1 : -1;
+            return 0;
+          }
+          return sortConfig.order === "asc" ? aRank - bRank : bRank - aRank;
+        }
+
+        // Special case: sort by agent name when ordering by assignee
+        if (sortConfig.key === "assigneeId" || sortConfig.key === "assignee" || sortConfig.key === "usuarioAsignado") {
+          const getAgentName = (t) => {
+            return (
+              (t.usuarioAsignado && t.usuarioAsignado.nombre) ||
+              (t.assignee && t.assignee.nombre) ||
+              t.assigneeId ||
+              ""
+            ).toString();
+          };
+
+          const aStr = getAgentName(a).toLowerCase();
+          const bStr = getAgentName(b).toLowerCase();
+          if (aStr === bStr) return 0;
+          return sortConfig.order === "asc" ? (aStr < bStr ? -1 : 1) : (aStr > bStr ? -1 : 1);
+        }
+
+        // Special case: the 'Actualización' column uses 'modificadoEn' for display
+        // but key is 'creadoEn' for historical reasons. Sort by modificadoEn when
+        // the user sorts that column.
+        if (sortConfig.key === "creadoEn") {
+          const aTime = new Date(a.modificadoEn || a.creadoEn || 0).getTime();
+          const bTime = new Date(b.modificadoEn || b.creadoEn || 0).getTime();
+          if (aTime === bTime) return 0;
+          return sortConfig.order === "asc" ? aTime - bTime : bTime - aTime;
+        }
+
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
@@ -117,18 +179,23 @@ const TicketListPage = () => {
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-dt-accent opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
             <span
               className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
+                // Mapeo de colores:
+                // 'baja'    -> verde
+                // 'mediana' -> amarillo
+                // 'alta'    -> naranja
+                // 'urgente' -> rojo
                 ticket.prioridad === "baja"
-                  ? "bg-dt-error/10 text-dt-error border-transparent"
-                  : ticket.prioridad === "urgente"
-                    ? "bg-red-500/10 text-red-500 border-transparent"
+                  ? "bg-green-500/10 text-green-500 border-transparent"
+                  : (ticket.prioridad === "media")
+                    ? "bg-yellow-500/10 text-yellow-500 border-transparent"
                     : ticket.prioridad === "alta"
-                      ? "bg-yellow-500/10 text-yellow-500 border-transparent"
-                      : ticket.prioridad === "media"
-                        ? "bg-green-500/10 text-green-500 border-transparent"
+                      ? "bg-orange-500/10 text-orange-500 border-transparent"
+                      : ticket.prioridad === "urgente"
+                        ? "bg-red-500/10 text-red-500 border-transparent"
                         : "bg-gray-500/10 text-gray-500 border-transparent"
               }`}
             >
-              {ticket.prioridad}
+              {ticket?.prioridad || "media"}
             </span>
           </>
         ),
@@ -141,7 +208,7 @@ const TicketListPage = () => {
           "text-dt-foreground font-medium cursor-pointer group-hover:text-white transition-colors",
         render: (ticket) => (
           <div onClick={() => navigate(`/tickets/${ticket.id}`)}>
-            {ticket.asunto}
+            {ticket?.asunto || "Sin asunto"}
             <div className="text-xs text-dt-subtle font-mono mt-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
               ID: {ticket.id}
             </div>
@@ -153,7 +220,7 @@ const TicketListPage = () => {
         label: "Cliente",
         sortable: true,
         className: "text-dt-subtle",
-        render: (ticket) => ticket.cliente?.nombre || "Anónimo",
+        render: (ticket) => ticket?.cliente?.nombre || "Anónimo",
       },
       {
         key: "assigneeId",
@@ -162,8 +229,8 @@ const TicketListPage = () => {
         className: "text-dt-subtle",
         render: (ticket) => {
           // Si el backend devuelve el objeto completo (futuro)
-          if (ticket.assignee && typeof ticket.assignee === "object") {
-            return ticket.assignee.nombre || "Agente";
+          if (ticket.usuarioAsignado && typeof ticket.usuarioAsignado === "object") {
+            return ticket.usuarioAsignado?.nombre || "Agente";
           }
           // Si el backend devuelve solo el ID (actual, pero se va a arreglar)
           // O si el campo se llama diferente, intentamos mostrar algo sensato
@@ -179,7 +246,7 @@ const TicketListPage = () => {
         label: "Actualización",
         sortable: true,
         className: "text-dt-subtle font-mono text-xs",
-        render: (ticket) => new Date(ticket.creadoEn).toLocaleDateString(),
+        render: (ticket) => new Date(ticket?.modificadoEn || ticket?.creadoEn || 0).toLocaleDateString(),
       },
       {
         key: "actions",
@@ -208,7 +275,7 @@ const TicketListPage = () => {
 
   const formConfig = {
     fields: {
-      clientEmail: {
+      emailCliente: {
         label: "Correo del Cliente",
         type: "email",
         placeholder: "Ingresa el correo del cliente",
@@ -247,7 +314,7 @@ const TicketListPage = () => {
               prioridad: "media",
               asunto: data.subject,
               mensajeInicial: data.message,
-              correoCliente: data.clientEmail,
+              emailCliente: data.emailCliente,
               nombreCliente: "",
               ordenId: null,
               archivos: (data.files || []).map((f) => ({
@@ -271,13 +338,13 @@ const TicketListPage = () => {
 
   // Determine page title based on filters
   const getPageTitle = () => {
-    if (statusFilter === "ia_sugerido,nuevo") {
+    if (estadoFilter === "ia_sugerido,nuevo") {
       return "Tickets para Triaje";
-    } else if (statusFilter === "reabierto") {
+    } else if (estadoFilter === "reabierto") {
       return "Tickets Reabiertos";
-    } else if (statusFilter === "respuesta_cliente") {
+    } else if (estadoFilter === "respuesta_cliente") {
       return "Respuestas de Clientes";
-    } else if (statusFilter?.includes("escalado_nivel_2")) {
+    } else if (estadoFilter?.includes("escalado_nivel_2")) {
       return "Tickets Escalados (Nivel 2)";
     }
     return "Bandeja de Entrada";
@@ -303,6 +370,7 @@ const TicketListPage = () => {
               suggestions={searchSuggestions}
             />
           </div>
+            {/* Pagination controls removed here — using DynamicTable's built-in pagination */}
           <Button
             variant="secondary"
             size="md"
@@ -321,7 +389,26 @@ const TicketListPage = () => {
         sortConfig={sortConfig}
         onSort={handleSort}
         isLoading={isLoading}
+        // Controlled pagination so table changes trigger server fetch via URL
+        page={pageParam}
+        itemsPerPage={limitParam}
+        onPageChange={(newPage) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", String(newPage));
+          setSearchParams(params);
+        }}
+        onItemsPerPageChange={(newLimit) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("limit", String(newLimit));
+          // reset to page 1 when changing page size
+          params.set("page", "1");
+          setSearchParams(params);
+        }}
+        totalItems={tickets?.pagination?.total || tickets?.pagination?.totalItems || tickets?.pagination?.totalCount}
+        totalPages={tickets?.pagination?.totalPages}
       />
+
+      {/* List-level pagination removed — DynamicTable handles pagination UI now */}
 
       <DynamicFormModal
         isOpen={isModalOpen}

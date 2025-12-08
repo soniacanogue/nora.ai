@@ -1,7 +1,10 @@
 // src/features/tickets/components/ConversationBubble.jsx
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import DOMPurify from "dompurify";
 import { formatChannel } from "@/shared/utils/formatters";
+import toast from "react-hot-toast";
+import { useAttachmentMetadata } from "@/features/tickets/hooks/useAttachmentMetadata";
+import { downloadAttachmentFile } from "@/features/tickets/api/ticketsApi";
 
 const formatFileSize = (bytes) => {
   if (bytes === 0) return "0 B";
@@ -35,6 +38,128 @@ const channelIcons = {
   api: "link",
   formulario_web: "language",
   web: "language",
+};
+
+const AttachmentItem = ({ file }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const hasRemoteFile = Boolean(file.fileId);
+  const shouldFetchMetadata =
+    hasRemoteFile && (!file.name || !file.mimeType || typeof file.size !== "number");
+  const { data: metadata, isFetching: isFetchingMetadata } = useAttachmentMetadata(
+    file.fileId,
+    {
+      enabled: shouldFetchMetadata,
+      initialData: file.metadata,
+    },
+  );
+
+  const resolvedName =
+    file.name ||
+    metadata?.nombreArchivo ||
+    metadata?.nombre ||
+    metadata?.titulo ||
+    "Archivo adjunto";
+  const resolvedMime =
+    file.mimeType || metadata?.tipoMime || metadata?.mimeType || "Descarga";
+  const resolvedSize =
+    typeof file.size === "number"
+      ? file.size
+      : metadata?.tamano ?? metadata?.size ?? null;
+  const previewUrl = file.url || file.downloadUrl || null;
+  const previewIsImage =
+    Boolean(previewUrl) &&
+    isImageAttachment({ mimeType: resolvedMime, name: resolvedName });
+
+  const handleAttachmentClick = async (event) => {
+    if (hasRemoteFile) {
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        setIsDownloading(true);
+        const { blob, fileName } = await downloadAttachmentFile(file.fileId);
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName || resolvedName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(blobUrl);
+        toast.success("Descarga iniciada");
+      } catch (error) {
+        toast.error(error.message || "No se pudo descargar el archivo");
+      } finally {
+        setIsDownloading(false);
+      }
+    } else if (previewUrl) {
+      event.preventDefault();
+      window.open(previewUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const Wrapper = hasRemoteFile ? "button" : previewUrl ? "a" : "div";
+  const wrapperProps = hasRemoteFile
+    ? { type: "button", onClick: handleAttachmentClick }
+    : previewUrl
+      ? { href: previewUrl, target: "_blank", rel: "noopener noreferrer", onClick: handleAttachmentClick }
+      : {};
+
+  const baseClassName = `block rounded-xl border border-white/10 bg-black/20 px-4 py-3 transition hover:border-white/30 hover:bg-black/10 ${
+    hasRemoteFile || previewUrl ? "cursor-pointer" : "cursor-default"
+  }`;
+
+  return (
+    <Wrapper
+      {...wrapperProps}
+      className={baseClassName}
+      disabled={hasRemoteFile ? isDownloading : undefined}
+    >
+      {previewIsImage ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs text-dt-subtle font-mono">
+            <span className="uppercase">
+              {resolvedName}
+            </span>
+            {formatFileSize(resolvedSize) && (
+              <span>{formatFileSize(resolvedSize)}</span>
+            )}
+          </div>
+          <div className="overflow-hidden rounded-lg border border-white/10">
+            {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
+            <img
+              src={previewUrl}
+              alt={resolvedName || "Attachment preview"}
+              className="w-full h-48 object-cover"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-4 text-xs text-dt-foreground">
+          <div className="flex flex-col">
+            <span className="font-semibold tracking-wide">
+              {resolvedName}
+            </span>
+            <span className="text-dt-subtle font-mono">
+              {isFetchingMetadata ? "Resolviendo..." : resolvedMime}
+            </span>
+          </div>
+          <div className="flex flex-col items-end text-right">
+            {formatFileSize(resolvedSize) && (
+              <span className="text-dt-subtle font-mono">
+                {formatFileSize(resolvedSize)}
+              </span>
+            )}
+            {isDownloading && (
+              <span className="text-[10px] uppercase tracking-wider text-dt-subtle">
+                Descargando...
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </Wrapper>
+  );
 };
 
 const ConversationBubble = ({ message }) => {
@@ -94,65 +219,12 @@ const ConversationBubble = ({ message }) => {
 
         {hasAttachments && (
           <div className="mt-4 space-y-3">
-            {attachments.map((file, index) => {
-              const key = file.id || `${file.name || "attachment"}-${index}`;
-              const downloadUrl = file.url || file.downloadUrl || null;
-              const AttachmentWrapper = downloadUrl ? "a" : "div";
-              const commonProps = downloadUrl
-                ? {
-                    href: downloadUrl,
-                    target: "_blank",
-                    rel: "noopener noreferrer",
-                  }
-                : {};
-              const previewIsImage = isImageAttachment(file) && downloadUrl;
-
-              return (
-                <AttachmentWrapper
-                  key={key}
-                  {...commonProps}
-                  className={`block rounded-xl border border-white/10 bg-black/20 px-4 py-3 transition hover:border-white/30 hover:bg-black/10 ${downloadUrl ? "cursor-pointer" : "cursor-default"}`}
-                >
-                  {previewIsImage ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs text-dt-subtle font-mono">
-                        <span className="uppercase">
-                          {file.name || "Imagen adjunta"}
-                        </span>
-                        {formatFileSize(file.size) && (
-                          <span>{formatFileSize(file.size)}</span>
-                        )}
-                      </div>
-                      <div className="overflow-hidden rounded-lg border border-white/10">
-                        {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-                        <img
-                          src={downloadUrl}
-                          alt={file.name || "Attachment preview"}
-                          className="w-full h-48 object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between gap-4 text-xs text-dt-foreground">
-                      <div className="flex flex-col">
-                        <span className="font-semibold tracking-wide">
-                          {file.name || "Archivo adjunto"}
-                        </span>
-                        <span className="text-dt-subtle font-mono">
-                          {file.mimeType || "Descarga"}
-                        </span>
-                      </div>
-                      {formatFileSize(file.size) && (
-                        <span className="text-dt-subtle font-mono">
-                          {formatFileSize(file.size)}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </AttachmentWrapper>
-              );
-            })}
+            {attachments.map((file, index) => (
+              <AttachmentItem
+                key={file.id || `${file.name || "attachment"}-${index}`}
+                file={file}
+              />
+            ))}
           </div>
         )}
       </div>

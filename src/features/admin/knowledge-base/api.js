@@ -1,137 +1,136 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+import { apiClient } from "@/shared/lib/apiClient";
 
-// TODO: UC-14 - Implement Knowledge Base CRUD operations
-// Backend endpoints need to be implemented:
-// GET /knowledge-base - List all documents
-// POST /knowledge-base - Create new document
-// GET /knowledge-base/:id - Get document by ID
-// PATCH /knowledge-base/:id - Update document
-// DELETE /knowledge-base/:id - Delete document
+const normalizeCategory = (value) => {
+  if (!value) return "OTRO";
+  return value.toString().trim().toUpperCase();
+};
 
-/**
- * Get all knowledge base documents
- * @param {Object} filters - Filter parameters (category, search, etc.)
- * @returns {Promise<Array>} List of knowledge base documents
- */
+const normalizeDocument = (document = {}) => {
+  const categoria = normalizeCategory(document.categoria || document.category);
+  return {
+    id: document.id,
+    titulo: document.titulo || document.pregunta || document.nombre || "Sin título",
+    contenido:
+      document.contenido ||
+      document.respuesta ||
+      document.procedimiento ||
+      document.descripcion ||
+      "",
+    categoria,
+    etiquetas: document.etiquetas || document.tags || [],
+    prioridad: document.prioridad || document.priority || null,
+    creadoEn: document.creadoEn || document.createdAt || document.creado_el,
+    actualizadoEn:
+      document.actualizadoEn || document.updatedAt || document.actualizado_el,
+  };
+};
+
+const serializeDocumentPayload = (payload = {}) => ({
+  titulo: payload.titulo || payload.pregunta || "",
+  contenido: payload.contenido || payload.respuesta || payload.procedimiento || "",
+  categoria: normalizeCategory(payload.categoria),
+  etiquetas: payload.etiquetas || [],
+});
+
+const adaptListResponse = (payload = {}) => {
+  const items = payload.data || payload.documentos || payload.results || [];
+  const pagination = payload.pagination || {
+    pagina: 1,
+    limite: items.length,
+    total: items.length,
+  };
+
+  return {
+    documents: items.map(normalizeDocument),
+    pagination,
+  };
+};
+
+const buildListQueryParams = (filters = {}) => {
+  const params = new URLSearchParams();
+
+  const categoryFilter = filters.categoria || filters.category;
+  const searchFilter = filters.buscar || filters.search || filters.query;
+  const limit = filters.limite || filters.limit;
+  const page = filters.pagina || filters.page;
+
+  if (categoryFilter) {
+    params.set("categoria", normalizeCategory(categoryFilter));
+  }
+
+  if (searchFilter) {
+    params.set("buscar", searchFilter.trim());
+  }
+
+  if (limit) {
+    params.set("limite", limit);
+  }
+
+  if (page) {
+    params.set("pagina", page);
+  }
+
+  return params.toString();
+};
+
 export const getKnowledgeBaseDocs = async (filters = {}) => {
-  const params = new URLSearchParams(filters);
-  const response = await fetch(`${API_BASE_URL}/knowledge-base?${params}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch knowledge base documents');
-  }
-  
-  return response.json();
+  const queryString = buildListQueryParams(filters);
+  const endpoint = `/knowledge-base${queryString ? `?${queryString}` : ""}`;
+  const { data } = await apiClient.get(endpoint);
+  return adaptListResponse(data);
 };
 
-/**
- * Get a single knowledge base document by ID
- * @param {string} id - Document ID
- * @returns {Promise<Object>} Knowledge base document
- */
 export const getKnowledgeBaseDoc = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/knowledge-base/${id}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch knowledge base document');
-  }
-  
-  return response.json();
+  if (!id) throw new Error("Document ID is required");
+  const { data } = await apiClient.get(`/knowledge-base/${id}`);
+  return normalizeDocument(data);
 };
 
-/**
- * Create a new knowledge base document
- * @param {Object} data - Document data
- * @param {string} data.titulo - Document title
- * @param {string} data.contenido - Document content
- * @param {string} data.categoria - Document category (FAQ, POLITICA, PROCEDIMIENTO, etc.)
- * @param {Array<string>} data.etiquetas - Tags for the document
- * @returns {Promise<Object>} Created document
- */
-export const createKnowledgeBaseDoc = async (data) => {
-  const response = await fetch(`${API_BASE_URL}/knowledge-base`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify(data),
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to create knowledge base document');
-  }
-  
-  return response.json();
+export const createKnowledgeBaseDoc = async (payload) => {
+  const { data } = await apiClient.post(
+    "/knowledge-base",
+    serializeDocumentPayload(payload),
+  );
+  return normalizeDocument(data);
 };
 
-/**
- * Update a knowledge base document
- * @param {string} id - Document ID
- * @param {Object} data - Updated document data
- * @returns {Promise<Object>} Updated document
- */
-export const updateKnowledgeBaseDoc = async (id, data) => {
-  const response = await fetch(`${API_BASE_URL}/knowledge-base/${id}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify(data),
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to update knowledge base document');
-  }
-  
-  return response.json();
+export const updateKnowledgeBaseDoc = async (id, payload) => {
+  const { data } = await apiClient.patch(
+    `/knowledge-base/${id}`,
+    serializeDocumentPayload(payload),
+  );
+  return normalizeDocument(data);
 };
 
-/**
- * Delete a knowledge base document
- * @param {string} id - Document ID
- * @returns {Promise<void>}
- */
 export const deleteKnowledgeBaseDoc = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/knowledge-base/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to delete knowledge base document');
-  }
+  await apiClient.delete(`/knowledge-base/${id}`);
 };
 
-/**
- * Search knowledge base documents
- * @param {string} query - Search query
- * @returns {Promise<Array>} Matching documents
- */
-export const searchKnowledgeBase = async (query) => {
-  const response = await fetch(`${API_BASE_URL}/knowledge-base/search`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify({ query }),
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to search knowledge base');
+export const searchKnowledgeBase = async (payload = {}) => {
+  const body = {
+    query: payload.query || payload.buscar || payload.search || "",
+  };
+
+  if (payload.categoria || payload.category) {
+    body.categoria = normalizeCategory(payload.categoria || payload.category);
   }
-  
-  return response.json();
+
+  if (payload.limite || payload.limit) {
+    body.limite = payload.limite || payload.limit;
+  }
+
+  const { data } = await apiClient.post("/knowledge-base/search", body);
+  const results = data.resultados || data.data || [];
+  return {
+    resultados: results.map(normalizeDocument),
+    total: data.total || results.length,
+  };
+};
+
+export const getKnowledgeBaseCategories = async () => {
+  const { data } = await apiClient.get("/knowledge-base/categories");
+  if (Array.isArray(data)) {
+    return data.map(normalizeCategory);
+  }
+  return [];
 };

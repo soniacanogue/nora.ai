@@ -1,6 +1,7 @@
 // src/features/admin/ai-agents/AgentFormPage.jsx
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { useAgent, useCreateAgent, useUpdateAgent } from "../hooks/useAgents";
 import { AgentForm } from "../components/AgentForm";
 
@@ -21,18 +22,30 @@ export function AgentFormPage() {
       updateAgentMutation.mutate(
         { id, ...payload },
         {
-          onSuccess: () => navigate("/admin/agents"),
+          onSuccess: () => {
+            toast.success("Agente actualizado exitosamente");
+            navigate("/admin/ai-agents");
+          },
+          onError: (error) => {
+            toast.error(error.message || "No fue posible actualizar el agente");
+          },
         },
       );
     } else {
       createAgentMutation.mutate(payload, {
-        onSuccess: () => navigate("/admin/agents"),
+        onSuccess: () => {
+          toast.success("Agente creado exitosamente");
+          navigate("/admin/ai-agents");
+        },
+        onError: (error) => {
+          toast.error(error.message || "No fue posible crear el agente");
+        },
       });
     }
   };
 
   const handleCancel = () => {
-    navigate("/admin/agents");
+    navigate("/admin/ai-agents");
   };
 
   if (isEditMode && isLoadingAgent) {

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom"; // Importar Link
+import { Link, useSearchParams } from "react-router-dom"; // Importar Link
 import { useOrders } from "../hooks/useOrders"; // 1. Usar el hook de datos
 import { useDynamicSearch } from "@/shared/hooks/useDynamicSearch";
 import DynamicSearch from "@/shared/components/ui/DynamicSearch";
@@ -7,7 +7,14 @@ import DynamicTable from "@/shared/components/ui/DynamicTable";
 
 const OrderListPage = () => {
   const [sortConfig, setSortConfig] = useState({ key: null, order: "asc" });
-  const { orders, isLoading, error } = useOrders(); // 2. Obtener datos, loading y error
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = Number(searchParams.get("page") || 1);
+  const limitParam = Number(searchParams.get("limit") || 25);
+
+  const { orders, isLoading, error, pagination } = useOrders({
+    page: pageParam,
+    limit: limitParam,
+  }); // 2. Obtener datos, loading y error
 
   // Configuración de búsqueda
   const searchConfig = useMemo(
@@ -156,6 +163,21 @@ const OrderListPage = () => {
         sortConfig={sortConfig}
         onSort={handleSort}
         isLoading={isLoading}
+        page={pageParam}
+        itemsPerPage={limitParam}
+        onPageChange={(newPage) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", String(newPage));
+          setSearchParams(params);
+        }}
+        onItemsPerPageChange={(newLimit) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("limit", String(newLimit));
+          params.set("page", "1");
+          setSearchParams(params);
+        }}
+        totalItems={orders?.pagination?.total || orders?.pagination?.totalItems || orders?.pagination?.totalCount}
+        totalPages={orders?.pagination?.totalPages}
         emptyState={
           <div className="text-center p-8 text-dt-subtle italic bg-white/5 backdrop-blur-md border border-white/10 rounded-lg">
             No se encontraron órdenes que coincidan con tu búsqueda.

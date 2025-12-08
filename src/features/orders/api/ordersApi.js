@@ -10,25 +10,37 @@ export const getOrders = async (params = {}) => {
   console.log("Fetching order list with params:", params);
 
   try {
-    // Build query params
-    const queryParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        queryParams.append(key, value);
-      }
-    });
+    // Use apiClient params support and accept paginated response
+    const { data } = await apiClient.get(`/orders`, { params });
 
-    const queryString = queryParams.toString();
-    const endpoint = `/orders${queryString ? `?${queryString}` : ""}`;
+    // Backend may return either an array or an object { data: [], pagination: {} }
+    let arr = [];
+    let pagination = null;
 
-    const { data } = await apiClient.get(endpoint);
+    if (Array.isArray(data)) {
+      arr = data;
+    } else if (data && Array.isArray(data.data)) {
+      arr = data.data;
+      pagination = data.pagination || null;
+    }
 
-    // Ensure we return an array with default client structure
-    const orders = Array.isArray(data) ? data : [];
-    return orders.map((order) => ({
+    const mapped = arr.map((order) => ({
       ...order,
       cliente: order.cliente || { nombre: "Cliente Desconocido", correo: "" },
     }));
+
+    // Attach pagination info non-enumerable where possible
+    try {
+      Object.defineProperty(mapped, "pagination", {
+        value: pagination,
+        enumerable: false,
+        writable: false,
+      });
+    } catch {
+      mapped.pagination = pagination;
+    }
+
+    return mapped;
   } catch (error) {
     console.error("Failed to fetch orders:", error);
     return [];

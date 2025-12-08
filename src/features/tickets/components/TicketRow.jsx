@@ -29,7 +29,7 @@ const CHANNEL_STYLES = {
 
 const TicketRow = ({ ticket, onClick }) => {
   // Adapt properties to match the component's expected structure
-  const status = ticket.status || ticket.prioridad || "NORMAL";
+  const status = ticket.estado || ticket.status || ticket.prioridad || "NORMAL";
   const title = ticket.title || ticket.asunto || "Sin asunto";
   const client =
     ticket.client || ticket.cliente?.nombre || "Cliente desconocido";

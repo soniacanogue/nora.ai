@@ -48,110 +48,24 @@ export const uploadCsvForImport = async (file) => {
   formData.append("file", fileToUpload);
 
   try {
-    const { data } = await apiClient.uploadFile("/orders/import", formData);
+    const { data } = await apiClient.uploadFile("/orders/upload", formData);
 
-    // Return a standardized response
+    const summary = data?.summary || {
+      total: data?.total || 0,
+      imported: data?.imported || 0,
+      failed: data?.failed || 0,
+      errors: data?.errors || [],
+    };
+
     return {
       success: true,
-      jobId: data.jobId || `import-${Date.now()}`,
       fileName: file.name,
-      summary: data.summary || {
-        total: data.total || 0,
-        imported: data.imported || 0,
-        failed: data.failed || 0,
-        errors: data.errors || [],
-      },
+      summary,
       ...data,
     };
   } catch (error) {
     console.error("File upload failed:", error);
     throw error;
-  }
-};
-
-/**
- * Starts an import job with field mapping.
- * Note: With the simplified backend, this might not be needed.
- * Kept for backward compatibility with UI components that expect this flow.
- * @param {string} jobId - The job ID.
- * @param {object} mapping - Field mapping configuration.
- * @returns {Promise<object>}
- */
-export const startImportJob = async (jobId, mapping) => {
-  console.log(`Starting import job ${jobId} with mapping:`, mapping);
-
-  // If the backend supports a two-step process
-  try {
-    const { data } = await apiClient.post(`/orders/import/${jobId}/start`, {
-      mapping,
-    });
-    return { success: true, ...data };
-  } catch (error) {
-    // If endpoint returns 404, the import was already processed immediately
-    if (error.status === 404) {
-      console.log(
-        "Start import endpoint not available (404), assuming immediate processing"
-      );
-      return { success: true, immediateProcessing: true };
-    }
-    // Re-throw other errors to surface real issues
-    throw error;
-  }
-};
-
-/**
- * Gets the status of an import job.
- * @param {string} jobId - The job ID.
- * @returns {Promise<object|null>}
- */
-export const getImportJobStatus = async (jobId) => {
-  if (!jobId) return null;
-
-  try {
-    const { data } = await apiClient.get(`/orders/import/${jobId}/status`);
-
-    return {
-      id: jobId,
-      status: data.status || "completed",
-      progress: data.progress || 100,
-      summary: data.summary || null,
-      ...data,
-    };
-  } catch (error) {
-    // If status endpoint returns 404, status tracking is not available
-    if (error.status === 404) {
-      console.log(
-        "Status endpoint not available (404), returning unknown status"
-      );
-      return {
-        id: jobId,
-        status: "unknown",
-        progress: 100,
-        summary: null,
-        statusUnavailable: true,
-      };
-    }
-    // Re-throw other errors
-    console.error(`Failed to get import job status for ${jobId}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Cancels an import job.
- * @param {string} jobId - The job ID.
- * @returns {Promise<object>}
- */
-export const cancelImportJob = async (jobId) => {
-  console.log(`Cancelling import job: ${jobId}`);
-
-  try {
-    const { data } = await apiClient.post(`/orders/import/${jobId}/cancel`);
-    return { success: true, ...data };
-  } catch (error) {
-    // If cancel endpoint doesn't exist, just return success
-    console.log("Cancel endpoint not available");
-    return { success: true };
   }
 };
 

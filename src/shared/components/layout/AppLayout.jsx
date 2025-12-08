@@ -208,33 +208,6 @@ const AppLayout = () => {
 
                 {expandedSections.admin && (
                   <>
-                    <li>
-                      <NavLink
-                        to="/admin/dashboard"
-                        className={({ isActive }) =>
-                          isActive
-                            ? `${navLinkClasses} ${activeNavLinkClasses}`
-                            : navLinkClasses
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            {isActive && (
-                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
-                            )}
-                            <span className="material-symbols-outlined text-xl relative z-10">
-                              admin_panel_settings
-                            </span>
-                            {sidebarOpen && (
-                              <span className="ml-3 text-sm font-medium relative z-10">
-                                Admin Dashboard
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </NavLink>
-                    </li>
-
                     {/* --- NUEVO: Enlace a la configuración de Agentes de IA --- */}
                     <li>
                       <NavLink

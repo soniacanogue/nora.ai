@@ -7,29 +7,13 @@ import { apiClient } from "@/shared/lib/apiClient";
  * @param {object} sort - Sorting parameters (ej. { key: 'nombre', order: 'asc' }).
  * @returns {Promise<Array>}
  */
-export const getAgents = async (
-  filters = {},
-  sort = { key: "nombre", order: "asc" }
-) => {
-  console.log("Fetching AI agents with sort:", sort);
+export const getAgents = async (filters = {}) => {
   try {
-    // Replicamos el patrón de construcción de URLSearchParams visto en ticketsApi.js
-    const params = new URLSearchParams();
-    if (sort.key) {
-      params.append("sortBy", sort.key);
-    }
-    if (sort.order) {
-      params.append("sortOrder", sort.order);
-    }
-
-    const queryString = params.toString();
-    const endpoint = `/config/agents${queryString ? `?${queryString}` : ""}`;
-
-    const { data } = await apiClient.get(endpoint);
+    const { data } = await apiClient.get(`/ai/config`);
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Failed to fetch AI agents:", error);
-    return []; // Devolver array vacío en caso de error, como en ticketsApi.
+    return [];
   }
 };
 
@@ -41,7 +25,7 @@ export const getAgents = async (
 export const getAgentById = async (id) => {
   console.log(`Fetching agent data for ID: ${id}...`);
   try {
-    const { data } = await apiClient.get(`/config/agents/${id}`);
+    const { data } = await apiClient.get(`/ai/config/${id}`);
     return data;
   } catch (error) {
     console.error(`Failed to fetch agent ${id}:`, error);
@@ -56,7 +40,7 @@ export const getAgentById = async (id) => {
  */
 export const createAgent = async (agentData) => {
   console.log("Creating new agent with data:", agentData);
-  const { data } = await apiClient.post("/config/agents", agentData);
+  const { data } = await apiClient.post("/ai/config", agentData);
   return data;
 };
 
@@ -70,7 +54,7 @@ export const createAgent = async (agentData) => {
 export const updateAgent = async ({ id, ...agentData }) => {
   console.log(`Updating agent ${id} with data:`, agentData);
   // Usamos PATCH para consistencia con el resto de la API (ej. claimTicket)
-  const { data } = await apiClient.patch(`/config/agents/${id}`, agentData);
+  const { data } = await apiClient.patch(`/ai/config/${id}`, agentData);
   return data;
 };
 
@@ -81,5 +65,5 @@ export const updateAgent = async ({ id, ...agentData }) => {
  */
 export const deleteAgent = async (id) => {
   console.log(`Deleting agent ${id}`);
-  await apiClient.delete(`/config/agents/${id}`);
+  await apiClient.delete(`/ai/config/${id}`);
 };

@@ -1,25 +1,74 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Modal from "./Modal";
 import Input from "./Input";
 import Select from "./Select";
 import Button from "./Button";
 import FileUpload from "./FileUpload";
 
-const DynamicFormModal = ({ isOpen, onClose, title, config }) => {
+const DynamicFormModal = ({
+  isOpen = true,
+  onClose,
+  title,
+  description,
+  config = {},
+  defaultValues = {},
+}) => {
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({});
+  const wasOpenRef = useRef(false);
+  const fieldsSignature = useMemo(() => {
+    if (!config?.fields) return "";
+    return Object.entries(config.fields)
+      .map(([key, field]) => {
+        const fallback =
+          field.defaultValue !== undefined ? field.defaultValue : "";
+        return `${key}:${JSON.stringify(fallback)}`;
+      })
+      .join("|");
+  }, [config]);
+  const prevFieldsSignatureRef = useRef(fieldsSignature);
+  const defaultsSignature = useMemo(() => {
+    try {
+      return JSON.stringify(defaultValues ?? {});
+    } catch (err) {
+      return "{}";
+    }
+  }, [defaultValues]);
+  const prevDefaultsSignatureRef = useRef(defaultsSignature);
 
   // Initialize form data based on config.fields
   useEffect(() => {
-    if (isOpen && config?.fields) {
+    const hasFields = Boolean(config?.fields);
+    const defaultsChanged =
+      prevDefaultsSignatureRef.current !== defaultsSignature;
+    const fieldsChanged = prevFieldsSignatureRef.current !== fieldsSignature;
+    const justOpened = isOpen && !wasOpenRef.current;
+
+    if (hasFields && isOpen && (justOpened || defaultsChanged || fieldsChanged)) {
       const initialData = {};
       Object.keys(config.fields).forEach((key) => {
-        initialData[key] = config.fields[key].defaultValue || "";
+        if (Object.prototype.hasOwnProperty.call(defaultValues, key)) {
+          initialData[key] = defaultValues[key];
+        } else {
+          const fallback = config.fields[key].defaultValue;
+          initialData[key] = fallback !== undefined ? fallback : "";
+        }
       });
       setFormData(initialData);
       setFiles({});
     }
-  }, [isOpen, config]);
+
+    if (!isOpen && wasOpenRef.current) {
+      setFormData({});
+      setFiles({});
+    }
+
+    wasOpenRef.current = isOpen;
+    prevDefaultsSignatureRef.current = defaultsSignature;
+    if (hasFields) {
+      prevFieldsSignatureRef.current = fieldsSignature;
+    }
+  }, [config, defaultsSignature, fieldsSignature, isOpen]);
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({
@@ -48,8 +97,13 @@ const DynamicFormModal = ({ isOpen, onClose, title, config }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <div className="max-h-[70vh] overflow-y-auto pr-2">
-        <form onSubmit={handleSubmit} className="space-y-4 pr-2">
+      {description && (
+        <p className="text-sm text-dt-subtle mb-4 leading-relaxed">
+          {description}
+        </p>
+      )}
+      <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh]">
+        <div className="flex-1 overflow-y-auto pr-2 space-y-4">
           {fields &&
             Object.entries(fields).map(([key, fieldConfig]) => {
               const {
@@ -69,7 +123,7 @@ const DynamicFormModal = ({ isOpen, onClose, title, config }) => {
                       {required && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <Select
-                      value={formData[key]}
+                      value={formData[key] ?? ""}
                       onChange={(e) => handleChange(key, e.target.value)}
                       options={options || []}
                       placeholder={placeholder}
@@ -94,7 +148,7 @@ const DynamicFormModal = ({ isOpen, onClose, title, config }) => {
                       rows={rest.rows || 4}
                       className="w-full p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-primary-light"
                       placeholder={placeholder}
-                      value={formData[key]}
+                      value={formData[key] ?? ""}
                       onChange={(e) => handleChange(key, e.target.value)}
                       required={required}
                       {...rest}
@@ -123,52 +177,51 @@ const DynamicFormModal = ({ isOpen, onClose, title, config }) => {
                   type={type}
                   label={label}
                   placeholder={placeholder}
-                  value={formData[key]}
+                  value={formData[key] ?? ""}
                   onChange={(e) => handleChange(key, e.target.value)}
                   required={required}
                   {...rest}
                 />
               );
             })}
+        </div>
+        <div className="flex justify-end gap-4 border-t border-secondary pt-4 mt-4 bg-dt-primary/20 px-1 shrink-0">
+          {buttons &&
+            Object.entries(buttons).map(([key, btnConfig]) => {
+              const {
+                label,
+                onClick,
+                variant = "primary",
+                type = "button",
+                ...rest
+              } = btnConfig;
 
-          <div className="flex justify-end gap-4 mt-6">
-            {buttons &&
-              Object.entries(buttons).map(([key, btnConfig]) => {
-                const {
-                  label,
-                  onClick,
-                  variant = "primary",
-                  type = "button",
-                  ...rest
-                } = btnConfig;
+              const handleClick = (e) => {
+                if (onClick) {
+                  // Pass formData and files to the click handler
+                  onClick({ ...formData, ...files }, e);
+                }
+                if (type === "submit") {
+                  // If it's a submit button, the form onSubmit might also trigger if not prevented.
+                  // But usually we want to handle the logic in onClick for this dynamic form.
+                }
+              };
 
-                const handleClick = (e) => {
-                  if (onClick) {
-                    // Pass formData and files to the click handler
-                    onClick({ ...formData, ...files }, e);
-                  }
-                  if (type === "submit") {
-                    // If it's a submit button, the form onSubmit might also trigger if not prevented.
-                    // But usually we want to handle the logic in onClick for this dynamic form.
-                  }
-                };
-
-                return (
-                  <Button
-                    key={key}
-                    type={type}
-                    variant={variant}
-                    onClick={handleClick}
-                    fullWidth={false}
-                    {...rest}
-                  >
-                    {label}
-                  </Button>
-                );
-              })}
-          </div>
-        </form>
-      </div>
+              return (
+                <Button
+                  key={key}
+                  type={type}
+                  variant={variant}
+                  onClick={handleClick}
+                  fullWidth={false}
+                  {...rest}
+                >
+                  {label}
+                </Button>
+              );
+            })}
+        </div>
+      </form>
     </Modal>
   );
 };

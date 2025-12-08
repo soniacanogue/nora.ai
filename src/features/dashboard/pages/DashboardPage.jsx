@@ -37,6 +37,21 @@ const DashboardPage = () => {
 
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'thisWeek'
 
+  // Compute ISO date range based on timeRange
+  const computeRange = (range) => {
+    const now = new Date();
+    const fechaHasta = now.toISOString();
+    if (range === "today") {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      return { fechaDesde: start.toISOString(), fechaHasta };
+    }
+    // thisWeek -> last 7 days (including today)
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+    return { fechaDesde: start.toISOString(), fechaHasta };
+  };
+
+  const { fechaDesde, fechaHasta } = computeRange(timeRange);
+
   const {
     data: dashboardData,
     isLoading,
@@ -44,8 +59,9 @@ const DashboardPage = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["agentDashboard", targetAgentId, timeRange],
-    queryFn: () => getAgentDashboardData(targetAgentId, timeRange),
+    queryKey: ["agentDashboard", targetAgentId, fechaDesde, fechaHasta],
+    queryFn: () =>
+      getAgentDashboardData({ agenteId: targetAgentId, fechaDesde, fechaHasta }),
     enabled: !!targetAgentId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

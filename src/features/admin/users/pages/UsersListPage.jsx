@@ -3,7 +3,6 @@ import {
   FiUsers,
   FiPlus,
   FiEdit2,
-  FiTrash2,
   FiToggleLeft,
   FiToggleRight,
   FiCheckCircle,
@@ -17,11 +16,11 @@ import {
   FiBarChart2,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
 import {
   useUsers,
   useCreateUser,
   useUpdateUser,
-  useDeleteUser,
   useChangePassword,
   useRequestPasswordReset,
   useResetPasswordWithToken,
@@ -40,6 +39,11 @@ const PasswordManagerModal = ({ user, onClose }) => {
     confirmPassword: "",
     token: "",
   });
+  const [capabilities, setCapabilities] = useState({
+    directChange: true,
+    resetEmail: true,
+    tokenReset: true,
+  });
   const changePasswordMutation = useChangePassword();
   const requestPasswordResetMutation = useRequestPasswordReset();
   const resetPasswordWithTokenMutation = useResetPasswordWithToken();
@@ -56,6 +60,43 @@ const PasswordManagerModal = ({ user, onClose }) => {
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const modeOptions = [
+    { key: "change", label: "Cambio directo", capabilityKey: "directChange" },
+    { key: "reset", label: "Enviar correo", capabilityKey: "resetEmail" },
+    { key: "token", label: "Usar token", capabilityKey: "tokenReset" },
+  ];
+
+  const ensureValidMode = (nextCapabilities) => {
+    const activeCapability = modeOptions.find(
+      (option) => option.key === mode
+    )?.capabilityKey;
+    if (activeCapability && nextCapabilities[activeCapability]) {
+      return;
+    }
+    const fallback = modeOptions.find(
+      (option) => nextCapabilities[option.capabilityKey]
+    );
+    setMode(fallback ? fallback.key : "");
+  };
+
+  const handleCapabilityUnavailable = (capabilityKey, message) => {
+    let shouldAnnounce = false;
+    let nextState = null;
+    setCapabilities((prev) => {
+      if (!prev[capabilityKey]) {
+        nextState = prev;
+        return prev;
+      }
+      shouldAnnounce = true;
+      nextState = { ...prev, [capabilityKey]: false };
+      return nextState;
+    });
+    if (shouldAnnounce) {
+      toast.error(message);
+      ensureValidMode(nextState || {});
+    }
   };
 
   const handleChangePassword = (event) => {
@@ -81,7 +122,15 @@ const PasswordManagerModal = ({ user, onClose }) => {
           onClose();
         },
         onError: (error) => {
-          toast.error(error.message || "No fue posible actualizar la contraseña");
+          const message =
+            error.message || "No fue posible actualizar la contraseña";
+          toast.error(message);
+          if (message.toLowerCase().includes("no disponible")) {
+            handleCapabilityUnavailable(
+              "directChange",
+              "El backend aún no soporta el cambio directo de contraseña."
+            );
+          }
         },
       }
     );
@@ -89,15 +138,33 @@ const PasswordManagerModal = ({ user, onClose }) => {
 
   const handleSendResetEmail = (event) => {
     event.preventDefault();
+    const targetEmail = user.correo || user.email;
+    if (!targetEmail) {
+      toast.error("El usuario no tiene correo registrado");
+      return;
+    }
+
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/reset-password`
+        : undefined;
+
     requestPasswordResetMutation.mutate(
-      { correo: user.correo },
+      { email: targetEmail, redirectTo },
       {
         onSuccess: () => {
           toast.success("Correo de recuperación enviado");
           onClose();
         },
         onError: (error) => {
-          toast.error(error.message || "No fue posible enviar el correo");
+          const message = error.message || "No fue posible enviar el correo";
+          toast.error(message);
+          if (message.toLowerCase().includes("no disponible")) {
+            handleCapabilityUnavailable(
+              "resetEmail",
+              "El backend aún no soporta el envío de correos de recuperación."
+            );
+          }
         },
       }
     );
@@ -113,8 +180,16 @@ const PasswordManagerModal = ({ user, onClose }) => {
       toast.error("Ingresa la nueva contraseña");
       return;
     }
+
+    const targetEmail = user.correo || user.email;
+    if (!targetEmail) {
+      toast.error("El usuario no tiene correo registrado");
+      return;
+    }
+
     resetPasswordWithTokenMutation.mutate(
       {
+        email: targetEmail,
         token: formValues.token,
         newPassword: formValues.newPassword,
       },
@@ -125,17 +200,18 @@ const PasswordManagerModal = ({ user, onClose }) => {
           onClose();
         },
         onError: (error) => {
-          toast.error(error.message || "No fue posible aplicar el token");
+          const message = error.message || "No fue posible aplicar el token";
+          toast.error(message);
+          if (message.toLowerCase().includes("no disponible")) {
+            handleCapabilityUnavailable(
+              "tokenReset",
+              "El backend aún no soporta el flujo de token administrado."
+            );
+          }
         },
       }
     );
   };
-
-  const modes = [
-    { key: "change", label: "Cambio directo" },
-    { key: "reset", label: "Enviar correo" },
-    { key: "token", label: "Usar token" },
-  ];
 
   const isSubmitting =
     changePasswordMutation.isPending ||
@@ -152,24 +228,75 @@ const PasswordManagerModal = ({ user, onClose }) => {
       title={`Gestionar contraseña - ${user.nombre}`}
     >
       <div className="flex flex-wrap gap-2 mb-6">
-        {modes.map((option) => (
+        {modeOptions.map((option) => {
+          const isAvailable = capabilities[option.capabilityKey];
+          return (
           <button
             key={option.key}
             type="button"
-            onClick={() => setMode(option.key)}
+              onClick={() => setMode(option.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               mode === option.key
                 ? "bg-dt-accent text-white"
                 : "bg-dt-card text-dt-subtle border border-dt-border"
             }`}
-            disabled={isSubmitting}
-          >
-            {option.label}
-          </button>
-        ))}
+              disabled={isSubmitting || !isAvailable}
+              title={
+                !isAvailable
+                  ? "Endpoint no disponible en el backend"
+                  : undefined
+              }
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
 
-      {mode === "change" && (
+      {!mode && (
+        <>
+          <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            No hay flujos de restablecimiento de contraseña disponibles en el backend.
+          </div>
+
+          {/* Simple pagination controls for server-side paginated users */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-dt-subtle">
+              Página <span className="font-medium text-dt-foreground">{pageParam}</span>
+              {users?.pagination?.totalPages ? (
+                <> de <span className="font-medium text-dt-foreground">{users.pagination.totalPages}</span></>
+              ) : null}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.set("page", String(Math.max(1, pageParam - 1)));
+                  setSearchParams(params);
+                }}
+                disabled={pageParam <= 1}
+                className="px-3 py-1 bg-dt-card border border-dt-border rounded disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.set("page", String(pageParam + 1));
+                  setSearchParams(params);
+                }}
+                disabled={users?.pagination?.totalPages ? pageParam >= users.pagination.totalPages : users.length < limitParam}
+                className="px-3 py-1 bg-dt-card border border-dt-border rounded disabled:opacity-50"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {mode === "change" && capabilities.directChange && (
         <form className="space-y-4" onSubmit={handleChangePassword}>
           <input
             type="password"
@@ -193,7 +320,7 @@ const PasswordManagerModal = ({ user, onClose }) => {
         </form>
       )}
 
-      {mode === "reset" && (
+      {mode === "reset" && capabilities.resetEmail && (
         <form className="space-y-4" onSubmit={handleSendResetEmail}>
           <p className="text-sm text-dt-subtle">
             Enviaremos un correo a <strong>{user.correo}</strong> con un enlace para
@@ -205,7 +332,7 @@ const PasswordManagerModal = ({ user, onClose }) => {
         </form>
       )}
 
-      {mode === "token" && (
+      {mode === "token" && capabilities.tokenReset && (
         <form className="space-y-4" onSubmit={handleResetWithToken}>
           <input
             type="text"
@@ -245,10 +372,13 @@ export const UsersListPage = () => {
   const [teamFilter, setTeamFilter] = useState("");
   const [passwordManagerUser, setPasswordManagerUser] = useState(null);
 
-  const { data: users = [], isLoading, error } = useUsers();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = Number(searchParams.get("page") || 1);
+  const limitParam = Number(searchParams.get("limit") || 25);
+
+  const { data: users = [], isLoading, error } = useUsers({ page: pageParam, limit: limitParam });
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
-  const deleteUserMutation = useDeleteUser();
 
   const availableTeams = useMemo(() => {
     const uniqueTeams = new Set();
@@ -333,11 +463,11 @@ export const UsersListPage = () => {
     // Filter by search
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      result = result.filter(
-        (user) =>
-          user.nombre.toLowerCase().includes(search) ||
-          user.correo.toLowerCase().includes(search)
-      );
+      result = result.filter((user) => {
+        const nombre = (user.nombre || "").toString().toLowerCase();
+        const correo = (user.correo || user.email || "").toString().toLowerCase();
+        return nombre.includes(search) || correo.includes(search);
+      });
     }
 
     // Filter by role
@@ -389,23 +519,6 @@ export const UsersListPage = () => {
         },
       }
     );
-  };
-
-  const handleDelete = (user) => {
-    if (
-      window.confirm(
-        `¿Estás seguro de que quieres eliminar al usuario "${user.nombre}"?`
-      )
-    ) {
-      deleteUserMutation.mutate(user.id, {
-        onSuccess: () => {
-          toast.success("Usuario eliminado");
-        },
-        onError: (err) => {
-          toast.error(err.message || "Error al eliminar usuario");
-        },
-      });
-    }
   };
 
   const handleToggleActive = (user) => {
@@ -676,12 +789,12 @@ export const UsersListPage = () => {
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-dt-accent/20 flex items-center justify-center">
                             <span className="text-sm font-semibold text-dt-accent">
-                              {user.nombre.charAt(0).toUpperCase()}
+                              {(user.nombre || "?").charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <div>
                             <span className="font-medium text-dt-foreground block">
-                              {user.nombre}
+                              {user.nombre || "—"}
                             </span>
                             <span className="text-xs text-dt-subtle">
                               {user.equipo || "Sin equipo"}
@@ -690,14 +803,14 @@ export const UsersListPage = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-dt-subtle">
-                        {user.correo}
+                        {user.correo || user.email || "—"}
                       </td>
                       <td className="px-4 py-3">
                         <Badge
                           variant={getRoleBadgeVariant(user.rol)}
                           icon={FiShield}
                         >
-                          {user.rol}
+                          {user.rol || "—"}
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
@@ -759,13 +872,6 @@ export const UsersListPage = () => {
                             title="Editar"
                           >
                             <FiEdit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(user)}
-                            className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
-                            title="Eliminar"
-                          >
-                            <FiTrash2 size={16} />
                           </button>
                         </div>
                       </td>

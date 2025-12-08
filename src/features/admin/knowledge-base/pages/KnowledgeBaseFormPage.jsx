@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiSave, FiX, FiBook } from "react-icons/fi";
 import {
   useKnowledgeBaseDoc,
   useCreateKnowledgeBaseDoc,
   useUpdateKnowledgeBaseDoc,
+  useKnowledgeBaseCategories,
 } from "../hooks/useKnowledgeBase";
 
 // TODO: UC-14 - Knowledge Base Form
@@ -13,7 +14,7 @@ import {
 // PATCH /knowledge-base/:id (update)
 // GET /knowledge-base/:id (get for editing)
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { value: "FAQ", label: "FAQ - Preguntas Frecuentes" },
   { value: "POLITICA", label: "Política - Reglas y normativas" },
   { value: "PROCEDIMIENTO", label: "Procedimiento - Guías paso a paso" },
@@ -37,6 +38,23 @@ export const KnowledgeBaseFormPage = () => {
   const { data: document, isLoading: isLoadingDoc } = useKnowledgeBaseDoc(id);
   const createMutation = useCreateKnowledgeBaseDoc();
   const updateMutation = useUpdateKnowledgeBaseDoc();
+  const { data: categories = [], isLoading: isLoadingCategories } =
+    useKnowledgeBaseCategories();
+
+  const categoryOptions = useMemo(() => {
+    if (Array.isArray(categories) && categories.length > 0) {
+      return categories.map((categoryValue) => {
+        const fallback = DEFAULT_CATEGORIES.find(
+          (cat) => cat.value === categoryValue,
+        );
+        return {
+          value: categoryValue,
+          label: fallback?.label || categoryValue,
+        };
+      });
+    }
+    return DEFAULT_CATEGORIES;
+  }, [categories]);
 
   useEffect(() => {
     if (document) {
@@ -142,9 +160,10 @@ export const KnowledgeBaseFormPage = () => {
               setFormData({ ...formData, categoria: e.target.value })
             }
             required
-            className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:border-dt-accent"
+            className="w-full px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:border-dt-accent disabled:opacity-60"
+            disabled={isLoadingCategories}
           >
-            {CATEGORIES.map((cat) => (
+            {categoryOptions.map((cat) => (
               <option key={cat.value} value={cat.value}>
                 {cat.label}
               </option>
@@ -225,7 +244,11 @@ export const KnowledgeBaseFormPage = () => {
         <div className="flex gap-3 pt-4 border-t border-dt-border">
           <button
             type="submit"
-            disabled={createMutation.isPending || updateMutation.isPending}
+            disabled={
+              createMutation.isPending ||
+              updateMutation.isPending ||
+              isLoadingCategories
+            }
             className="flex items-center gap-2 px-6 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiSave />

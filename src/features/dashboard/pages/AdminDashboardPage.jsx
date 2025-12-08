@@ -14,6 +14,21 @@ import { RollingNumber } from "@/shared/components/ui/RollingNumber";
 const AdminDashboardPage = () => {
   const [timeRange, setTimeRange] = useState("today"); // 'today' or 'last7Days'
 
+  const computeRange = (range) => {
+    const now = new Date();
+    const fechaHasta = now.toISOString();
+    if (range === "today") {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      return { fechaDesde: start.toISOString(), fechaHasta };
+    }
+    // last7Days
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+    return { fechaDesde: start.toISOString(), fechaHasta };
+  };
+
+  // Memoize computed range so `fechaHasta` (now) doesn't change every render
+  const { fechaDesde, fechaHasta } = React.useMemo(() => computeRange(timeRange), [timeRange]);
+
   const {
     data: dashboardData,
     isLoading,
@@ -21,8 +36,8 @@ const AdminDashboardPage = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["adminDashboard", timeRange],
-    queryFn: () => getAdminDashboardData(timeRange),
+    queryKey: ["adminDashboard", fechaDesde, fechaHasta],
+    queryFn: () => getAdminDashboardData({ fechaDesde, fechaHasta }),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

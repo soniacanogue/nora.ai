@@ -1,6 +1,27 @@
 // src/features/admin/integrations/api.js
 import { apiClient } from "@/shared/lib/apiClient";
 
+const normalizeLogResponse = (payload = {}) => {
+  const dataArray = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload.data)
+      ? payload.data
+      : Array.isArray(payload.logs)
+        ? payload.logs
+        : [];
+
+  const pagination = payload.pagination || {
+    page: payload.page ?? 1,
+    limit: payload.limit ?? dataArray.length,
+    total: payload.total ?? dataArray.length,
+  };
+
+  return {
+    data: dataArray,
+    pagination,
+  };
+};
+
 /**
  * UC-18: Integrations Management API
  * Backend endpoints:
@@ -10,7 +31,6 @@ import { apiClient } from "@/shared/lib/apiClient";
  * PATCH /integrations/:id - Update integration
  * DELETE /integrations/:id - Delete integration
  *
- * Missing endpoints (noted in analysis):
  * POST /integrations/:id/test - Test integration connection
  * GET /integrations/:id/logs - Get integration logs
  */
@@ -95,15 +115,10 @@ export const integrationsApi = {
    * @param {string} id - Integration ID
    * @returns {Promise<Array>} Integration logs
    */
-  getLogs: async (id) => {
-    try {
-      const response = await apiClient.get(`/integrations/${id}/logs`);
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 404) {
-        throw new Error("Endpoint de logs no disponible en el backend");
-      }
-      throw error;
-    }
+  getLogs: async (id, params = {}) => {
+    const response = await apiClient.get(`/integrations/${id}/logs`, {
+      params,
+    });
+    return normalizeLogResponse(response.data);
   },
 };

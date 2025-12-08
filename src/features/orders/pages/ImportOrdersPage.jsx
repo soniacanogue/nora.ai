@@ -7,7 +7,7 @@ import { useImportBatch } from "../hooks/useImport";
 import Button from "src/shared/components/ui/Button";
 import Select from "src/shared/components/ui/Select";
 
-const REQUIRED_FIELDS = ["orderId", "clientEmail", "status"];
+const REQUIRED_FIELDS = ["orderId", "emailCliente", "estado"];
 const BATCH_SIZE = 10;
 
 // Componente principal
@@ -216,8 +216,8 @@ const Step1Upload = ({ onFileSelect }) => (
       Paso 1: Selecciona tu archivo CSV
     </h2>
     <p className="text-dt-subtle mb-4">
-      El archivo debe contener las siguientes columnas: orderId, clientEmail,
-      status
+      El archivo debe contener las siguientes columnas: orderId, emailCliente,
+        estado
     </p>
     <div className="relative group">
       <input

@@ -86,11 +86,12 @@ export const useTestIntegration = () => {
 /**
  * Hook to get integration logs
  */
-export const useIntegrationLogs = (id) => {
+export const useIntegrationLogs = (id, params = {}) => {
   return useQuery({
-    queryKey: [INTEGRATIONS_QUERY_KEY, id, "logs"],
-    queryFn: () => integrationsApi.getLogs(id),
+    queryKey: [INTEGRATIONS_QUERY_KEY, id, "logs", params],
+    queryFn: () => integrationsApi.getLogs(id, params),
     enabled: !!id,
-    retry: false, // Don't retry if endpoint doesn't exist
+    retry: false,
+    keepPreviousData: true,
   });
 };

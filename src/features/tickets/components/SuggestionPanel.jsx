@@ -5,11 +5,14 @@ import Modal from "src/shared/components/ui/Modal";
 import toast from "react-hot-toast";
 
 // --- CORRECCIONES AÑADIDAS ---
+import { useReplyToTicket } from "../hooks/useReplyToTicket";
 import { useApproveTicket } from "../hooks/useApproveTicket";
 import { useEscalateTicket } from "../hooks/useEscalateTicket";
 import { useReassignTicket } from "../hooks/useReassignTicket";
 import { useRetrySuggestion } from "../hooks/useRetrySuggestion";
 import ReassignTicketModal from "./ReassignTicketModal"; // Importar el nuevo modal
+import { useTemplates } from "@/features/admin/templates/hooks";
+import { useApplyTemplate } from "../hooks/useApplyTemplate";
 // --- FIN DE LAS CORRECCIONES ---
 
 const getConfidenceColor = (confidence) => {
@@ -30,6 +33,7 @@ const SuggestionPanel = ({
   const [collisionDetected, setCollisionDetected] = useState(false);
   const [collisionAcknowledged, setCollisionAcknowledged] = useState(false);
   const [isPreparingReply, setIsPreparingReply] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
 
   const fileInputRef = useRef(null);
   const baselineFingerprintRef = useRef(
@@ -44,7 +48,7 @@ const SuggestionPanel = ({
   } = approvalContext || {};
 
   // Usamos los hooks de mutación
-  const { mutate: approve, isPending: isApproving } = useApproveTicket({
+  const { mutate: reply, isPending: isReplying } = useReplyToTicket({
     onSuccess: (...args) => {
       setSelectedFiles([]);
       setCollisionDetected(false);
@@ -56,10 +60,27 @@ const SuggestionPanel = ({
       }
     },
   });
+  const { mutate: approve, isPending: isApproving } = useApproveTicket();
   const { mutate: escalate, isPending: isEscalating } = useEscalateTicket();
   const { mutate: reassign, isPending: isReassigning } = useReassignTicket();
   const { mutate: retrySuggestion, isPending: isRetrying } =
     useRetrySuggestion();
+  const { data: templateList = [], isLoading: isLoadingTemplates } =
+    useTemplates({ key: "nombre", order: "asc" });
+  const { mutate: applyTemplate, isPending: isApplyingTemplate } =
+    useApplyTemplate({
+      onSuccess: (result) => {
+        const generatedBody =
+          result?.cuerpoGenerado ||
+          result?.cuerpo ||
+          result?.respuesta ||
+          result?.contenido ||
+          "";
+        if (generatedBody) {
+          setEditedReply(generatedBody);
+        }
+      },
+    });
 
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [escalationNote, setEscalationNote] = useState("");
@@ -74,6 +95,7 @@ const SuggestionPanel = ({
     setCollisionDetected(false);
     setCollisionAcknowledged(false);
     baselineFingerprintRef.current = latestMessageFingerprint || null;
+    setSelectedTemplateId("");
   }, [ticketId, latestMessageFingerprint]);
 
   const manualEdit = useMemo(() => {
@@ -138,18 +160,37 @@ const SuggestionPanel = ({
     try {
       setIsPreparingReply(true);
       const attachmentsPayload = await parseFilesToPayload(selectedFiles);
-      approve({
-        ticketId,
-        editedBody: editedReply,
-        attachments: attachmentsPayload,
-        manualEdit,
-        nextState,
-        replyChannel,
-        conversationFingerprint: latestMessageFingerprint,
-        collisionAcknowledged: collisionDetected
-          ? collisionAcknowledged
-          : false,
-      });
+      // First, call approve to record the approval (approve-ai). On success, send the visible reply.
+      approve(
+        {
+          ticketId,
+          editedBody: editedReply,
+          attachments: attachmentsPayload,
+          manualEdit,
+          nextState,
+          replyChannel,
+          conversationFingerprint: latestMessageFingerprint,
+          collisionAcknowledged: collisionDetected ? collisionAcknowledged : false,
+        },
+        {
+          onSuccess: () => {
+            // After successful approve, send the actual reply to the customer
+            reply({
+              ticketId,
+              contenidoTexto: editedReply,
+              archivos: attachmentsPayload,
+              esNotaInterna: false,
+              nuevoEstado: nextState,
+              canal: replyChannel,
+              conversationFingerprint: latestMessageFingerprint,
+              collisionAcknowledged: collisionDetected ? collisionAcknowledged : false,
+            });
+          },
+          onError: (err) => {
+            toast.error(err?.message || "Error al aprobar el ticket.");
+          },
+        },
+      );
     } catch (fileError) {
       toast.error(fileError.message || "No se pudieron preparar los adjuntos.");
     } finally {
@@ -186,10 +227,12 @@ const SuggestionPanel = ({
 
   const disableApproveAction =
     isApproving ||
+    isReplying ||
     isPreparingReply ||
     isEscalating ||
     isReassigning ||
     isRetrying ||
+    isApplyingTemplate ||
     (collisionDetected && !collisionAcknowledged);
 
   const handleEscalateConfirm = () => {
@@ -224,6 +267,7 @@ const SuggestionPanel = ({
     isEscalating ||
     isReassigning ||
     isRetrying ||
+    isApplyingTemplate ||
     isPreparingReply;
 
   const confidencePercent = suggestion.confidence
@@ -310,6 +354,50 @@ const SuggestionPanel = ({
             <span className="px-2 py-0.5 rounded-full border border-white/10 bg-white/5">
               Canal: {replyChannel?.toUpperCase?.() || replyChannel}
             </span>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <label className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-2 block">
+            Aplicar Plantilla Guardada
+          </label>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <select
+              value={selectedTemplateId}
+              onChange={(e) => setSelectedTemplateId(e.target.value)}
+              className="flex-1 px-4 py-2 bg-black/20 border border-white/10 rounded-md text-dt-foreground text-sm focus:outline-none focus:border-dt-accent disabled:opacity-50"
+              disabled={isLoadingTemplates || isApplyingTemplate}
+            >
+              <option value="">
+                {isLoadingTemplates
+                  ? "Cargando plantillas..."
+                  : "Selecciona una plantilla"}
+              </option>
+              {templateList?.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.nombre}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              onClick={() => {
+                if (!selectedTemplateId) {
+                  toast.error("Selecciona una plantilla para aplicar");
+                  return;
+                }
+                applyTemplate({ ticketId, templateId: selectedTemplateId });
+              }}
+              disabled={
+                !selectedTemplateId || isApplyingTemplate || isLoadingTemplates
+              }
+              className="justify-center"
+            >
+              {isApplyingTemplate ? "Aplicando..." : "Aplicar"}
+            </Button>
           </div>
         </div>
 

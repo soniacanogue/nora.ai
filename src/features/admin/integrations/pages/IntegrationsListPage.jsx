@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   FiLink,
   FiPlus,
@@ -31,12 +31,48 @@ import Badge from "@/shared/components/ui/Badge";
 import Modal from "@/shared/components/ui/Modal";
 import { formatDistanceToNow } from "@/shared/utils/formatters";
 
+const LOGS_PAGE_SIZE = 25;
+
 const IntegrationLogsModal = ({ integration, onClose }) => {
-  const { data: logs = [], isLoading, error } = useIntegrationLogs(
-    integration?.id
+  const [page, setPage] = useState(1);
+  const queryParams = useMemo(
+    () => ({ page, limit: LOGS_PAGE_SIZE }),
+    [page]
   );
 
+  useEffect(() => {
+    if (integration?.id) {
+      setPage(1);
+    }
+  }, [integration?.id]);
+
+  const {
+    data,
+    isLoading,
+    error,
+    isFetching,
+  } = useIntegrationLogs(integration?.id, queryParams);
+
   if (!integration) return null;
+
+  const logs = data?.data || data?.logs || [];
+  const pagination = data?.pagination || {};
+  const total = pagination.total ?? logs.length;
+  const currentPage = pagination.page ?? page;
+  const pageSize = pagination.limit ?? LOGS_PAGE_SIZE;
+  const totalPages = total
+    ? Math.max(1, Math.ceil(total / Math.max(pageSize, 1)))
+    : 1;
+  const rangeStart = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const rangeEnd = total === 0 ? 0 : Math.min(total, rangeStart + logs.length - 1);
+
+  const handlePrev = () => {
+    setPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNext = () => {
+    setPage((prev) => Math.min(totalPages, prev + 1));
+  };
 
   return (
     <Modal
@@ -56,34 +92,61 @@ const IntegrationLogsModal = ({ integration, onClose }) => {
         </p>
       )}
       {!isLoading && !error && logs.length > 0 && (
-        <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
-          {logs.map((log, index) => (
-            <div
-              key={log.id || index}
-              className="bg-dt-card border border-dt-border rounded-lg p-3"
-            >
-              <div className="flex items-center justify-between text-xs text-dt-subtle mb-2">
-                <span className="flex items-center gap-1">
-                  <FiClock />
-                  {log.timestamp
-                    ? formatDistanceToNow(new Date(log.timestamp))
-                    : "Sin marca"}
-                </span>
-                <Badge variant={log.level === "error" ? "danger" : "info"}>
-                  {log.level?.toUpperCase() || "INFO"}
-                </Badge>
+        <>
+          <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
+            {logs.map((log, index) => (
+              <div
+                key={log.id || index}
+                className="bg-dt-card border border-dt-border rounded-lg p-3"
+              >
+                <div className="flex items-center justify-between text-xs text-dt-subtle mb-2">
+                  <span className="flex items-center gap-1">
+                    <FiClock />
+                    {log.timestamp
+                      ? formatDistanceToNow(new Date(log.timestamp))
+                      : "Sin marca"}
+                  </span>
+                  <Badge variant={log.level === "error" ? "danger" : "info"}>
+                    {log.level?.toUpperCase() || "INFO"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-dt-foreground font-medium">
+                  {log.message || log.descripcion || "Evento registrado"}
+                </p>
+                {log.meta && (
+                  <pre className="mt-2 text-[11px] text-dt-subtle bg-black/30 rounded p-2 overflow-x-auto">
+                    {JSON.stringify(log.meta, null, 2)}
+                  </pre>
+                )}
               </div>
-              <p className="text-sm text-dt-foreground font-medium">
-                {log.message || log.descripcion || "Evento registrado"}
-              </p>
-              {log.meta && (
-                <pre className="mt-2 text-[11px] text-dt-subtle bg-black/30 rounded p-2 overflow-x-auto">
-                  {JSON.stringify(log.meta, null, 2)}
-                </pre>
-              )}
+            ))}
+          </div>
+          <div className="flex items-center justify-between mt-4 text-xs text-dt-subtle">
+            <span>
+              Mostrando {rangeStart}-{rangeEnd} de {total || logs.length} eventos
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                fullWidth={false}
+                onClick={handlePrev}
+                disabled={currentPage <= 1 || isLoading || isFetching}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                fullWidth={false}
+                onClick={handleNext}
+                disabled={currentPage >= totalPages || isLoading || isFetching}
+              >
+                Siguiente
+              </Button>
             </div>
-          ))}
-        </div>
+          </div>
+        </>
       )}
     </Modal>
   );
@@ -99,12 +162,28 @@ export const IntegrationsListPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIntegrationForLogs, setSelectedIntegrationForLogs] =
     useState(null);
+  const [integrationCapabilities, setIntegrationCapabilities] = useState({
+    canTest: true,
+    canViewLogs: true,
+  });
 
   const { data: integrations = [], isLoading, error } = useIntegrations();
   const createIntegrationMutation = useCreateIntegration();
   const updateIntegrationMutation = useUpdateIntegration();
   const deleteIntegrationMutation = useDeleteIntegration();
   const testIntegrationMutation = useTestIntegration();
+
+  const handleCapabilityUnavailable = (capabilityKey, message) => {
+    let shouldAnnounce = false;
+    setIntegrationCapabilities((prev) => {
+      if (!prev[capabilityKey]) return prev;
+      shouldAnnounce = true;
+      return { ...prev, [capabilityKey]: false };
+    });
+    if (shouldAnnounce) {
+      toast.error(message);
+    }
+  };
 
   const getHealthSnapshot = (integration) => ({
     status:
@@ -224,7 +303,11 @@ export const IntegrationsListPage = () => {
     );
   };
 
-  const handleTest = async (integration) => {
+  const handleTest = (integration) => {
+    if (!integrationCapabilities.canTest) {
+      toast.error("El backend aún no habilita la prueba de integraciones.");
+      return;
+    }
     const toastId = `test-integration-${integration.id}`;
     toast.loading("Probando conexión...", { id: toastId });
     testIntegrationMutation.mutate(integration.id, {
@@ -232,11 +315,24 @@ export const IntegrationsListPage = () => {
         toast.success("Conexión exitosa", { id: toastId });
       },
       onError: (err) => {
-        toast.error(err.message || "Error en la conexión", {
-          id: toastId,
-        });
+        const message = err.message || "Error en la conexión";
+        toast.error(message, { id: toastId });
+        if (message.toLowerCase().includes("no disponible")) {
+          handleCapabilityUnavailable(
+            "canTest",
+            "El backend aún no habilita la prueba de integraciones."
+          );
+        }
       },
     });
+  };
+
+  const handleViewLogs = (integration) => {
+    if (!integrationCapabilities.canViewLogs) {
+      toast.error("Los logs de integraciones aún no están disponibles.");
+      return;
+    }
+    setSelectedIntegrationForLogs(integration);
   };
 
   const integrationFormConfig = {
@@ -491,6 +587,7 @@ export const IntegrationsListPage = () => {
                     fullWidth={false}
                     onClick={() => handleTest(integration)}
                     isLoading={testIntegrationMutation.isPending}
+                    disabled={!integrationCapabilities.canTest}
                   >
                     <span className="flex items-center gap-2">
                       <FiPlay /> Probar conexión
@@ -500,7 +597,8 @@ export const IntegrationsListPage = () => {
                     variant="ghost"
                     size="sm"
                     fullWidth={false}
-                    onClick={() => setSelectedIntegrationForLogs(integration)}
+                    onClick={() => handleViewLogs(integration)}
+                    disabled={!integrationCapabilities.canViewLogs}
                   >
                     <span className="flex items-center gap-2">
                       <FiList /> Ver logs

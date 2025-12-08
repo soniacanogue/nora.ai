@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTicket } from "../hooks/useTicket"; // Hook ya refactorizado
 import ConversationBubble from "../components/ConversationBubble";
 import SuggestionPanel from "../components/SuggestionPanel";
+import Modal from "src/shared/components/ui/Modal";
+import { useCreateMessage } from "../hooks/useCreateMessage";
 import OrderInfoPanel from "../components/OrderInfoPanel";
 import Button from "src/shared/components/ui/Button";
 import { useTicketQueue } from "../hooks/useTicketQueue"; // NUEVO Hook para navegación
@@ -31,13 +33,25 @@ const normalizeAttachments = (message) => {
       file.peso ??
       null;
 
+    const remoteFileId =
+      file.storageId ||
+      file.storage_id ||
+      file.uploadId ||
+      file.upload_id ||
+      file.fileId ||
+      file.file_id ||
+      file.uuid ||
+      file.attachmentId ||
+      file.attachment_id ||
+      file.id ||
+      null;
+
     return {
       id:
+        remoteFileId ||
         file.id ||
-        file.uuid ||
-        file.storageId ||
-        file.attachmentId ||
         `${message?.id || message?.mensajeId || "msg"}-${index}`,
+      fileId: remoteFileId,
       name:
         file.nombre ||
         file.nombreArchivo ||
@@ -56,6 +70,7 @@ const normalizeAttachments = (message) => {
       mimeType:
         file.mimeType || file.tipoMime || file.tipoContenido || file.tipo || "",
       size,
+      metadata: file.metadata,
     };
   });
 };
@@ -104,6 +119,10 @@ const TicketDetailPage = () => {
 
   // Usamos el hook useTicket que ahora es useQuery
   const { data: ticket, isLoading, isError, error } = useTicket(ticketId);
+
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const { mutate: createMessage, isPending: isCreatingMessage } = useCreateMessage();
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof EventSource === "undefined") {
@@ -203,7 +222,7 @@ const TicketDetailPage = () => {
       navigate(`/tickets/${nextTicketId}`);
     } else {
       // Si no hay más tickets, volvemos a la lista
-      navigate("/tickets?status=ia_sugerido");
+      navigate("/tickets?estado=ia_sugerido");
     }
   };
 
@@ -404,12 +423,59 @@ const TicketDetailPage = () => {
         {/* Columna Derecha (Panel de Acción Sticky) */}
         <div className="lg:col-span-1">
           <div className="sticky top-8 space-y-6">
-            <SuggestionPanel
-              suggestion={aiSuggestion}
-              ticketId={ticketId}
-              onApprovalSuccess={handleApprovalSuccess} // Pasamos el callback
-              approvalContext={approvalContext}
-            />
+              <SuggestionPanel
+                suggestion={aiSuggestion}
+                ticketId={ticketId}
+                onApprovalSuccess={handleApprovalSuccess} // Pasamos el callback
+                approvalContext={approvalContext}
+              />
+
+              {/* Botón para crear nota interna rápida */}
+              <div className="mt-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsNoteModalOpen(true)}
+                >
+                  📝 Añadir nota interna
+                </Button>
+              </div>
+
+              <Modal
+                isOpen={isNoteModalOpen}
+                onClose={() => setIsNoteModalOpen(false)}
+                title="Nueva Nota Interna"
+              >
+                <textarea
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  rows={6}
+                  className="w-full mt-1 p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground text-sm"
+                  placeholder="Escribe una nota interna visible solo para agentes..."
+                />
+                <div className="flex justify-end gap-4 mt-4">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    fullWidth={false}
+                    onClick={() => setIsNoteModalOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    fullWidth={false}
+                    onClick={() => {
+                      createMessage({ ticketId, contenidoTexto: noteText, esNotaInterna: true });
+                      setIsNoteModalOpen(false);
+                      setNoteText("");
+                    }}
+                  >
+                    Guardar Nota
+                  </Button>
+                </div>
+              </Modal>
 
             {/* Metadata adicional del ticket podría ir aquí */}
             <div className="bg-white/5 rounded-lg p-4 border border-white/5">

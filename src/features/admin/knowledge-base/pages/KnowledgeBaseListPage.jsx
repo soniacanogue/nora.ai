@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiPlus,
@@ -11,6 +11,7 @@ import {
 import {
   useKnowledgeBaseDocs,
   useDeleteKnowledgeBaseDoc,
+  useKnowledgeBaseCategories,
 } from "../hooks/useKnowledgeBase";
 
 // TODO: UC-14 - Knowledge Base Management UI
@@ -37,17 +38,53 @@ export const KnowledgeBaseListPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+
+  const filters = useMemo(
+    () => ({
+      search: searchTerm.trim() || undefined,
+      category: categoryFilter || undefined,
+      page,
+      limit: PAGE_SIZE,
+    }),
+    [searchTerm, categoryFilter, page],
+  );
 
   const {
-    data: documents = [],
+    data: listData,
     isLoading,
+    isFetching,
     error,
-  } = useKnowledgeBaseDocs({
-    search: searchTerm,
-    category: categoryFilter,
-  });
+  } = useKnowledgeBaseDocs(filters);
+
+  const { data: categoryOptions = [], isLoading: isLoadingCategories } =
+    useKnowledgeBaseCategories();
+
+  const documents = listData?.documents || [];
+  const pagination = listData?.pagination || {
+    pagina: page,
+    limite: PAGE_SIZE,
+    total: documents.length,
+  };
+
+  const currentPage = pagination.pagina || page;
+  const totalDocuments = pagination.total ?? documents.length;
+  const totalPages = Math.max(
+    1,
+    Math.ceil((pagination.total || documents.length || 1) / (pagination.limite || PAGE_SIZE)),
+  );
+  const showingStart = totalDocuments === 0 ? 0 : (currentPage - 1) * (pagination.limite || PAGE_SIZE) + 1;
+  const showingEnd = totalDocuments === 0 ? 0 : showingStart + documents.length - 1;
 
   const deleteDocMutation = useDeleteKnowledgeBaseDoc();
+
+  const normalizedCategories = useMemo(() => {
+    if (Array.isArray(categoryOptions) && categoryOptions.length > 0) {
+      return categoryOptions;
+    }
+    return Object.keys(CATEGORY_LABELS);
+  }, [categoryOptions]);
 
   const handleDelete = async (id) => {
     if (
@@ -65,6 +102,25 @@ export const KnowledgeBaseListPage = () => {
     navigate("/admin/knowledge-base/new");
   };
 
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    if (page !== 1) {
+      setPage(1);
+    }
+  };
+
+  const handleCategoryChange = (event) => {
+    setCategoryFilter(event.target.value);
+    if (page !== 1) {
+      setPage(1);
+    }
+  };
+
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -74,15 +130,66 @@ export const KnowledgeBaseListPage = () => {
   }
 
   if (error) {
+    const errorMessage = error.message || "Backend endpoint no implementado aún";
+    const backendUnavailable = errorMessage.toLowerCase().includes("backend");
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">
-            Error al cargar la base de conocimiento
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <FiBook className="text-2xl text-dt-accent" />
+            <div>
+              <h1 className="text-2xl font-bold text-dt-foreground">
+                Base de Conocimiento
+              </h1>
+              <p className="text-sm text-dt-subtle">
+                Gestiona documentos, FAQs y políticas para la IA
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/admin/dashboard")}
+            className="flex items-center gap-2 px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground hover:bg-dt-background transition-colors"
+          >
+            Volver al panel
+          </button>
+        </div>
+
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-5 text-sm text-amber-100">
+          <p className="font-semibold mb-1">Servicio no disponible</p>
+          <p>
+            {backendUnavailable
+              ? "Aún no existe el endpoint /knowledge-base en el backend. Revisa Front-Endpoints-Guide.md para priorizar su implementación."
+              : errorMessage}
           </p>
-          <p className="text-dt-subtle text-sm">
-            {error.message || "Backend endpoint no implementado aún"}
+        </div>
+
+        <div className="bg-dt-card border border-dt-border rounded-lg p-6 space-y-4 text-sm text-dt-subtle">
+          <p>
+            Mientras el backend no exponga la API, puedes avanzar documentando los requisitos en
+            <span className="font-mono text-dt-foreground"> TODO_FRONTEND_IMPLEMENTATION.md </span>
+            y preparando los esquemas de datos en el archivo Prisma.
           </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Define categorías y metadatos obligatorios de cada documento.</li>
+            <li>Sincroniza con el equipo de backend los parámetros esperados (paginación, filtros).</li>
+            <li>Documenta ejemplos de payloads en <span className="font-mono">Front-Endpoints-Guide.md</span>.</li>
+          </ul>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors"
+            >
+              Reintentar carga
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/admin/templates")}
+              className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground hover:bg-dt-background transition-colors"
+            >
+              Seguir con otra sección
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -120,23 +227,28 @@ export const KnowledgeBaseListPage = () => {
             type="text"
             placeholder="Buscar documentos..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full pl-10 pr-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground placeholder-dt-subtle focus:outline-none focus:border-dt-accent"
           />
         </div>
         <select
           value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:border-dt-accent"
+          onChange={handleCategoryChange}
+          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:border-dt-accent disabled:opacity-60"
+          disabled={isLoadingCategories}
         >
           <option value="">Todas las categorías</option>
-          {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
+          {normalizedCategories.map((category) => (
+            <option key={category} value={category}>
+              {CATEGORY_LABELS[category] || category}
             </option>
           ))}
         </select>
       </div>
+
+      {isFetching && !isLoading && (
+        <div className="text-xs text-dt-subtle font-mono">Actualizando resultados...</div>
+      )}
 
       {/* Documents List */}
       {documents.length === 0 ? (
@@ -153,7 +265,7 @@ export const KnowledgeBaseListPage = () => {
           </button>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {documents.map((doc) => (
             <div
               key={doc.id}
@@ -219,6 +331,36 @@ export const KnowledgeBaseListPage = () => {
               </div>
             </div>
           ))}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-t border-dt-border pt-4 mt-6">
+            <p className="text-sm text-dt-subtle">
+              {totalDocuments === 0
+                ? "Sin resultados"
+                : `Mostrando ${showingStart} - ${showingEnd} de ${totalDocuments} documentos`}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage <= 1}
+                className="px-3 py-1 border border-dt-border rounded-lg text-sm text-dt-foreground disabled:opacity-40"
+              >
+                Anterior
+              </button>
+              <span className="text-sm text-dt-subtle font-mono">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  handlePageChange(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage >= totalPages}
+                className="px-3 py-1 border border-dt-border rounded-lg text-sm text-dt-foreground disabled:opacity-40"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

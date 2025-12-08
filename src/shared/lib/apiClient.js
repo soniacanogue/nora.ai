@@ -21,7 +21,26 @@ class ApiClient {
   }
 
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    // Support optional params object in options to build query string
+    let endpointWithParams = endpoint;
+    if (options.params && typeof options.params === "object") {
+      try {
+        const search = new URLSearchParams();
+        Object.entries(options.params).forEach(([k, v]) => {
+          if (v === undefined || v === null) return;
+          if (typeof v === "string" && v.trim() === "") return;
+          search.append(k, String(v));
+        });
+        const qs = search.toString();
+        if (qs) {
+          endpointWithParams = `${endpoint}${endpoint.includes("?") ? "&" : "?"}${qs}`;
+        }
+      } catch (e) {
+        console.warn("Failed to build query params", e);
+      }
+    }
+
+    const url = `${this.baseURL}${endpointWithParams}`;
     const headers = {
       "Content-Type": "application/json",
       ...this.getAuthHeaders(),
@@ -131,6 +150,49 @@ class ApiClient {
       return { data, status: response.status };
     } catch (error) {
       console.error("File upload failed:", error);
+      throw error;
+    }
+  }
+
+  async download(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const headers = {
+      ...this.getAuthHeaders(),
+      ...options.headers,
+    };
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        method: options.method || "GET",
+        headers,
+      });
+
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.warn("No se pudo parsear el error binario", parseError);
+        }
+
+        const error = new Error(
+          errorData.message || `HTTP error! status: ${response.status}`,
+        );
+        error.status = response.status;
+        error.data = errorData;
+        throw error;
+      }
+
+      const blob = await response.blob();
+      const headersMap = {};
+      response.headers.forEach((value, key) => {
+        headersMap[key.toLowerCase()] = value;
+      });
+
+      return { blob, status: response.status, headers: headersMap };
+    } catch (error) {
+      console.error("Binary download failed:", error);
       throw error;
     }
   }

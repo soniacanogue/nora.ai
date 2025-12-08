@@ -24,48 +24,63 @@ const defaultTicket = {
  * @param {boolean} includeDetails - If details should be included.
  * @returns {Promise<Array>}
  */
-export const getTickets = async (
-  filters = {},
-  sort = { key: "creadoEn", order: "asc" },
-  includeDetails = true,
-) => {
-  console.log(
-    "Fetching ticket list with filters:",
-    filters,
-    "and sort:",
-    sort,
-    "includeDetails:",
-    includeDetails,
-  );
-
+/**
+ * Filtros soportados: estado, assigneeId, clienteId, ordenId, prioridad, canal
+ * @param {object} filters
+ *   - estado: string
+ *   - assigneeId: string (UUID)
+ *   - clienteId: string (UUID)
+ *   - ordenId: string (UUID)
+ *   - prioridad: string
+ *   - canal: string
+ * @returns {Promise<Array>}
+ */
+export const getTickets = async (filters = {}) => {
+  console.log("Fetching ticket list with filters:", filters);
   try {
-    // Build query params
     const params = new URLSearchParams();
 
-    // Map 'status' filter to 'estado' query param
-    if (filters.status) {
-      params.append("estado", filters.status);
-    }
-    if (filters.assigneeId) {
-      params.append("assigneeId", filters.assigneeId);
-    }
-    if (sort.key) {
-      params.append("sortBy", sort.key);
-    }
-    if (sort.order) {
-      params.append("sortOrder", sort.order);
-    }
-    if (includeDetails !== undefined) {
-      params.append("includeDetails", includeDetails.toString());
-    }
+    const add = (key, value) => {
+      if (value === undefined || value === null) return;
+      // Convert empty strings to undefined to avoid backend validation errors
+      if (typeof value === "string" && value.trim() === "") return;
+      params.append(key, String(value));
+    };
+
+    add("estado", filters.estado);
+    add("assigneeId", filters.assigneeId || filters.assignee);
+    add("clienteId", filters.clienteId);
+    add("ordenId", filters.ordenId);
+    add("prioridad", filters.prioridad);
+    add("canal", filters.canal);
+    add("page", filters.page);
+    add("limit", filters.limit);
 
     const queryString = params.toString();
     const endpoint = `/tickets${queryString ? `?${queryString}` : ""}`;
-
     const { data } = await apiClient.get(endpoint);
 
-    // Ensure we return an array
-    return Array.isArray(data) ? data : [];
+    // Backend may return either an array (legacy) or an object { data: [], pagination: {} }
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (data && Array.isArray(data.data)) {
+      const arr = data.data;
+      try {
+        Object.defineProperty(arr, "pagination", {
+          value: data.pagination || null,
+          enumerable: false,
+          writable: false,
+        });
+      } catch {
+        // ignore if defineProperty fails in some environments
+        arr.pagination = data.pagination || null;
+      }
+      return arr;
+    }
+
+    return [];
   } catch (error) {
     console.error("Failed to fetch tickets:", error);
     return [];
@@ -128,6 +143,7 @@ export const approveTicket = async (ticketId, payload = {}) => {
 
   const {
     nextState,
+    nuevoEstado,
     replyChannel,
     attachments,
     manualEdit,
@@ -136,8 +152,9 @@ export const approveTicket = async (ticketId, payload = {}) => {
     ...rest
   } = payload;
 
+  // Support both frontend `nextState` and backend `nuevoEstado` naming
   const body = {
-    estado: nextState || rest.estado || "esperando_cliente",
+    estado: nuevoEstado || nextState || rest.estado || "esperando_cliente",
     replyChannel,
     canalRespuesta: replyChannel,
     manualEdit,
@@ -164,10 +181,153 @@ export const approveTicket = async (ticketId, payload = {}) => {
   );
 
   try {
-    const { data } = await apiClient.patch(`/tickets/${ticketId}`, sanitizedBody);
+    // Backend exposes a specific endpoint to approve AI suggestions
+    const { data } = await apiClient.post(
+      `/tickets/${ticketId}/approve-ai`,
+      sanitizedBody,
+    );
     return { success: true, ticketId, data };
   } catch (error) {
     console.error(`Failed to approve ticket ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Sends a reply to the customer (visible to client).
+ * Distinct from `createMessage` which can create internal notes.
+ * @param {string} ticketId
+ * @param {{contenidoTexto: string, nuevoEstado?: string, archivos?: Array, canal?: string}} payload
+ */
+export const replyToTicket = async (ticketId, payload = {}) => {
+  if (!ticketId) throw new Error("ticketId is required");
+
+  const body = {
+    contenidoTexto: payload.contenidoTexto || payload.reply_text || "",
+    nuevoEstado: payload.nuevoEstado || payload.estado || undefined,
+    archivos: payload.archivos || payload.attachments || undefined,
+    canal: payload.canal || payload.replyChannel || undefined,
+  };
+
+  const sanitized = Object.fromEntries(
+    Object.entries(body).filter(([, v]) => v !== undefined && v !== null),
+  );
+
+  try {
+    const { data } = await apiClient.post(`/tickets/${ticketId}/reply`, sanitized);
+    return data;
+  } catch (error) {
+    console.error(`Failed to reply to ticket ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Creates a message attached to a ticket. Can be an internal note (`esNotaInterna: true`).
+ * @param {string} ticketId
+ * @param {{contenidoTexto: string, esNotaInterna?: boolean, archivos?: Array}} payload
+ */
+export const createMessage = async (ticketId, payload = {}) => {
+  if (!ticketId) throw new Error("ticketId is required");
+
+  const body = {
+    contenidoTexto: payload.contenidoTexto || payload.text || "",
+    esNotaInterna: Boolean(payload.esNotaInterna),
+    archivos: payload.archivos || payload.attachments || undefined,
+  };
+
+  const sanitized = Object.fromEntries(
+    Object.entries(body).filter(([, v]) => v !== undefined && v !== null),
+  );
+
+  try {
+    const { data } = await apiClient.post(`/tickets/${ticketId}/messages`, sanitized);
+    return data;
+  } catch (error) {
+    console.error(`Failed to create message for ticket ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Add a tag to a ticket by name.
+ */
+export const addTagToTicket = async (ticketId, tagName) => {
+  if (!ticketId || !tagName) throw new Error("ticketId and tagName are required");
+  try {
+    const { data } = await apiClient.post(`/tickets/${ticketId}/tags/${encodeURIComponent(tagName)}`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to add tag ${tagName} to ticket ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Remove a tag from a ticket by name.
+ */
+export const removeTagFromTicket = async (ticketId, tagName) => {
+  if (!ticketId || !tagName) throw new Error("ticketId and tagName are required");
+  try {
+    const { data } = await apiClient.delete(`/tickets/${ticketId}/tags/${encodeURIComponent(tagName)}`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to remove tag ${tagName} from ticket ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Find merge candidates for a ticket.
+ */
+export const findMergeCandidates = async (ticketId) => {
+  if (!ticketId) throw new Error("ticketId is required");
+  try {
+    const { data } = await apiClient.get(`/tickets/${ticketId}/merge-candidates`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch merge candidates for ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Merge a ticket into another ticket. Body: { targetTicketId }
+ */
+export const mergeTicket = async (ticketId, targetTicketId) => {
+  if (!ticketId || !targetTicketId) throw new Error("ticketId and targetTicketId are required");
+  try {
+    const { data } = await apiClient.post(`/tickets/${ticketId}/merge`, { targetTicketId });
+    return data;
+  } catch (error) {
+    console.error(`Failed to merge ticket ${ticketId} into ${targetTicketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Export tickets to CSV with optional filters.
+ * @param {object} filters
+ */
+export const exportTicketsToCsv = async (filters = {}) => {
+  try {
+    const { data } = await apiClient.post(`/tickets/export`, filters || {});
+    return data;
+  } catch (error) {
+    console.error("Failed to export tickets:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a public ticket (no auth) from web form.
+ */
+export const createPublicTicket = async (ticketData) => {
+  try {
+    const { data } = await apiClient.post(`/public/tickets`, ticketData || {});
+    return data;
+  } catch (error) {
+    console.error("Failed to create public ticket:", error);
     throw error;
   }
 };
@@ -183,11 +343,10 @@ export const escalateTicket = async (ticketId, note) => {
     `Executing action 'escalate' on ticket ${ticketId} with note:`,
     note,
   );
-
   try {
-    const { data } = await apiClient.patch(`/tickets/${ticketId}`, {
-      estado: "escalado_nivel_2",
-      nota: note,
+    // Use semantic endpoint `/tickets/:id/escalate` (POST) per backend contract
+    const { data } = await apiClient.post(`/tickets/${ticketId}/escalate`, {
+      note: note,
     });
     return {
       success: true,
@@ -210,9 +369,9 @@ export const reassignTicket = async (ticketId, newAssigneeId) => {
   console.log(
     `Executing action 'reassign' on ticket ${ticketId} to agent ${newAssigneeId}`,
   );
-
   try {
-    const { data } = await apiClient.patch(`/tickets/${ticketId}`, {
+    // Backend exposes `/tickets/:id/reassign` as POST with body { assigneeId, note? }
+    const { data } = await apiClient.post(`/tickets/${ticketId}/reassign`, {
       assigneeId: newAssigneeId,
     });
     return {
@@ -284,4 +443,82 @@ export const retryTicketSuggestion = async (ticketId) => {
     console.error(`Failed to retry suggestion for ticket ${ticketId}:`, error);
     throw error;
   }
+};
+
+const parseFileNameFromDisposition = (headerValue = "") => {
+  if (!headerValue) return null;
+
+  const utf8Match = headerValue.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1]);
+    } catch {
+      return utf8Match[1];
+    }
+  }
+
+  const asciiMatch = headerValue.match(/filename="?([^";]+)"?/i);
+  if (asciiMatch?.[1]) {
+    return asciiMatch[1];
+  }
+
+  return null;
+};
+
+export const applyTemplateToTicket = async ({
+  ticketId,
+  templateId,
+  overwriteSuggestion = false,
+} = {}) => {
+  if (!ticketId || !templateId) {
+    throw new Error("ticketId and templateId are required");
+  }
+
+  const endpoint = `/tickets/${ticketId}/apply-template/${templateId}`;
+  const body = overwriteSuggestion ? { sobreescribirRespuesta: true } : {};
+
+  try {
+    const { data } = await apiClient.post(endpoint, body);
+    return data;
+  } catch (error) {
+    console.error("Failed to apply template", error);
+    throw error;
+  }
+};
+
+export const getAttachmentMetadata = async (fileId) => {
+  if (!fileId) {
+    throw new Error("fileId is required to fetch metadata");
+  }
+
+  try {
+    const { data } = await apiClient.get(`/uploads/${fileId}/metadata`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to load metadata for file ${fileId}`, error);
+    throw error;
+  }
+};
+
+export const downloadAttachmentFile = async (fileId) => {
+  if (!fileId) {
+    throw new Error("fileId is required to download an attachment");
+  }
+
+  const { blob, headers } = await apiClient.download(
+    `/uploads/${fileId}/download`,
+  );
+
+  const fileName =
+    parseFileNameFromDisposition(headers?.["content-disposition"]) ||
+    `archivo-${fileId}`;
+
+  return {
+    blob,
+    fileName,
+    mimeType: headers?.["content-type"] || "application/octet-stream",
+    size: headers?.["content-length"]
+      ? Number(headers["content-length"])
+      : undefined,
+  };
 };

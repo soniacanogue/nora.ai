@@ -31,7 +31,7 @@ const NewTicketPage = () => {
         prioridad: "media",
         asunto: data.subject,
         mensajeInicial: data.message,
-        correoCliente: data.email,
+        emailCliente: data.email,
         nombreCliente: data.name,
         ordenId: data.orderId || null,
         archivos: files.map((f) => ({

@@ -67,21 +67,24 @@ const defaultAdminDashboardData = {
  * @param {string} timeRange - 'today' or 'thisWeek'
  * @returns {Promise<object>} A promise that resolves with the dashboard data.
  */
-export const getAgentDashboardData = async (agentId, timeRange = "today") => {
-  if (!agentId) {
-    console.error("getAgentDashboardData called without an agentId.");
-    return Promise.reject(new Error("Agent ID is required."));
+
+/**
+ * Nueva versión: usa agenteId, fechaDesde, fechaHasta (ISO 8601) como requiere el backend.
+ * @param {string} agenteId - UUID del agente (opcional, para admins/supervisores)
+ * @param {string} fechaDesde - Fecha inicio (ISO 8601)
+ * @param {string} fechaHasta - Fecha fin (ISO 8601)
+ * @returns {Promise<object>}
+ */
+export const getAgentDashboardData = async ({ agenteId, fechaDesde, fechaHasta }) => {
+  if (!fechaDesde || !fechaHasta) {
+    throw new Error("Debe especificar fechaDesde y fechaHasta en formato ISO 8601");
   }
-  console.log(
-    `Fetching dashboard data for agent: ${agentId}, timeRange: ${timeRange}...`,
-  );
-
+  const params = new URLSearchParams();
+  if (agenteId) params.append("agenteId", agenteId);
+  params.append("fechaDesde", fechaDesde);
+  params.append("fechaHasta", fechaHasta);
   try {
-    const { data } = await apiClient.get(
-      `/dashboards/agent?agentId=${agentId}&timeRange=${timeRange}`,
-    );
-
-    // Merge with defaults to ensure all expected properties exist
+    const { data } = await apiClient.get(`/dashboards/agent?${params.toString()}`);
     return {
       ...defaultAgentDashboardData,
       ...data,
@@ -108,16 +111,7 @@ export const getAgentDashboardData = async (agentId, timeRange = "today") => {
           : defaultAgentDashboardData.recentActivity,
     };
   } catch (error) {
-    // Log detailed error information for debugging
     console.error("Failed to fetch agent dashboard data:", error);
-    if (error.status === 401) {
-      console.warn("Agent dashboard: Authentication failed - token may be expired");
-    } else if (error.status === 403) {
-      console.warn("Agent dashboard: Access forbidden for this user");
-    } else if (error.status >= 500) {
-      console.warn("Agent dashboard: Server error - backend may be unavailable");
-    }
-    // Return default data on error to prevent UI from breaking
     return { ...defaultAgentDashboardData, _error: true, _errorStatus: error.status };
   }
 };
@@ -127,15 +121,25 @@ export const getAgentDashboardData = async (agentId, timeRange = "today") => {
  * @param {string} timeRange - 'today' or 'last7Days'
  * @returns {Promise<object>} A promise that resolves with the dashboard data.
  */
-export const getAdminDashboardData = async (timeRange = "today") => {
-  console.log(`Fetching admin dashboard data, timeRange: ${timeRange}...`);
 
+/**
+ * Nueva versión: usa fechaDesde, fechaHasta, agenteId (opcional) como requiere el backend.
+ * @param {Object} params
+ * @param {string} params.fechaDesde - Fecha inicio (ISO 8601)
+ * @param {string} params.fechaHasta - Fecha fin (ISO 8601)
+ * @param {string} [params.agenteId] - UUID del agente (opcional)
+ * @returns {Promise<object>}
+ */
+export const getAdminDashboardData = async ({ fechaDesde, fechaHasta, agenteId }) => {
+  if (!fechaDesde || !fechaHasta) {
+    throw new Error("Debe especificar fechaDesde y fechaHasta en formato ISO 8601");
+  }
+  const params = new URLSearchParams();
+  params.append("fechaDesde", fechaDesde);
+  params.append("fechaHasta", fechaHasta);
+  if (agenteId) params.append("agenteId", agenteId);
   try {
-    const { data } = await apiClient.get(
-      `/dashboards/admin?timeRange=${timeRange}`,
-    );
-
-    // Merge with defaults to ensure all expected properties exist
+    const { data } = await apiClient.get(`/dashboards/admin?${params.toString()}`);
     return {
       ...defaultAdminDashboardData,
       ...data,
@@ -159,16 +163,7 @@ export const getAdminDashboardData = async (timeRange = "today") => {
       },
     };
   } catch (error) {
-    // Log detailed error information for debugging
     console.error("Failed to fetch admin dashboard data:", error);
-    if (error.status === 401) {
-      console.warn("Admin dashboard: Authentication failed - token may be expired");
-    } else if (error.status === 403) {
-      console.warn("Admin dashboard: Access forbidden for this user");
-    } else if (error.status >= 500) {
-      console.warn("Admin dashboard: Server error - backend may be unavailable");
-    }
-    // Return default data on error to prevent UI from breaking
     return { ...defaultAdminDashboardData, _error: true, _errorStatus: error.status };
   }
 };

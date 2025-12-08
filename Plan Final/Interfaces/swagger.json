@@ -1,0 +1,3709 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/profile": {
+      "get": {
+        "operationId": "AppController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener perfil del usuario autenticado (root)",
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/hello": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Endpoint de prueba - devuelve un saludo",
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/loginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Token de acceso generado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Iniciar sesión y obtener token de acceso",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correo de recuperación enviado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No se pudo iniciar la recuperación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Solicitar correo de recuperación de contraseña",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contraseña restablecida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Token inválido o error al actualizar la contraseña",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verificar token y restablecer contraseña",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/audit/logs": {
+      "get": {
+        "operationId": "AuditController_findAll",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por ID de usuario que generó el evento",
+            "schema": {
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "type": "string"
+            }
+          },
+          {
+            "name": "tabla",
+            "required": false,
+            "in": "query",
+            "description": "Nombre de la tabla o recurso auditado",
+            "schema": {
+              "example": "tickets",
+              "type": "string"
+            }
+          },
+          {
+            "name": "tipoEvento",
+            "required": false,
+            "in": "query",
+            "description": "Tipo de evento (CREATE, UPDATE, DELETE, etc.)",
+            "schema": {
+              "example": "UPDATE",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fechaDesde",
+            "required": false,
+            "in": "query",
+            "description": "Fecha desde (ISO 8601) para filtrar eventos",
+            "schema": {
+              "example": "2025-12-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fechaHasta",
+            "required": false,
+            "in": "query",
+            "description": "Fecha hasta (ISO 8601) para filtrar eventos",
+            "schema": {
+              "example": "2025-12-07T23:59:59Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página de resultados (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Cantidad de resultados por página",
+            "schema": {
+              "minimum": 1,
+              "default": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener logs de auditoría (Solo Admin)",
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/users": {
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUserDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear un nuevo usuario",
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar usuarios (filtros opcionales)",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "operationId": "UsersController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener perfil del usuario autenticado",
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar perfil del usuario autenticado",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener usuario por ID",
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar usuario por ID",
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar usuario por ID",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/change-password": {
+      "post": {
+        "operationId": "UsersController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contraseña cambiada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambiar la contraseña de un usuario (admin)",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/tickets": {
+      "post": {
+        "operationId": "TicketsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ticket creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear ticket",
+        "tags": [
+          "Tickets"
+        ]
+      },
+      "get": {
+        "operationId": "TicketsController_findAll",
+        "parameters": [
+          {
+            "name": "estado",
+            "required": false,
+            "in": "query",
+            "description": "Filter by ticket status (estado)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assigneeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assignee user ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort by field (e.g., createdAt, estado, priority)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "includeDetails",
+            "required": false,
+            "in": "query",
+            "description": "Include full ticket details (messages, customer info, etc.)",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado de tickets (paginado)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar tickets con filtros",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}": {
+      "get": {
+        "operationId": "TicketsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener ticket por ID con todos los detalles",
+        "tags": [
+          "Tickets"
+        ]
+      },
+      "patch": {
+        "operationId": "TicketsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar campos de un ticket por ID",
+        "tags": [
+          "Tickets"
+        ]
+      },
+      "delete": {
+        "operationId": "TicketsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar un ticket por ID",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/reply": {
+      "post": {
+        "operationId": "TicketsController_reply",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Respuesta creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Responder un ticket",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/approve-ai": {
+      "post": {
+        "operationId": "TicketsController_approveAi",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveAiDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Aprobar y enviar sugerencia de IA en un clic",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/escalate": {
+      "post": {
+        "operationId": "TicketsController_escalate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalateTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Escalar ticket a soporte de segundo nivel",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/reassign": {
+      "post": {
+        "operationId": "TicketsController_reassign",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReassignTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reasignar ticket manualmente a otro agente",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/messages": {
+      "post": {
+        "operationId": "TicketsController_createMessage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mensaje creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear mensaje dentro de un ticket",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/apply-template/{templateId}": {
+      "post": {
+        "operationId": "TicketsController_applyTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "templateId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Aplicar una plantilla a un ticket",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/merge-candidates": {
+      "get": {
+        "operationId": "TicketsController_findMergeCandidates",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Buscar posibles duplicados para fusionar",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/merge": {
+      "post": {
+        "operationId": "TicketsController_merge",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fusionar este ticket dentro de otro (Mueve mensajes y cierra este)",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/tags/{tagName}": {
+      "post": {
+        "operationId": "TicketsController_addTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tagName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Agregar una etiqueta a un ticket",
+        "tags": [
+          "Tickets"
+        ]
+      },
+      "delete": {
+        "operationId": "TicketsController_removeTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tagName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Quitar una etiqueta de un ticket",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/export": {
+      "post": {
+        "operationId": "TicketsController_exportToCsv",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Exportar tickets a CSV con filtros opcionales",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/public/tickets": {
+      "post": {
+        "operationId": "PublicTicketsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Crear ticket desde formulario web público (Sin Auth)",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/ai/retry/{ticketId}": {
+      "post": {
+        "operationId": "AiController_retryTicket",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Procesamiento IA encolado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reintentar procesamiento IA para un ticket",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/config": {
+      "get": {
+        "operationId": "AiController_getAllConfigs",
+        "parameters": [
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort by field (e.g., createdAt, name, model)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar configuraciones de IA (paginado y filtros opcionales)",
+        "tags": [
+          "AI"
+        ]
+      },
+      "post": {
+        "operationId": "AiController_createConfig",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Configuración AI creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiConfigResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear configuración de IA",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/config/{id}": {
+      "get": {
+        "operationId": "AiController_getConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener una configuración de IA por ID",
+        "tags": [
+          "AI"
+        ]
+      },
+      "patch": {
+        "operationId": "AiController_updateConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar configuración de IA por ID",
+        "tags": [
+          "AI"
+        ]
+      },
+      "delete": {
+        "operationId": "AiController_deleteConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar configuración de IA por ID",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/notifications/stream": {
+      "get": {
+        "operationId": "NotificationsController_stream",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Server-Sent Events stream of notification MessageEvent objects"
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Subscribe to real-time notifications (Server-Sent Events)",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/dashboards/admin": {
+      "get": {
+        "operationId": "DashboardsController_getAdminStats",
+        "parameters": [
+          {
+            "name": "fechaDesde",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de inicio (ISO 8601)",
+            "schema": {
+              "example": "2025-12-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fechaHasta",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de fin (ISO 8601)",
+            "schema": {
+              "example": "2025-12-07T23:59:59Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "agenteId",
+            "required": false,
+            "in": "query",
+            "description": "ID del agente para filtrar",
+            "schema": {
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener métricas y KPIs globales (dashboard admin)",
+        "tags": [
+          "Dashboards"
+        ]
+      }
+    },
+    "/dashboards/agent": {
+      "get": {
+        "operationId": "DashboardsController_getAgentStats",
+        "parameters": [
+          {
+            "name": "fechaDesde",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de inicio (ISO 8601)",
+            "schema": {
+              "example": "2025-12-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fechaHasta",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de fin (ISO 8601)",
+            "schema": {
+              "example": "2025-12-07T23:59:59Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "agenteId",
+            "required": false,
+            "in": "query",
+            "description": "ID del agente para filtrar",
+            "schema": {
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener métricas del agente autenticado",
+        "tags": [
+          "Dashboards"
+        ]
+      }
+    },
+    "/dashboards/supervisor": {
+      "get": {
+        "operationId": "DashboardsController_getSupervisorStats",
+        "parameters": [
+          {
+            "name": "fechaDesde",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de inicio (ISO 8601)",
+            "schema": {
+              "example": "2025-12-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fechaHasta",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de fin (ISO 8601)",
+            "schema": {
+              "example": "2025-12-07T23:59:59Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "agenteId",
+            "required": false,
+            "in": "query",
+            "description": "ID del agente para filtrar",
+            "schema": {
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener métricas para supervisores",
+        "tags": [
+          "Dashboards"
+        ]
+      }
+    },
+    "/uploads": {
+      "post": {
+        "operationId": "UploadsController_uploadFile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Archivo subido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Subir un archivo (multipart/form-data)",
+        "tags": [
+          "Uploads"
+        ]
+      }
+    },
+    "/uploads/{fileId}/metadata": {
+      "get": {
+        "operationId": "UploadsController_getMetadata",
+        "parameters": [
+          {
+            "name": "fileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadatos del archivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener metadatos de un archivo adjunto",
+        "tags": [
+          "Uploads"
+        ]
+      }
+    },
+    "/uploads/{fileId}/download": {
+      "get": {
+        "operationId": "UploadsController_downloadFile",
+        "parameters": [
+          {
+            "name": "fileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Descargar un archivo adjunto",
+        "tags": [
+          "Uploads"
+        ]
+      }
+    },
+    "/orders": {
+      "post": {
+        "operationId": "OrdersController_importOrders",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ImportOrderDto"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Importar órdenes masivamente desde JSON",
+        "tags": [
+          "Orders"
+        ]
+      },
+      "get": {
+        "operationId": "OrdersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar órdenes (paginado y filtros opcionales)",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/upload": {
+      "post": {
+        "operationId": "OrdersController_uploadCsv",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Importar órdenes desde archivo CSV",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "operationId": "OrdersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener orden por ID",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/customers": {
+      "get": {
+        "operationId": "CustomersController_findAll",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de clientes que coinciden con el término de búsqueda"
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Buscar clientes por nombre o correo",
+        "tags": [
+          "Customers"
+        ]
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "operationId": "CustomersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del cliente",
+            "schema": {
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil 360 del cliente con tickets y órdenes"
+          },
+          "404": {
+            "description": "Cliente no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener perfil 360 del cliente (Tickets + Órdenes)",
+        "tags": [
+          "Customers"
+        ]
+      }
+    },
+    "/templates": {
+      "post": {
+        "operationId": "TemplatesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear una nueva plantilla de mensaje",
+        "tags": [
+          "Templates"
+        ]
+      },
+      "get": {
+        "operationId": "TemplatesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar todas las plantillas",
+        "tags": [
+          "Templates"
+        ]
+      }
+    },
+    "/templates/{id}": {
+      "get": {
+        "operationId": "TemplatesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener plantilla por ID",
+        "tags": [
+          "Templates"
+        ]
+      },
+      "patch": {
+        "operationId": "TemplatesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar una plantilla por ID",
+        "tags": [
+          "Templates"
+        ]
+      },
+      "delete": {
+        "operationId": "TemplatesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar una plantilla por ID",
+        "tags": [
+          "Templates"
+        ]
+      }
+    },
+    "/tags": {
+      "post": {
+        "operationId": "TagsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear una nueva etiqueta (tag)",
+        "tags": [
+          "Tags"
+        ]
+      },
+      "get": {
+        "operationId": "TagsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar todas las etiquetas",
+        "tags": [
+          "Tags"
+        ]
+      }
+    },
+    "/tags/{id}": {
+      "get": {
+        "operationId": "TagsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener etiqueta por ID",
+        "tags": [
+          "Tags"
+        ]
+      },
+      "patch": {
+        "operationId": "TagsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar etiqueta por ID",
+        "tags": [
+          "Tags"
+        ]
+      },
+      "delete": {
+        "operationId": "TagsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar etiqueta por ID",
+        "tags": [
+          "Tags"
+        ]
+      }
+    },
+    "/webhooks/mailgun/inbound": {
+      "post": {
+        "operationId": "WebhooksController_handleMailgunInbound",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Webhook para emails entrantes de Mailgun",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/integrations": {
+      "post": {
+        "operationId": "IntegrationsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIntegrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Integración creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear una nueva integración",
+        "tags": [
+          "Integrations"
+        ]
+      },
+      "get": {
+        "operationId": "IntegrationsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar todas las integraciones",
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
+    "/integrations/{id}": {
+      "get": {
+        "operationId": "IntegrationsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener detalles de una integración por ID",
+        "tags": [
+          "Integrations"
+        ]
+      },
+      "patch": {
+        "operationId": "IntegrationsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateIntegrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar una integración por ID",
+        "tags": [
+          "Integrations"
+        ]
+      },
+      "delete": {
+        "operationId": "IntegrationsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar una integración por ID",
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
+    "/integrations/{id}/test": {
+      "post": {
+        "operationId": "IntegrationsController_testConnection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Probar conexión con la integración",
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
+    "/integrations/{id}/logs": {
+      "get": {
+        "operationId": "IntegrationsController_findLogs",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener actividad registrada para una integración (paginado)",
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
+    "/knowledge-base": {
+      "get": {
+        "operationId": "KnowledgeBaseController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Término para filtrar la KB",
+            "schema": {
+              "maxLength": 200,
+              "example": "garantía",
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "description": "Categoría para filtrar",
+            "schema": {
+              "maxLength": 100,
+              "example": "Soporte",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar artículos de la base de conocimiento con filtros opcionales",
+        "tags": [
+          "Knowledge Base"
+        ]
+      },
+      "post": {
+        "operationId": "KnowledgeBaseController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKnowledgeBaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear un nuevo artículo en la base de conocimiento",
+        "tags": [
+          "Knowledge Base"
+        ]
+      }
+    },
+    "/knowledge-base/categories": {
+      "get": {
+        "operationId": "KnowledgeBaseController_listCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar categorías únicas de la base de conocimiento",
+        "tags": [
+          "Knowledge Base"
+        ]
+      }
+    },
+    "/knowledge-base/search": {
+      "post": {
+        "operationId": "KnowledgeBaseController_search",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeBaseSearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Resultados de la búsqueda en la base de conocimiento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeBaseSearchResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Buscar artículos de conocimiento por texto/categoría",
+        "tags": [
+          "Knowledge Base"
+        ]
+      }
+    },
+    "/knowledge-base/{id}": {
+      "get": {
+        "operationId": "KnowledgeBaseController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener un artículo de la base de conocimiento por ID",
+        "tags": [
+          "Knowledge Base"
+        ]
+      },
+      "patch": {
+        "operationId": "KnowledgeBaseController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateKnowledgeBaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar un artículo de la base de conocimiento",
+        "tags": [
+          "Knowledge Base"
+        ]
+      },
+      "delete": {
+        "operationId": "KnowledgeBaseController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar un artículo de la base de conocimiento",
+        "tags": [
+          "Knowledge Base"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "NoraAI API",
+    "description": "API para el sistema de soporte inteligente GearUp",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "loginDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "example": "P4ssw0rd!",
+            "description": "Contraseña del usuario"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com",
+            "description": "Correo electrónico del usuario"
+          }
+        },
+        "required": [
+          "password",
+          "email"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "SimpleMessageDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Operación completada correctamente"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "usuario@dominio.com",
+            "description": "Correo del usuario que solicita el restablecimiento de contraseña"
+          },
+          "redirectTo": {
+            "type": "string",
+            "description": "URL a la que Supabase redirigirá al usuario tras el enlace de recuperación",
+            "example": "https://app.tusitio.com/reset-password"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "usuario@dominio.com",
+            "description": "Correo del usuario asociado al token de recuperación"
+          },
+          "token": {
+            "type": "string",
+            "description": "Token recibido en el enlace de recuperación de Supabase",
+            "example": "6f1e2d3c-abc1-2345-6789-abcdef012345"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "description": "Nueva contraseña (mínimo 8 caracteres)",
+            "example": "N3wP4ssw0rd!"
+          }
+        },
+        "required": [
+          "email",
+          "token",
+          "newPassword"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID del usuario (provisto por el sistema de auth)",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Nombre completo del usuario",
+            "example": "Pedro Gómez"
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo del usuario",
+            "example": "usuario@dominio.com"
+          },
+          "activo": {
+            "type": "boolean",
+            "description": "Si el usuario está activo",
+            "example": true
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "ADMINISTRADOR",
+              "AGENTE",
+              "SUPERVISOR"
+            ],
+            "description": "Rol del usuario en el sistema",
+            "example": "AGENTE"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "correo",
+          "rol"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre completo del usuario",
+            "example": "Pedro Gómez"
+          },
+          "activo": {
+            "type": "boolean",
+            "description": "Si el usuario está activo"
+          },
+          "primeraVez": {
+            "type": "boolean",
+            "description": "Indicador si es la primera vez que ingresa"
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico del usuario"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "ADMINISTRADOR",
+              "AGENTE",
+              "SUPERVISOR"
+            ],
+            "description": "Rol del usuario"
+          }
+        }
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID del usuario cuyo password será cambiado",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "description": "Nueva contraseña (mínimo 8 caracteres)",
+            "example": "N3wP4ssw0rd!"
+          }
+        },
+        "required": [
+          "userId",
+          "newPassword"
+        ]
+      },
+      "ArchivoAdjuntoDto": {
+        "type": "object",
+        "properties": {
+          "nombreArchivo": {
+            "type": "string",
+            "description": "Nombre original del archivo"
+          },
+          "urlAlmacenamiento": {
+            "type": "string",
+            "description": "URL de almacenamiento (S3, CDN, etc.)"
+          },
+          "tipoMime": {
+            "type": "string",
+            "description": "Tipo MIME del archivo",
+            "example": "image/png"
+          },
+          "tamano": {
+            "type": "number",
+            "description": "Tamaño en bytes"
+          }
+        },
+        "required": [
+          "nombreArchivo",
+          "urlAlmacenamiento",
+          "tipoMime",
+          "tamano"
+        ]
+      },
+      "CreateTicketDto": {
+        "type": "object",
+        "properties": {
+          "asunto": {
+            "type": "string",
+            "description": "Título o asunto del ticket",
+            "example": "Pedido no recibido"
+          },
+          "mensajeInicial": {
+            "type": "string",
+            "description": "Contenido del primer mensaje del ticket"
+          },
+          "correoCliente": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico del cliente",
+            "example": "cliente@dominio.com"
+          },
+          "nombreCliente": {
+            "type": "string",
+            "description": "Nombre del cliente",
+            "example": "María Pérez"
+          },
+          "canal": {
+            "type": "string",
+            "enum": [
+              "correo",
+              "whatsapp",
+              "formulario_web",
+              "api"
+            ],
+            "description": "Canal por el que se creó el ticket",
+            "example": "correo"
+          },
+          "prioridad": {
+            "type": "string",
+            "enum": [
+              "baja",
+              "media",
+              "alta",
+              "urgente"
+            ],
+            "description": "Prioridad del ticket",
+            "example": "media"
+          },
+          "ordenId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID de la orden relacionada (si aplica)"
+          },
+          "archivos": {
+            "description": "Archivos adjuntos al crear el ticket",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchivoAdjuntoDto"
+            }
+          }
+        },
+        "required": [
+          "asunto",
+          "mensajeInicial",
+          "correoCliente",
+          "canal"
+        ]
+      },
+      "TicketResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "asunto": {
+            "type": "string",
+            "example": "Pedido no recibido"
+          },
+          "estado": {
+            "type": "string",
+            "example": "nuevo"
+          },
+          "prioridad": {
+            "type": "string",
+            "example": "media"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-12-07T12:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "asunto",
+          "estado"
+        ]
+      },
+      "TicketListDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 50
+          },
+          "total": {
+            "type": "number",
+            "example": 123
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketResponseDto"
+            }
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "items"
+        ]
+      },
+      "UpdateTicketDto": {
+        "type": "object",
+        "properties": {
+          "asunto": {
+            "type": "string",
+            "description": "Título o asunto del ticket",
+            "example": "Pedido no recibido"
+          },
+          "mensajeInicial": {
+            "type": "string",
+            "description": "Contenido del primer mensaje del ticket"
+          },
+          "correoCliente": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico del cliente",
+            "example": "cliente@dominio.com"
+          },
+          "nombreCliente": {
+            "type": "string",
+            "description": "Nombre del cliente",
+            "example": "María Pérez"
+          },
+          "canal": {
+            "type": "string",
+            "enum": [
+              "correo",
+              "whatsapp",
+              "formulario_web",
+              "api"
+            ],
+            "description": "Canal por el que se creó el ticket",
+            "example": "correo"
+          },
+          "prioridad": {
+            "type": "string",
+            "enum": [
+              "baja",
+              "media",
+              "alta",
+              "urgente"
+            ],
+            "description": "Actualizar la prioridad del ticket",
+            "example": "alta"
+          },
+          "ordenId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID de la orden relacionada (si aplica)"
+          },
+          "archivos": {
+            "description": "Archivos adjuntos al crear el ticket",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchivoAdjuntoDto"
+            }
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "nuevo",
+              "pendiente_ia",
+              "ia_sugerido",
+              "respuesta_cliente",
+              "esperando_cliente",
+              "escalado_nivel_2",
+              "en_progreso_nivel_2",
+              "cerrado",
+              "reabierto",
+              "fusionado"
+            ],
+            "description": "Actualizar el estado del ticket",
+            "example": "en_progreso_nivel_2"
+          },
+          "assigneeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID del agente asignado (UUID v4)"
+          }
+        }
+      },
+      "ReplyTicketDto": {
+        "type": "object",
+        "properties": {
+          "contenidoTexto": {
+            "type": "string",
+            "description": "Contenido de la respuesta"
+          },
+          "nuevoEstado": {
+            "type": "string",
+            "enum": [
+              "nuevo",
+              "pendiente_ia",
+              "ia_sugerido",
+              "respuesta_cliente",
+              "esperando_cliente",
+              "escalado_nivel_2",
+              "en_progreso_nivel_2",
+              "cerrado",
+              "reabierto",
+              "fusionado"
+            ],
+            "description": "Nuevo estado del ticket (opcional)"
+          },
+          "archivos": {
+            "description": "Lista de archivos adjuntos (opcional)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchivoAdjuntoDto"
+            }
+          }
+        },
+        "required": [
+          "contenidoTexto"
+        ]
+      },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "example": "msg-123"
+          },
+          "contenidoTexto": {
+            "type": "string",
+            "example": "Gracias por la info"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-12-07T12:00:00Z"
+          }
+        },
+        "required": [
+          "messageId",
+          "contenidoTexto"
+        ]
+      },
+      "ApproveAiDto": {
+        "type": "object",
+        "properties": {
+          "nuevoEstado": {
+            "type": "string",
+            "enum": [
+              "nuevo",
+              "pendiente_ia",
+              "ia_sugerido",
+              "respuesta_cliente",
+              "esperando_cliente",
+              "escalado_nivel_2",
+              "en_progreso_nivel_2",
+              "cerrado",
+              "reabierto",
+              "fusionado"
+            ],
+            "description": "Estado final del ticket después de enviar (por defecto: esperando_cliente)",
+            "example": "esperando_cliente"
+          }
+        }
+      },
+      "EscalateTicketDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "Nota interna al escalar el ticket"
+          }
+        }
+      },
+      "ReassignTicketDto": {
+        "type": "object",
+        "properties": {
+          "assigneeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID del usuario al que se reasignará el ticket",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "note": {
+            "type": "string",
+            "description": "Nota interna opcional explicando la reasignación"
+          }
+        },
+        "required": [
+          "assigneeId"
+        ]
+      },
+      "CreateMessageDto": {
+        "type": "object",
+        "properties": {
+          "contenidoTexto": {
+            "type": "string",
+            "description": "El cuerpo del mensaje o respuesta"
+          },
+          "esNotaInterna": {
+            "type": "boolean",
+            "description": "Si es true, el cliente NO verá este mensaje (solo para agentes)",
+            "default": false
+          },
+          "archivos": {
+            "description": "Lista de archivos adjuntos (opcional)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArchivoAdjuntoDto"
+            }
+          }
+        },
+        "required": [
+          "contenidoTexto"
+        ]
+      },
+      "ApplyTemplateDto": {
+        "type": "object",
+        "properties": {
+          "sobreescribirRespuesta": {
+            "type": "boolean",
+            "description": "Si se debe sobreescribir la respuesta existente",
+            "default": false
+          }
+        }
+      },
+      "MergeTicketDto": {
+        "type": "object",
+        "properties": {
+          "targetTicketId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID del ticket que va a absorber al actual (Ticket Destino)"
+          }
+        },
+        "required": [
+          "targetTicketId"
+        ]
+      },
+      "CreateAiConfigDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Agente RMA",
+            "description": "Nombre de la configuración AI"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Configuración para consultas de RMA",
+            "description": "Descripción opcional sobre el propósito de esta configuración"
+          },
+          "promptBase": {
+            "type": "string",
+            "example": "Eres un asistente de soporte al cliente experto...",
+            "description": "Prompt base que sirve como contexto para las respuestas de la IA"
+          },
+          "promptsPorCanal": {
+            "type": "object",
+            "example": {},
+            "description": "Mapa de prompts por canal (ej: correo, whatsapp). Puede contener overrides por canal"
+          },
+          "modelo": {
+            "type": "string",
+            "example": "x-ai/grok-4.1-fast:free",
+            "description": "Identificador del modelo a usar"
+          },
+          "temperatura": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.3,
+            "description": "Controla la creatividad/aleatoriedad de la IA (0-1)"
+          },
+          "umbralConfianza": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.75,
+            "description": "Umbral mínimo de confianza para aceptar respuestas automatizadas (0-1)"
+          }
+        },
+        "required": [
+          "nombre",
+          "promptBase",
+          "promptsPorCanal",
+          "modelo",
+          "temperatura",
+          "umbralConfianza"
+        ]
+      },
+      "AiConfigResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cfg-123"
+          },
+          "nombre": {
+            "type": "string",
+            "example": "Agente RMA"
+          },
+          "modelo": {
+            "type": "string",
+            "example": "x-ai/grok-4.1-fast:free"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "modelo"
+        ]
+      },
+      "UpdateAiConfigDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Agente RMA",
+            "description": "Nombre de la configuración AI"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Configuración para consultas de RMA",
+            "description": "Descripción opcional sobre el propósito de esta configuración"
+          },
+          "promptBase": {
+            "type": "string",
+            "example": "Eres un asistente de soporte al cliente experto...",
+            "description": "Prompt base que sirve como contexto para las respuestas de la IA"
+          },
+          "promptsPorCanal": {
+            "type": "object",
+            "example": {},
+            "description": "Mapa de prompts por canal (ej: correo, whatsapp). Puede contener overrides por canal"
+          },
+          "modelo": {
+            "type": "string",
+            "example": "x-ai/grok-4.1-fast:free",
+            "description": "Identificador del modelo a usar"
+          },
+          "temperatura": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.3,
+            "description": "Controla la creatividad/aleatoriedad de la IA (0-1)"
+          },
+          "umbralConfianza": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.75,
+            "description": "Umbral mínimo de confianza para aceptar respuestas automatizadas (0-1)"
+          }
+        }
+      },
+      "ArchivoDto": {
+        "type": "object",
+        "properties": {
+          "nombreArchivo": {
+            "type": "string",
+            "example": "foto.png"
+          },
+          "urlAlmacenamiento": {
+            "type": "string",
+            "example": "https://cdn.example.com/foto.png"
+          },
+          "tipoMime": {
+            "type": "string",
+            "example": "image/png"
+          },
+          "tamano": {
+            "type": "number",
+            "example": 12345
+          }
+        },
+        "required": [
+          "nombreArchivo",
+          "urlAlmacenamiento",
+          "tipoMime",
+          "tamano"
+        ]
+      },
+      "UploadResponseDto": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "archivo": {
+            "$ref": "#/components/schemas/ArchivoDto"
+          }
+        },
+        "required": [
+          "fileId",
+          "archivo"
+        ]
+      },
+      "ImportOrderDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "example": "ORD-2023-101",
+            "description": "Identificador de la orden en el sistema externo"
+          },
+          "emailCliente": {
+            "type": "string",
+            "example": "test.user1@example.com",
+            "description": "Correo del cliente asociado a la orden (opcional)"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "procesando",
+              "en_transito",
+              "entregado",
+              "cancelado",
+              "devuelto"
+            ],
+            "example": "procesando",
+            "description": "Estado de la orden"
+          }
+        },
+        "required": [
+          "orderId",
+          "estado"
+        ]
+      },
+      "CreateTemplateDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Saludo Estándar",
+            "description": "Nombre identificador de la plantilla"
+          },
+          "plantillaCuerpo": {
+            "type": "string",
+            "example": "Gracias por contactar a GearUp...",
+            "description": "Cuerpo de la plantilla (texto que se enviará)"
+          },
+          "plantillaAsunto": {
+            "type": "string",
+            "example": "Respuesta a su solicitud #{{ticketId}}",
+            "description": "Asunto opcional que puede incluir placeholders"
+          }
+        },
+        "required": [
+          "nombre",
+          "plantillaCuerpo"
+        ]
+      },
+      "UpdateTemplateDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Saludo Estándar",
+            "description": "Nombre identificador de la plantilla"
+          },
+          "plantillaCuerpo": {
+            "type": "string",
+            "example": "Gracias por contactar a GearUp...",
+            "description": "Cuerpo de la plantilla (texto que se enviará)"
+          },
+          "plantillaAsunto": {
+            "type": "string",
+            "example": "Respuesta a su solicitud #{{ticketId}}",
+            "description": "Asunto opcional que puede incluir placeholders"
+          }
+        }
+      },
+      "CreateTagDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "VIP",
+            "description": "Nombre corto de la etiqueta"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Etiqueta para clientes VIP",
+            "description": "Descripción detallada (opcional)"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "/^#[0-9A-Fa-f]{6}$/",
+            "example": "#FF5733",
+            "description": "Color visual asociado a la etiqueta (hexadecimal)"
+          }
+        },
+        "required": [
+          "nombre",
+          "color"
+        ]
+      },
+      "UpdateTagDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "VIP",
+            "description": "Nombre corto de la etiqueta"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Etiqueta para clientes VIP",
+            "description": "Descripción detallada (opcional)"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "/^#[0-9A-Fa-f]{6}$/",
+            "example": "#FF5733",
+            "description": "Color visual asociado a la etiqueta (hexadecimal)"
+          }
+        }
+      },
+      "CreateIntegrationDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Mailgun",
+            "description": "Nombre identificador de la integración"
+          },
+          "claveApiEnc": {
+            "type": "string",
+            "example": "sk_live_xxxxxxxxxxxx",
+            "description": "Clave API cifrada/almacenada para la integración"
+          },
+          "endpoint": {
+            "type": "string",
+            "example": "https://api.mailgun.net/v3",
+            "description": "Endpoint base de la API (opcional)"
+          },
+          "urlWebhook": {
+            "type": "string",
+            "example": "https://example.com/webhook",
+            "description": "URL para recibir webhooks (opcional)"
+          },
+          "configJson": {
+            "type": "object",
+            "example": {},
+            "description": "Configuración adicional específica del proveedor (JSON libre)"
+          },
+          "activo": {
+            "type": "boolean",
+            "example": true,
+            "description": "Indica si la integración está activa"
+          }
+        },
+        "required": [
+          "nombre",
+          "claveApiEnc"
+        ]
+      },
+      "IntegrationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "int-123"
+          },
+          "nombre": {
+            "type": "string",
+            "example": "Mailgun"
+          },
+          "activo": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "nombre"
+        ]
+      },
+      "UpdateIntegrationDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Mailgun",
+            "description": "Nombre identificador de la integración"
+          },
+          "claveApiEnc": {
+            "type": "string",
+            "example": "sk_live_xxxxxxxxxxxx",
+            "description": "Clave API cifrada/almacenada para la integración"
+          },
+          "endpoint": {
+            "type": "string",
+            "example": "https://api.mailgun.net/v3",
+            "description": "Endpoint base de la API (opcional)"
+          },
+          "urlWebhook": {
+            "type": "string",
+            "example": "https://example.com/webhook",
+            "description": "URL para recibir webhooks (opcional)"
+          },
+          "configJson": {
+            "type": "object",
+            "example": {},
+            "description": "Configuración adicional específica del proveedor (JSON libre)"
+          },
+          "activo": {
+            "type": "boolean",
+            "example": true,
+            "description": "Indica si la integración está activa"
+          }
+        }
+      },
+      "KnowledgeBaseSearchDto": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Término de búsqueda para la KB",
+            "example": "devolución"
+          },
+          "categoria": {
+            "type": "string",
+            "description": "Filtrar por categoría",
+            "example": "Devoluciones"
+          },
+          "limite": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Límite de resultados",
+            "example": 10
+          },
+          "umbralSimilitud": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Umbral de similitud (0-1)",
+            "example": 0.2
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "KnowledgeBaseArticleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "kb-1"
+          },
+          "pregunta": {
+            "type": "string",
+            "example": "¿Cómo devolver un producto?"
+          },
+          "respuesta": {
+            "type": "string",
+            "example": "Procedimiento..."
+          },
+          "categoria": {
+            "type": "string",
+            "example": "Devoluciones"
+          }
+        },
+        "required": [
+          "id",
+          "pregunta",
+          "respuesta",
+          "categoria"
+        ]
+      },
+      "KnowledgeBaseSearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeBaseArticleDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "results",
+          "total"
+        ]
+      },
+      "CreateKnowledgeBaseDto": {
+        "type": "object",
+        "properties": {
+          "pregunta": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Pregunta o título de la entrada",
+            "example": "¿Cómo devolver un producto?"
+          },
+          "procedimiento": {
+            "type": "string",
+            "description": "Procedimiento detallado para el agente",
+            "example": "Verificar número de orden, solicitar foto..."
+          },
+          "respuesta": {
+            "type": "string",
+            "description": "Respuesta sugerida para enviar al cliente"
+          },
+          "categoria": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Categoría o etiqueta para organizar la KB",
+            "example": "Devoluciones"
+          }
+        },
+        "required": [
+          "pregunta",
+          "procedimiento",
+          "respuesta"
+        ]
+      },
+      "UpdateKnowledgeBaseDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}

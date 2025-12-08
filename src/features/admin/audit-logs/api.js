@@ -1,6 +1,58 @@
 // src/features/admin/audit-logs/api.js
 import { apiClient } from "@/shared/lib/apiClient";
 
+const CSV_MEDIA_TYPE = "text/csv;charset=utf-8";
+const FALLBACK_HEADERS = ["id", "usuario", "accion", "detalle", "creadoEn"];
+
+const extractLogRows = (payload) => {
+  if (Array.isArray(payload)) return payload;
+
+  const candidateKeys = ["items", "data", "logs", "records", "results"];
+  for (const key of candidateKeys) {
+    if (Array.isArray(payload?.[key])) {
+      return payload[key];
+    }
+  }
+
+  if (Array.isArray(payload?.data?.items)) {
+    return payload.data.items;
+  }
+
+  return [];
+};
+
+const buildCsvFromLogs = (rows = []) => {
+  const headerSet = new Set();
+  rows.forEach((row) => {
+    if (row && typeof row === "object") {
+      Object.keys(row).forEach((key) => headerSet.add(key));
+    }
+  });
+
+  const headers = headerSet.size > 0 ? Array.from(headerSet) : FALLBACK_HEADERS;
+  const lines = [headers.join(",")];
+
+  rows.forEach((row = {}) => {
+    const values = headers.map((header) => formatCsvValue(row[header]));
+    lines.push(values.join(","));
+  });
+
+  return lines.join("\n");
+};
+
+const formatCsvValue = (value) => {
+  if (value === null || value === undefined) return "";
+  if (value instanceof Date) return value.toISOString();
+
+  const normalizedValue = typeof value === "object" ? JSON.stringify(value) : String(value);
+
+  if (/[",\n]/.test(normalizedValue)) {
+    return `"${normalizedValue.replace(/"/g, '""')}"`;
+  }
+
+  return normalizedValue;
+};
+
 /**
  * UC-22: Audit Logs API
  * Backend endpoint:
@@ -32,10 +84,9 @@ export const auditLogsApi = {
    * @returns {Promise<Blob>} CSV file blob
    */
   exportToCSV: async (params = {}) => {
-    const response = await apiClient.get("/audit/export", {
-      params,
-      responseType: "blob",
-    });
-    return response.data;
+    const response = await apiClient.get("/audit/logs", { params });
+    const rows = extractLogRows(response.data);
+    const csvContent = buildCsvFromLogs(rows);
+    return new Blob([csvContent], { type: CSV_MEDIA_TYPE });
   },
 };
