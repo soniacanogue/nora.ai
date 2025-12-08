@@ -12,6 +12,7 @@ import ProtectedRoute from "./shared/components/ProtectedRoute";
 // --- Page Components ---
 import LoginPage from "./features/auth/pages/LoginPage";
 import OnboardingPage from "./features/auth/pages/OnboardingPage";
+import ProfilePage from "./features/auth/pages/ProfilePage";
 import TicketListPage from "./features/tickets/pages/TicketListPage";
 import TicketDetailPage from "./features/tickets/pages/TicketDetailPage";
 import ImportOrdersPage from "./features/orders/pages/ImportOrdersPage";
@@ -107,6 +108,14 @@ const AnimatedRoutes = () => {
               element={
                 <PageTransition>
                   <HomePage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PageTransition>
+                  <ProfilePage />
                 </PageTransition>
               }
             />

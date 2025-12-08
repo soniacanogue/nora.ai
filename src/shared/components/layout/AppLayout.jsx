@@ -460,6 +460,14 @@ const AppLayout = () => {
                 <p className="text-xs text-dt-subtle font-mono">
                   {roleDisplayNames[currentUser.rol] || "Usuario"}
                 </p>
+                  <div className="mt-2 flex items-center justify-center gap-2">
+                    <Link
+                      to="/profile"
+                      className="text-xs text-dt-accent hover:underline"
+                    >
+                      Editar perfil
+                    </Link>
+                  </div>
               </>
             )}
           </div>

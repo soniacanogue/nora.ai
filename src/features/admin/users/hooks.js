@@ -56,6 +56,11 @@ export const useUpdateUser = () => {
       queryClient.invalidateQueries({
         queryKey: [USERS_QUERY_KEY, variables.id],
       });
+      // A user update might include changing the role of the currently
+      // authenticated user. Ensure we also invalidate the profile cache
+      // so UI reacts immediately when an admin edits their own role.
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
   });
 };

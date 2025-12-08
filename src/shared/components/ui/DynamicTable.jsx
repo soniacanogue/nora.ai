@@ -49,12 +49,12 @@ const DynamicTable = ({
 
   if (isLoading) {
     return (
-      <div className="bg-neutral-900/60 border border-white/5 rounded-lg overflow-hidden animate-pulse">
-        <div className="h-12 bg-white/5 border-b border-white/10" />
+      <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden animate-pulse">
+        <div className="h-12 bg-dt-background border-b border-dt-border" />
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="h-16 border-b border-white/5 bg-neutral-800/20"
+            className="h-16 border-b border-dt-border bg-dt-card/50"
           />
         ))}
       </div>
@@ -64,10 +64,10 @@ const DynamicTable = ({
   if (!data || data.length === 0) {
     return (
       emptyState || (
-        <div className="p-8 text-center text-dt-subtle bg-neutral-900/60 border border-white/5 rounded-lg">
-          No hay datos para mostrar
-        </div>
-      )
+          <div className="p-8 text-center text-dt-subtle bg-dt-card border border-dt-border rounded-lg">
+            No hay datos para mostrar
+          </div>
+        )
     );
   }
 
@@ -110,15 +110,15 @@ const DynamicTable = ({
   };
 
   return (
-    <div className="bg-neutral-900/60 backdrop-blur-md border border-white/5 rounded-lg overflow-hidden flex flex-col">
+    <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden flex flex-col">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wider text-dt-subtle font-mono">
+        <table className="w-full">
+          <thead className="bg-dt-background border-b border-dt-border">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`p-3 text-left ${col.sortable ? "cursor-pointer hover:text-dt-foreground transition-colors" : ""} ${col.headerClassName || ""}`}
+                  className={`px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase ${col.sortable ? "cursor-pointer hover:text-dt-foreground transition-colors" : ""} ${col.headerClassName || ""}`}
                   onClick={() => col.sortable && onSort && onSort(col.key)}
                 >
                   {col.label}
@@ -129,19 +129,19 @@ const DynamicTable = ({
           </thead>
           <StaggerContainer
             as="tbody"
-            className="divide-y divide-white/5"
+            className="divide-y divide-dt-border"
             key={`${effectivePage}-${data.length}`} // Force re-render on page or data change (use effective page)
           >
             {currentData.map((item, index) => (
               <StaggerItem
                 as="tr"
                 key={item.id || index}
-                className="hover:bg-neutral-800/80 transition-all duration-200 group relative"
+                className="group relative hover:bg-dt-background/50 transition-colors"
               >
                 {columns.map((col) => (
                   <td
                     key={`${item.id || index}-${col.key}`}
-                    className={`p-3 ${col.className || ""}`}
+                    className={`px-4 py-3 text-sm text-dt-foreground ${col.className || ""}`}
                   >
                     {col.render ? col.render(item) : item[col.key]}
                   </td>
@@ -153,7 +153,7 @@ const DynamicTable = ({
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-white/10 bg-white/5 gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-dt-border bg-dt-card gap-4">
         <div className="text-xs text-dt-subtle">
           {serverTotalItems !== undefined || serverTotalPages !== undefined ? (
             // Server-side pagination display
@@ -181,7 +181,7 @@ const DynamicTable = ({
             <select
               value={effectiveItemsPerPage}
               onChange={handleItemsPerPageChange}
-              className="bg-neutral-900 border border-white/10 rounded text-xs text-dt-foreground focus:outline-none focus:border-dt-accent p-1"
+              className="bg-dt-card border border-dt-border rounded text-xs text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent p-1"
             >
               <option value={10}>10</option>
               <option value={50}>50</option>
