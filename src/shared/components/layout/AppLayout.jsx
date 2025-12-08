@@ -189,6 +189,36 @@ const AppLayout = () => {
               </>
             )}
 
+            {/* --- UC-09: Customers Navigation (Medium Priority) --- */}
+            {expandedSections.principal && (
+              <li>
+                <NavLink
+                  to="/customers"
+                  className={({ isActive }) =>
+                    isActive
+                      ? `${navLinkClasses} ${activeNavLinkClasses}`
+                      : navLinkClasses
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
+                      )}
+                      <span className="material-symbols-outlined text-xl relative z-10">
+                        people
+                      </span>
+                      {sidebarOpen && (
+                        <span className="ml-3 text-sm font-medium relative z-10">
+                          Clientes
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            )}
+
             {/* --- AJUSTE CLAVE: Sección de Administrador Mejorada (Colapsable) --- */}
             {currentUser.rol === "ADMINISTRADOR" && (
               <>

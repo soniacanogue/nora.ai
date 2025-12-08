@@ -12,6 +12,21 @@ const defaultCustomer = {
   ordenes: [],
 };
 
+/**
+ * Get all customers with optional filters
+ */
+export const getAllCustomers = async (filters = {}) => {
+  try {
+    const { data } = await apiClient.get(`/customers`, { params: filters });
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.data)) return data.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch customers:", error);
+    return [];
+  }
+};
+
 export const getCustomerById = async (customerId) => {
   if (!customerId) return null;
   try {

@@ -161,7 +161,24 @@ const SuggestionPanel = ({
     }
     try {
       setIsPreparingReply(true);
+      
+      // UC-10: Show upload feedback
+      if (selectedFiles.length > 0) {
+        toast.loading(`Preparando ${selectedFiles.length} archivo${selectedFiles.length > 1 ? 's' : ''}...`, {
+          id: 'file-upload',
+          duration: Infinity,
+        });
+      }
+      
       const attachmentsPayload = await parseFilesToPayload(selectedFiles);
+      
+      // Dismiss upload toast
+      if (selectedFiles.length > 0) {
+        toast.success(`${selectedFiles.length} archivo${selectedFiles.length > 1 ? 's preparado' : ' preparado'}s`, {
+          id: 'file-upload',
+        });
+      }
+      
       // First, call approve to record the approval (approve-ai). On success, send the visible reply.
       approve(
         {
@@ -194,6 +211,8 @@ const SuggestionPanel = ({
         },
       );
     } catch (fileError) {
+      // UC-10: Enhanced error feedback for file upload failures
+      toast.dismiss('file-upload'); // Clear loading toast if it exists
       toast.error(fileError.message || "No se pudieron preparar los adjuntos.");
     } finally {
       setIsPreparingReply(false);
@@ -203,6 +222,40 @@ const SuggestionPanel = ({
   const handleAttachmentPick = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
+    
+    // UC-10: File validation constants
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+    const ALLOWED_TYPES = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain', 'text/csv'
+    ];
+    
+    // Validate each file
+    const validatedFiles = [];
+    for (const file of files) {
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`"${file.name}" excede el tamaño máximo de 10MB`);
+        continue;
+      }
+      
+      // Check file type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        toast.error(`"${file.name}" tiene un tipo no permitido. Solo se permiten imágenes, PDF, documentos y CSV.`);
+        continue;
+      }
+      
+      validatedFiles.push(file);
+    }
+    
+    if (!validatedFiles.length) {
+      event.target.value = "";
+      return;
+    }
+    
     setSelectedFiles((prev) => {
       const MAX_ATTACHMENTS = 10;
       const availableSlots = Math.max(0, MAX_ATTACHMENTS - prev.length);
@@ -210,7 +263,11 @@ const SuggestionPanel = ({
         toast.error("Límite de 10 adjuntos alcanzado.");
         return prev;
       }
-      return [...prev, ...files.slice(0, availableSlots)];
+      const filesToAdd = validatedFiles.slice(0, availableSlots);
+      if (filesToAdd.length < validatedFiles.length) {
+        toast.error(`Solo se pudieron añadir ${filesToAdd.length} archivos debido al límite de 10`);
+      }
+      return [...prev, ...filesToAdd];
     });
     event.target.value = "";
   };
@@ -412,39 +469,59 @@ const SuggestionPanel = ({
             onClick={() => fileInputRef.current?.click()}
           >
             <p className="text-sm text-dt-subtle">
-              Arrastra y suelta o haz clic para seleccionar archivos (máx. 10)
+              Arrastra y suelta o haz clic para seleccionar archivos (máx. 10, 10MB cada uno)
+            </p>
+            <p className="text-xs text-dt-subtle mt-1 opacity-70">
+              Permitidos: Imágenes, PDF, Word, Excel, TXT, CSV
             </p>
           </div>
           <input
             ref={fileInputRef}
             type="file"
             multiple
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
             className="hidden"
             onChange={handleAttachmentPick}
           />
           {selectedFiles.length > 0 && (
             <ul className="mt-3 space-y-2 text-sm text-dt-foreground">
-              {selectedFiles.map((file, index) => (
-                <li
-                  key={`${file.name}-${index}`}
-                  className="flex items-center justify-between gap-3 border border-white/10 rounded-md px-3 py-2 bg-black/30"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-semibold">{file.name}</span>
-                    <span className="text-xs text-dt-subtle">
-                      {(file.size / 1024).toFixed(1)} KB •{" "}
-                      {file.type || "sin tipo"}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-xs uppercase tracking-wider text-dt-error hover:underline"
-                    onClick={() => handleRemoveAttachment(index)}
+              {selectedFiles.map((file, index) => {
+                const sizeInMB = file.size / (1024 * 1024);
+                const isLarge = sizeInMB > 5; // Warn if file is over 5MB
+                const fileIcon = file.type.startsWith('image/') ? '🖼️' : 
+                                file.type.includes('pdf') ? '📄' : 
+                                file.type.includes('word') || file.type.includes('document') ? '📝' :
+                                file.type.includes('excel') || file.type.includes('spreadsheet') ? '📊' :
+                                '📎';
+                
+                return (
+                  <li
+                    key={`${file.name}-${index}`}
+                    className={`flex items-center justify-between gap-3 border rounded-md px-3 py-2 ${
+                      isLarge ? 'border-amber-500/30 bg-amber-500/5' : 'border-white/10 bg-black/30'
+                    }`}
                   >
-                    Quitar
-                  </button>
-                </li>
-              ))}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-lg flex-shrink-0">{fileIcon}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold truncate">{file.name}</span>
+                        <span className={`text-xs ${isLarge ? 'text-amber-200' : 'text-dt-subtle'}`}>
+                          {sizeInMB < 1 ? `${(file.size / 1024).toFixed(1)} KB` : `${sizeInMB.toFixed(2)} MB`}
+                          {isLarge && ' ⚠️'}
+                          {file.type && ` • ${file.type.split('/')[1]}`}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-xs uppercase tracking-wider text-dt-error hover:underline flex-shrink-0"
+                      onClick={() => handleRemoveAttachment(index)}
+                    >
+                      Quitar
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

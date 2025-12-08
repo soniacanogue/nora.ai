@@ -1,6 +1,13 @@
 // src/features/customers/hooks/useCustomer.js
 import { useQuery } from "@tanstack/react-query";
-import { getCustomerById, getTicketsByCustomer } from "../api/customersApi";
+import { getCustomerById, getTicketsByCustomer, getAllCustomers } from "../api/customersApi";
+
+export const useCustomers = (filters = {}) => {
+  return useQuery({
+    queryKey: ["customers", filters],
+    queryFn: () => getAllCustomers(filters),
+  });
+};
 
 export const useCustomer = (customerId) => {
   return useQuery({

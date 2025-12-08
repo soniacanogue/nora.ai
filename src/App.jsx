@@ -41,6 +41,7 @@ import { AuditLogsPage } from "./features/admin/audit-logs/pages/AuditLogsPage";
 
 // --- NUEVO: Importaciones para páginas de Clientes ---
 import CustomerDetailPage from "./features/customers/pages/CustomerDetailPage";
+import CustomerListPage from "./features/customers/pages/CustomerListPage";
 
 // Componente simple para una página 404
 const NotFoundPage = () => (
@@ -138,6 +139,14 @@ const AnimatedRoutes = () => {
               element={
                 <PageTransition>
                   <OrderListPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <PageTransition>
+                  <CustomerListPage />
                 </PageTransition>
               }
             />
