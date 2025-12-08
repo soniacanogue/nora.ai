@@ -82,7 +82,7 @@ const AppLayout = () => {
               <>
                 <li>
                   <NavLink
-                    to="/"
+                    to="/dashboard"
                     className={({ isActive }) =>
                       isActive
                         ? `${navLinkClasses} ${activeNavLinkClasses}`

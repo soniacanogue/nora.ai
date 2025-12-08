@@ -13,59 +13,6 @@
 
 **Rutas potencialmente huérfanas:** 1
 
-### [Vista: Admin Dashboard]
-**Estado:** ⚠️ Lógica Falsa o Vacía (Ruta no enlazada en menú principal)
-
-* **Problema Detectado:** La ruta `/admin/dashboard` existe en App.jsx pero NO está enlazada en el sidebar de AppLayout.jsx. Sin embargo, HomePage.jsx renderiza AdminDashboardPage cuando el usuario es ADMINISTRADOR, por lo que el dashboard admin SÍ es accesible desde la ruta raíz `/` para administradores. El problema es que la ruta `/admin/dashboard` está definida pero es redundante.
-* **Acción Correctiva:** OPCIÓN 1: Agregar enlace en el sidebar para acceso directo. OPCIÓN 2: Eliminar la ruta `/admin/dashboard` ya que HomePage.jsx ya maneja esto correctamente.
-* **Código Sugerido (Opción 1 - Agregar al sidebar):**
-```jsx
-// En src/shared/components/layout/AppLayout.jsx
-// Agregar antes del enlace 'ai-agents' en la sección Admin (línea ~240):
-<li>
-  <NavLink
-    to="/admin/dashboard"
-    className={({ isActive }) =>
-      isActive
-        ? `${navLinkClasses} ${activeNavLinkClasses}`
-        : navLinkClasses
-    }
-  >
-    {({ isActive }) => (
-      <>
-        {isActive && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-dt-accent rounded-r-full shadow-[0_0_10px_rgba(138,43,226,0.8)]" />
-        )}
-        <span className="material-symbols-outlined text-xl relative z-10">
-          analytics
-        </span>
-        {sidebarOpen && (
-          <span className="ml-3 text-sm font-medium relative z-10">
-            Dashboard Admin
-          </span>
-        )}
-      </>
-    )}
-  </NavLink>
-</li>
-```
-
-**Código Sugerido (Opción 2 - Simplificar eliminando ruta redundante):**
-```jsx
-// En src/App.jsx
-// ELIMINAR esta ruta (ya que HomePage maneja el enrutamiento por rol):
-<Route
-  path="dashboard"
-  element={
-    <PageTransition>
-      <AdminDashboardPage />
-    </PageTransition>
-  }
-/>
-```
-
-**Recomendación:** Opción 1 (agregar al sidebar) es mejor UX - permite acceso directo sin confusión.
-
 ### [Vista: Nuevo Ticket Público]
 **Estado:** ✅ Funcional (Accesible por URL directa)
 

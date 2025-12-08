@@ -21,6 +21,8 @@ import NewTicketPage from "./features/tickets/pages/NewTicketPage";
 import TicketConfirmationPage from "./features/tickets/pages/TicketConfirmationPage";
 import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
 import HomePage from "./features/dashboard/pages/HomePage";
+import RoleBasedDashboard from "./features/dashboard/pages/RoleBasedDashboard";
+import { Navigate } from "react-router-dom";
 
 // --- NUEVO: Importaciones para las páginas de administración de Agentes AI ---
 import { AgentListPage } from "./features/admin/ai-agents/pages/AgentListPage";
@@ -173,13 +175,10 @@ const AnimatedRoutes = () => {
         {/* --- NUEVO: GRUPO DE RUTAS DE ADMINISTRACIÓN (SOLO ADMIN) --- */}
         <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR"]} />}>
           <Route path="/admin" element={<AppLayout />}>
+            {/* Canonical dashboard path is /dashboard (role-based). */}
             <Route
               path="dashboard"
-              element={
-                <PageTransition>
-                  <AdminDashboardPage />
-                </PageTransition>
-              }
+              element={<Navigate to="/dashboard" replace />}
             />
             <Route
               path="ai-agents"
@@ -266,6 +265,20 @@ const AnimatedRoutes = () => {
               element={
                 <PageTransition>
                   <AuditLogsPage />
+                </PageTransition>
+              }
+            />
+          </Route>
+        </Route>
+
+        {/* Ruta canonical para dashboards (usuarios Admin y Agente) */}
+        <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR", "AGENTE"]} />}>
+          <Route element={<AppLayout />}>
+            <Route
+              path="/dashboard"
+              element={
+                <PageTransition>
+                  <RoleBasedDashboard />
                 </PageTransition>
               }
             />

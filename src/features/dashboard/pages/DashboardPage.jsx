@@ -1,5 +1,5 @@
 // src/features/dashboard/pages/DashboardPage.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { getAgentDashboardData } from "../api/dashboardApi";
@@ -50,7 +50,7 @@ const DashboardPage = () => {
     return { fechaDesde: start.toISOString(), fechaHasta };
   };
 
-  const { fechaDesde, fechaHasta } = computeRange(timeRange);
+  const { fechaDesde, fechaHasta } = useMemo(() => computeRange(timeRange), [timeRange]);
 
   const {
     data: dashboardData,
