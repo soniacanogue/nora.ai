@@ -114,22 +114,7 @@ export const getTicketById = async (ticketId) => {
 };
 
 /**
- * Enriches a list of tickets with client and order details.
- * Note: With real API, this might not be needed if the backend returns enriched data.
- * @param {Array} tickets - List of tickets to enrich.
- * @returns {Promise<Array>} - List of enriched tickets.
- */
-export const enrichTicketsWithDetails = async (tickets) => {
-  // With real API, tickets should already come enriched
-  // This function is kept for backward compatibility
-  return tickets.map((ticket) => ({
-    ...ticket,
-    cliente: ticket.cliente || { nombre: "Cliente Desconocido", correo: "" },
-    orden: ticket.orden || null,
-  }));
-};
-
-/**
+ /**
  * Approves a ticket and dispatches the crafted reply.
  * @param {string} ticketId - The ID of the ticket.
  * @param {object} payload - Extra fields such as editedBody, attachments, nextState, etc.
@@ -273,34 +258,6 @@ export const removeTagFromTicket = async (ticketId, tagName) => {
     return data;
   } catch (error) {
     console.error(`Failed to remove tag ${tagName} from ticket ${ticketId}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Find merge candidates for a ticket.
- */
-export const findMergeCandidates = async (ticketId) => {
-  if (!ticketId) throw new Error("ticketId is required");
-  try {
-    const { data } = await apiClient.get(`/tickets/${ticketId}/merge-candidates`);
-    return data;
-  } catch (error) {
-    console.error(`Failed to fetch merge candidates for ${ticketId}:`, error);
-    throw error;
-  }
-};
-
-/**
- * Merge a ticket into another ticket. Body: { targetTicketId }
- */
-export const mergeTicket = async (ticketId, targetTicketId) => {
-  if (!ticketId || !targetTicketId) throw new Error("ticketId and targetTicketId are required");
-  try {
-    const { data } = await apiClient.post(`/tickets/${ticketId}/merge`, { targetTicketId });
-    return data;
-  } catch (error) {
-    console.error(`Failed to merge ticket ${ticketId} into ${targetTicketId}:`, error);
     throw error;
   }
 };
