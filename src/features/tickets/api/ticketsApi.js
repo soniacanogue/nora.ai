@@ -161,7 +161,6 @@ export const approveTicket = async (ticketId, payload = {}) => {
     // Backend exposes a specific endpoint to approve AI suggestions
     const { data } = await apiClient.post(
       `/tickets/${ticketId}/approve-ai`,
-      sanitizedBody,
     );
     return { success: true, ticketId, data };
   } catch (error) {
@@ -183,7 +182,6 @@ export const replyToTicket = async (ticketId, payload = {}) => {
     contenidoTexto: payload.contenidoTexto || payload.reply_text || "",
     estado: payload.estado || undefined,
     archivos: payload.archivos || payload.attachments || undefined,
-    canal: payload.canal || payload.replyChannel || undefined,
   };
 
   const sanitized = Object.fromEntries(

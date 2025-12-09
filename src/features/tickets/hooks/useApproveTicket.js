@@ -14,9 +14,8 @@ export const useApproveTicket = (options = {}) => {
   const { currentUser } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ ticketId, editedBody }) => {
-      await approveTicket(ticketId, { editedBody });
-      return { ticketId, editedBody };
+    mutationFn: async ({ ticketId }) => {
+      return await approveTicket(ticketId);
     },
     onSuccess: (data, variables) => {
       const deliveryStatus =

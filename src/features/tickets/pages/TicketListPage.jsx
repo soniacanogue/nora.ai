@@ -342,11 +342,11 @@ const TicketListPage = () => {
             }
 
             const payload = {
-              canal: "correo",
+              canal: "email",
               prioridad: "media",
               asunto: data.subject,
               mensajeInicial: data.message,
-              emailCliente: data.emailCliente,
+              correoCliente: data.emailCliente,
               nombreCliente: "",
               ordenId: null,
               archivos: archivosPayload,

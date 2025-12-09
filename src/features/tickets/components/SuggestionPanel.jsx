@@ -43,7 +43,7 @@ const SuggestionPanel = ({
   );
 
   const {
-    replyChannel = "correo",
+    replyChannel = "email",
     nextState = "esperando_cliente",
     latestMessageFingerprint,
     latestMessageTimestamp,
@@ -183,7 +183,6 @@ const SuggestionPanel = ({
       approve(
         {
           ticketId,
-          editedBody: editedReply,
         },
         {
           onSuccess: () => {
@@ -193,7 +192,6 @@ const SuggestionPanel = ({
               contenidoTexto: editedReply,
               archivos: attachmentsPayload,
               esNotaInterna: false,
-              estado: nextState,
               canal: replyChannel,
               conversationFingerprint: latestMessageFingerprint,
               collisionAcknowledged: collisionDetected ? collisionAcknowledged : false,
