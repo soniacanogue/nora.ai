@@ -14,22 +14,9 @@ export const useApproveTicket = (options = {}) => {
   const { currentUser } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ ticketId, ...payload }) => {
-      const enrichedPayload = { ...payload };
-      const userId =
-        enrichedPayload.aprobadoPorUsuarioId ||
-        currentUser?.id ||
-        currentUser?._id ||
-        currentUser?.userId ||
-        currentUser?.uuid ||
-        null;
-
-      if (userId && !enrichedPayload.aprobadoPorUsuarioId) {
-        enrichedPayload.aprobadoPorUsuarioId = userId;
-      }
-
-      await approveTicket(ticketId, enrichedPayload);
-      return { ticketId, editedBody: enrichedPayload.editedBody };
+    mutationFn: async ({ ticketId, editedBody }) => {
+      await approveTicket(ticketId, { editedBody });
+      return { ticketId, editedBody };
     },
     onSuccess: (data, variables) => {
       const deliveryStatus =

@@ -126,9 +126,9 @@ export const approveTicket = async (ticketId, payload = {}) => {
     payload,
   );
 
+
   const {
-    nextState,
-    nuevoEstado,
+    estado,
     replyChannel,
     attachments,
     manualEdit,
@@ -137,22 +137,14 @@ export const approveTicket = async (ticketId, payload = {}) => {
     ...rest
   } = payload;
 
-  // Support both frontend `nextState` and backend `nuevoEstado` naming
   const body = {
-    estado: nuevoEstado || nextState || rest.estado || "esperando_cliente",
+    estado: estado || "esperando_cliente",
     replyChannel,
     canalRespuesta: replyChannel,
     manualEdit,
     manual_edit: manualEdit,
     conversationFingerprint,
     collisionAcknowledged,
-    replyMetadata: {
-      fingerprint: conversationFingerprint,
-      collisionAcknowledged: Boolean(collisionAcknowledged),
-      channel: replyChannel,
-      manualEdit,
-      attachments: Array.isArray(attachments) ? attachments.length : 0,
-    },
     ...rest,
   };
 
@@ -189,7 +181,7 @@ export const replyToTicket = async (ticketId, payload = {}) => {
 
   const body = {
     contenidoTexto: payload.contenidoTexto || payload.reply_text || "",
-    nuevoEstado: payload.nuevoEstado || payload.estado || undefined,
+    estado: payload.estado || undefined,
     archivos: payload.archivos || payload.attachments || undefined,
     canal: payload.canal || payload.replyChannel || undefined,
   };
@@ -365,6 +357,35 @@ export const claimTicket = async (ticketId, agentId) => {
     };
   } catch (error) {
     console.error(`Failed to claim ticket ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+
+/**
+ * Find merge candidates for a ticket.
+ */
+export const findMergeCandidates = async (ticketId) => {
+  if (!ticketId) throw new Error("ticketId is required");
+  try {
+    const { data } = await apiClient.get(`/tickets/${ticketId}/merge-candidates`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch merge candidates for ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Merge a ticket into another ticket. Body: { targetTicketId }
+ */
+export const mergeTicket = async (ticketId, targetTicketId) => {
+  if (!ticketId || !targetTicketId) throw new Error("ticketId and targetTicketId are required");
+  try {
+    const { data } = await apiClient.post(`/tickets/${ticketId}/merge`, { targetTicketId });
+    return data;
+  } catch (error) {
+    console.error(`Failed to merge ticket ${ticketId} into ${targetTicketId}:`, error);
     throw error;
   }
 };

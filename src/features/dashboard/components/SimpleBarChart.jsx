@@ -17,9 +17,11 @@ const CustomTooltip = ({ active, payload, label }) => {
         <p className="text-dt-accent font-bold text-xs uppercase tracking-wider mb-1">
           {label}
         </p>
-        <p className="text-white font-mono font-bold">
-          count: {payload[0].value}
-        </p>
+        {payload.map((entry, idx) => (
+          <p key={entry.dataKey} className="text-white font-mono font-bold" style={{color: entry.color}}>
+            {entry.dataKey}: {entry.value}
+          </p>
+        ))}
       </div>
     );
   }
@@ -31,16 +33,36 @@ const SimpleBarChart = ({
   title = "Distribución de Tickets por Estado",
   nameFormatter = (name) => name,
 }) => {
-  const chartData = data.map((item) => ({
-    name: nameFormatter(item.status || item.name || "Unknown"),
-    count: item.count,
-  }));
+  // Si se pasan barKeys, construir datos para múltiples barras
+  let chartData = [];
+  let barKeys = [];
+  if (Array.isArray(data) && data.length > 0 && data[0].hasOwnProperty('Asignados')) {
+    chartData = data.map((item) => ({
+      name: item.fecha,
+      Asignados: item["Asignados"],
+      Resueltos: item["Resueltos"],
+      Activos: item["Activos"],
+    }));
+    barKeys = ["Asignados", "Resueltos", "Activos"];
+  } else {
+    chartData = data.map((item) => ({
+      name: nameFormatter(item.status || item.name || "Unknown"),
+      count: item.count,
+    }));
+    barKeys = ["count"];
+  }
 
   return (
     // --- CORRECCIÓN 1: Quitar la altura fija de aquí ---
     <div className="bg-white/5 backdrop-blur-md p-6 rounded-lg border border-white/10 flex flex-col h-full shadow-sharp">
       <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-6">
-        {title}
+        <span>Tendencia de Tickets (</span>
+        <span style={{color: '#8A2BE2', fontWeight: 'bold'}}>Asignados</span>
+        <span>, </span>
+        <span style={{color: '#32CD32', fontWeight: 'bold'}}>Resueltos</span>
+        <span>, </span>
+        <span style={{color: '#FFA500', fontWeight: 'bold'}}>Activos</span>
+        <span>)</span>
       </h3>
       {/* --- CORRECCIÓN 2: Dar altura explícita al contenedor del gráfico --- */}
       <div className="flex-grow">
@@ -76,15 +98,18 @@ const SimpleBarChart = ({
               cursor={{ fill: "rgba(138, 43, 226, 0.05)" }}
               content={<CustomTooltip />}
             />
-            <Bar
-              dataKey="count"
-              fill="#8A2BE2"
-              radius={[2, 2, 0, 0]}
-              activeBar={{
-                fill: "#9932CC",
-                filter: "drop-shadow(0 0 8px rgba(138, 43, 226, 0.5))",
-              }}
-            />
+            {barKeys.map((key, idx) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={idx === 0 ? "#8A2BE2" : idx === 1 ? "#32CD32" : "#FFA500"}
+                radius={[2, 2, 0, 0]}
+                activeBar={{
+                  fill: idx === 0 ? "#9932CC" : idx === 1 ? "#228B22" : "#FF8C00",
+                  filter: "drop-shadow(0 0 8px rgba(138, 43, 226, 0.5))",
+                }}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       </div>

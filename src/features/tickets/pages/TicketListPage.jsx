@@ -213,8 +213,12 @@ const TicketListPage = () => {
         render: (ticket) => (
           <div onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {ticket?.asunto || "Sin asunto"}
-            <div className="text-xs text-dt-subtle font-mono mt-0.5 opacity-50 group-hover:opacity-100 transition-opacity">
-              ID: {ticket.id}
+            <div className="flex flex-wrap gap-1 mt-0.5">
+              {ticket.etiquetas && ticket.etiquetas.map(etiqueta => (
+                <span key={etiqueta.nombre} className="px-1 py-0.5 text-xs rounded text-white" style={{backgroundColor: etiqueta.color || '#6b7280'}}>
+                  {etiqueta.nombre}
+                </span>
+              ))}
             </div>
           </div>
         ),
@@ -232,16 +236,18 @@ const TicketListPage = () => {
         sortable: true,
         className: "text-dt-subtle",
         render: (ticket) => {
-          // Si el backend devuelve el objeto completo (futuro)
+          // Mostrar nombre del agente si está disponible
+          if (ticket.usuarioAsignadoNombre) {
+            return ticket.usuarioAsignadoNombre;
+          }
           if (ticket.usuarioAsignado && typeof ticket.usuarioAsignado === "object") {
             return ticket.usuarioAsignado?.nombre || "Agente";
           }
-          // Si el backend devuelve solo el ID (actual, pero se va a arreglar)
-          // O si el campo se llama diferente, intentamos mostrar algo sensato
+          if (ticket.assignee && typeof ticket.assignee === "object") {
+            return ticket.assignee?.nombre || "Agente";
+          }
           return (
-            ticket.assigneeId || (
-              <span className="text-dt-subtle/50 italic">Sin Asignar</span>
-            )
+            <span className="text-dt-subtle/50 italic">Sin Asignar</span>
           );
         },
       },

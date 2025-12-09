@@ -184,12 +184,6 @@ const SuggestionPanel = ({
         {
           ticketId,
           editedBody: editedReply,
-          attachments: attachmentsPayload,
-          manualEdit,
-          nextState,
-          replyChannel,
-          conversationFingerprint: latestMessageFingerprint,
-          collisionAcknowledged: collisionDetected ? collisionAcknowledged : false,
         },
         {
           onSuccess: () => {
@@ -199,7 +193,7 @@ const SuggestionPanel = ({
               contenidoTexto: editedReply,
               archivos: attachmentsPayload,
               esNotaInterna: false,
-              nuevoEstado: nextState,
+              estado: nextState,
               canal: replyChannel,
               conversationFingerprint: latestMessageFingerprint,
               collisionAcknowledged: collisionDetected ? collisionAcknowledged : false,

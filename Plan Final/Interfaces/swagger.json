@@ -675,6 +675,42 @@
         ]
       }
     },
+    "/tickets/{id}/stream": {
+      "get": {
+        "operationId": "TicketsController_stream",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Server-Sent Events stream for ticket updates",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
     "/tickets/{id}": {
       "get": {
         "operationId": "TicketsController_findOne",
@@ -1200,6 +1236,88 @@
           }
         ],
         "summary": "Exportar tickets a CSV con filtros opcionales",
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/tickets/{id}/messages/{messageId}": {
+      "patch": {
+        "operationId": "TicketsController_updateInternalNote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInternalNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Editar una nota interna en un ticket",
+        "tags": [
+          "Tickets"
+        ]
+      },
+      "delete": {
+        "operationId": "TicketsController_deleteInternalNote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar una nota interna de un ticket",
         "tags": [
           "Tickets"
         ]
@@ -2988,6 +3106,23 @@
           "canal"
         ]
       },
+      "TagDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "urgente"
+          },
+          "color": {
+            "type": "string",
+            "example": "#FF0000"
+          }
+        },
+        "required": [
+          "nombre",
+          "color"
+        ]
+      },
       "TicketResponseDto": {
         "type": "object",
         "properties": {
@@ -3000,52 +3135,67 @@
             "type": "string",
             "example": "Pedido no recibido"
           },
-          "estado": {
-            "type": "string",
-            "example": "nuevo"
-          },
           "prioridad": {
             "type": "string",
             "example": "media"
           },
-          "createdAt": {
+          "modificadoEn": {
             "type": "string",
             "example": "2025-12-07T12:00:00Z"
+          },
+          "clienteNombre": {
+            "type": "string",
+            "example": "Juan Pérez"
+          },
+          "usuarioAsignadoNombre": {
+            "type": "string",
+            "example": "Ana García"
+          },
+          "etiquetas": {
+            "example": [
+              {
+                "nombre": "urgente",
+                "color": "#FF0000"
+              },
+              {
+                "nombre": "reembolso",
+                "color": "#00FF00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagDto"
+            }
           }
         },
         "required": [
           "id",
           "asunto",
-          "estado"
+          "modificadoEn"
         ]
       },
       "TicketListDto": {
         "type": "object",
         "properties": {
-          "page": {
-            "type": "number",
-            "example": 1
-          },
-          "limit": {
-            "type": "number",
-            "example": 50
-          },
-          "total": {
-            "type": "number",
-            "example": 123
-          },
-          "items": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TicketResponseDto"
             }
+          },
+          "pagination": {
+            "type": "object",
+            "example": {
+              "total": 123,
+              "page": 1,
+              "limit": 50,
+              "totalPages": 3
+            }
           }
         },
         "required": [
-          "page",
-          "limit",
-          "total",
-          "items"
+          "data",
+          "pagination"
         ]
       },
       "UpdateTicketDto": {
@@ -3187,25 +3337,7 @@
       },
       "ApproveAiDto": {
         "type": "object",
-        "properties": {
-          "nuevoEstado": {
-            "type": "string",
-            "enum": [
-              "nuevo",
-              "pendiente_ia",
-              "ia_sugerido",
-              "respuesta_cliente",
-              "esperando_cliente",
-              "escalado_nivel_2",
-              "en_progreso_nivel_2",
-              "cerrado",
-              "reabierto",
-              "fusionado"
-            ],
-            "description": "Estado final del ticket después de enviar (por defecto: esperando_cliente)",
-            "example": "esperando_cliente"
-          }
-        }
+        "properties": {}
       },
       "EscalateTicketDto": {
         "type": "object",
@@ -3280,6 +3412,16 @@
         "required": [
           "targetTicketId"
         ]
+      },
+      "UpdateInternalNoteDto": {
+        "type": "object",
+        "properties": {
+          "contenidoTexto": {
+            "type": "string",
+            "description": "Nuevo contenido de la nota interna",
+            "example": "Nota actualizada con nueva información"
+          }
+        }
       },
       "CreateAiConfigDto": {
         "type": "object",

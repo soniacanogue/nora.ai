@@ -91,6 +91,16 @@ const DashboardPage = () => {
   const { myMetrics, myQueues, myTicketsByStatus, recentActivity } =
     dashboardData;
 
+  // Adaptar datos para el gráfico usando 'tendencias'
+  const tendenciasData = Array.isArray(dashboardData.tendencias)
+    ? dashboardData.tendencias.map((t) => ({
+        fecha: new Date(t.fecha).toLocaleDateString(),
+        "Asignados": t.ticketsAsignados,
+        "Resueltos": t.ticketsResueltos,
+        "Activos": t.ticketsActivos,
+      }))
+    : [];
+
   // Select metrics based on time range
   const currentMetrics =
     timeRange === "today" ? myMetrics.today : myMetrics.thisWeek;
@@ -133,17 +143,25 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatCard
           title={`Mis Tickets Resueltos${timeRange === "today" ? " (Hoy)" : " (Esta Semana)"}`}
-          value={currentMetrics.resolved}
+          value={timeRange === "today" ? currentMetrics.resolvedToday : currentMetrics.resolvedThisWeek}
           icon="✅"
         />
         <StatCard
           title="Mis Tickets Asignados"
-          value={currentMetrics.assigned}
+          value={currentMetrics.assignedActive}
           icon="📁"
         />
         <StatCard
-          title="Mi Tiempo Promedio de Respuesta"
-          value={currentMetrics.avgResponseTime}
+          title="Mi Tiempo Promedio de 1ª Respuesta (min)"
+          value={
+            timeRange === "today"
+              ? (typeof currentMetrics.avgFirstResponseMin === "number"
+                  ? currentMetrics.avgFirstResponseMin
+                  : dashboardData.myMetrics?.today?.avgFirstResponseMin)
+              : (typeof currentMetrics.avgFirstResponseMin === "number"
+                  ? currentMetrics.avgFirstResponseMin
+                  : dashboardData.myMetrics?.thisWeek?.avgFirstResponseMin)
+          }
           icon="⏱️"
         />
       </div>
@@ -152,9 +170,11 @@ const DashboardPage = () => {
         <div className="lg:col-span-2 space-y-8">
           <div className="h-96">
             <SimpleBarChart
-              data={myTicketsByStatus}
-              title="Mis Tickets por Estado"
-              nameFormatter={formatTicketStatus}
+              data={tendenciasData}
+              title="Tendencia de Tickets (Asignados, Resueltos, Activos)"
+              nameFormatter={(name) => name}
+              multipleBars={true}
+              barKeys={["Asignados", "Resueltos", "Activos"]}
             />
           </div>
 
@@ -168,36 +188,34 @@ const DashboardPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <QueueLinkCard
                 title="Tickets Reabiertos"
-                count={myQueues.reopened}
+                count={myQueues.ticketsReabiertos}
                 linkTo="/tickets?status=reabierto"
                 description="Máxima prioridad. Clientes que respondieron a tickets cerrados."
               />
               <QueueLinkCard
                 title="Respuestas de Clientes"
-                count={myQueues.customerReplied}
+                count={myQueues.respuestasCliente}
                 linkTo="/tickets?status=respuesta_cliente"
                 description="Conversaciones activas que esperan tu respuesta."
               />
               <QueueLinkCard
                 title="Tickets para Triaje"
-                count={myQueues.forTriage}
+                count={myQueues.ticketsTriaje}
                 linkTo="/tickets?status=ia_sugerido,nuevo"
                 description="Nuevos tickets y sugerencias de Nora AI por revisar."
               />
               <QueueLinkCard
                 title="Mis Tickets Escalados"
-                count={myQueues.myEscalated}
+                count={myQueues.ticketsEscalados}
                 linkTo="/tickets?status=escalado_nivel_2&assignee=me"
                 description="Casos complejos que requieren tu atención manual."
               />
-              {/* --- CORRECCIÓN AÑADIDA --- */}
               <QueueLinkCard
                 title="Esperando Respuesta"
-                count={myQueues.waitingForCustomer}
+                count={myQueues.esperandoRespuesta}
                 linkTo="/tickets?status=esperando_cliente"
                 description="Tickets en los que has respondido y se espera acción del cliente."
               />
-              {/* --- FIN DE LA CORRECCIÓN --- */}
             </div>
           </div>
         </div>

@@ -85,19 +85,18 @@ const TagManager = ({ ticketId, currentTags = [], suggestedTags = [] }) => {
 
       {/* Display current tags */}
       <div className="flex flex-wrap gap-2">
-        {currentTagNames.length === 0 && (
+        {currentTags.length === 0 && (
           <span className="text-xs text-dt-subtle italic">Sin etiquetas</span>
         )}
-        {currentTagNames.map((tagName) => {
+        {currentTags.map((tag) => {
+          const tagName = typeof tag === "string" ? tag : tag.nombre || tag.name;
+          const tagColor = tag.color || '#6b7280';
           const isSuggested = suggestedTags.includes(tagName);
           return (
             <div
               key={tagName}
-              className={`group flex items-center gap-1.5 px-3 py-1 text-xs rounded-full font-mono border ${
-                isSuggested
-                  ? "bg-dt-accent/10 text-dt-accent border-dt-accent/20"
-                  : "bg-white/5 text-dt-foreground border-white/10"
-              }`}
+              className="group flex items-center gap-1.5 px-3 py-1 text-xs rounded-full font-mono border text-white"
+              style={{ backgroundColor: tagColor, borderColor: tagColor }}
             >
               <span>#{tagName}</span>
               {isSuggested && (
@@ -108,7 +107,7 @@ const TagManager = ({ ticketId, currentTags = [], suggestedTags = [] }) => {
               <button
                 onClick={() => handleRemoveTag(tagName)}
                 disabled={isPending}
-                className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-dt-error hover:text-dt-error/80 disabled:opacity-50"
+                className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-gray-300 disabled:opacity-50"
                 title="Eliminar etiqueta"
               >
                 ×
