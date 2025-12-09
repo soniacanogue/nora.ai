@@ -6,7 +6,7 @@ import FileUpload from "../../../shared/components/ui/FileUpload";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import PublicLayout from "../../../shared/components/layout/PublicLayout";
-import { createTicket, uploadAttachment } from "../api/ticketsApi";
+import { createPublicTicket, uploadAttachment } from "../api/ticketsApi";
 
 const NewTicketPage = () => {
   const {
@@ -63,7 +63,7 @@ const NewTicketPage = () => {
         archivos: uploadedFilesMeta,
       };
 
-      const createdTicket = await createTicket(payload);
+      const createdTicket = await createPublicTicket(payload);
       const returnedTicketId =
         createdTicket?.id ||
         createdTicket?.ticketId ||

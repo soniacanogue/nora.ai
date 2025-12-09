@@ -1,9 +1,9 @@
-// src/features/admin/ai-agents/AgentFormPage.jsx
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAgent, useCreateAgent, useUpdateAgent } from "../hooks/useAgents";
 import { AgentForm } from "../components/AgentForm";
+import DashboardSkeleton from "@/features/dashboard/components/DashboardSkeleton";
 
 export function AgentFormPage() {
   const { id } = useParams();
@@ -49,7 +49,7 @@ export function AgentFormPage() {
   };
 
   if (isEditMode && isLoadingAgent) {
-    return <div>Cargando datos del agente...</div>; // TODO: Usar Skeleton
+    return <DashboardSkeleton />;
   }
 
   const isSubmitting =
