@@ -31,6 +31,11 @@ import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
 import Modal from "@/shared/components/ui/Modal";
+import DynamicTable from "@/shared/components/ui/DynamicTable";
+import SearchInput from "@/shared/components/ui/SearchInput";
+import Select from "@/shared/components/ui/Select";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import FilterBar from "@/shared/components/ui/FilterBar";
 
 const PasswordManagerModal = ({ user, onClose }) => {
   const [mode, setMode] = useState("change");
@@ -616,6 +621,110 @@ export const UsersListPage = () => {
     return "error";
   };
 
+  const columns = useMemo(() => [
+    {
+      key: "nombre",
+      label: "Usuario",
+      sortable: true,
+      render: (user) => (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-dt-accent/20 flex items-center justify-center">
+            <span className="text-sm font-semibold text-dt-accent">
+              {(user.nombre || "?").charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-dt-foreground block">
+              {user.nombre || "—"}
+            </span>
+            <span className="text-xs text-dt-subtle">{user.equipo || "Sin equipo"}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "correo",
+      label: "Correo",
+      sortable: true,
+      className: "text-dt-subtle",
+      render: (user) => user.correo || user.email || "—",
+    },
+    {
+      key: "rol",
+      label: "Rol",
+      sortable: true,
+      render: (user) => (
+        <Badge variant={getRoleBadgeVariant(user.rol)} icon={FiShield}>
+          {user.rol || "—"}
+        </Badge>
+      ),
+    },
+    {
+      key: "activo",
+      label: "Estado",
+      render: (user) => (
+        <Badge variant={user.activo ? "success" : "neutral"} icon={user.activo ? FiCheckCircle : FiXCircle}>
+          {user.activo ? "Activo" : "Inactivo"}
+        </Badge>
+      ),
+    },
+    {
+      key: "kpis",
+      label: "KPIs",
+      className: "text-xs text-dt-subtle",
+      render: (user) => {
+        const metrics = getUserMetrics(user);
+        return (
+          <div className="space-y-1 text-xs text-dt-subtle">
+            <div className="flex justify-between">
+              <span>Asignados</span>
+              <span className="font-semibold text-dt-foreground">{metrics.assigned}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Resueltos</span>
+              <span className="font-semibold text-dt-foreground">{metrics.resolved}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>SLA</span>
+              <Badge variant={getSlaVariant(metrics.sla)}>{Math.round(metrics.sla || 0)}%</Badge>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      label: "Acciones",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (user) => (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => handleToggleActive(user)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title={user.activo ? "Desactivar" : "Activar"}
+          >
+            {user.activo ? <FiToggleRight size={20} className="text-green-500" /> : <FiToggleLeft size={20} />}
+          </button>
+          <button
+            onClick={() => setPasswordManagerUser(user)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title="Gestionar contraseña"
+          >
+            <FiKey size={16} />
+          </button>
+          <button
+            onClick={() => setEditingUser(user)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title="Editar"
+          >
+            <FiEdit2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ], [getRoleBadgeVariant, getUserMetrics, getSlaVariant, handleToggleActive]);
+
   if (error) {
     return (
       <div className="p-6">
@@ -630,26 +739,12 @@ export const UsersListPage = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FiUsers className="text-2xl text-dt-accent" />
-          <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">
-              Gestión de Usuarios
-            </h1>
-            <p className="text-sm text-dt-subtle">
-              Administra usuarios y permisos del sistema
-            </p>
-          </div>
-        </div>
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          variant="primary"
-          icon={FiPlus}
-        >
-          Nuevo Usuario
-        </Button>
-      </div>
+      <PageHeader
+        icon={FiUsers}
+        title="Gestión de Usuarios"
+        description="Administra usuarios y permisos del sistema"
+        action={{ label: "Nuevo Usuario", onClick: () => setIsCreateModalOpen(true), icon: FiPlus }}
+      />
 
         {/* KPI Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -674,215 +769,80 @@ export const UsersListPage = () => {
         </div>
 
       {/* Filters */}
-        <div className="flex flex-wrap gap-4">
-        {/* Search Bar */}
-        <div className="relative flex-1">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
-          <input
-            type="text"
-            placeholder="Buscar usuarios por nombre o correo..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground placeholder-dt-subtle focus:outline-none focus:ring-2 focus:ring-dt-accent"
-          />
-        </div>
+      <FilterBar>
+        <SearchInput
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar usuarios por nombre o correo..."
+          className="flex-1"
+        />
 
-        {/* Role Filter */}
-        <select
+        <Select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-        >
-          <option value="">Todos los roles</option>
-          <option value="ADMINISTRADOR">Administradores</option>
-          <option value="AGENTE">Agentes</option>
-          <option value="CLIENTE">Clientes</option>
-        </select>
+          placeholder="Todos los roles"
+          options={[
+            { value: "", label: "Todos los roles" },
+            { value: "ADMINISTRADOR", label: "Administradores" },
+            { value: "AGENTE", label: "Agentes" },
+            { value: "CLIENTE", label: "Clientes" },
+          ]}
+        />
 
-        <select
+        <Select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-        >
-          <option value="">Todos los estados</option>
-          <option value="active">Activos</option>
-          <option value="inactive">Inactivos</option>
-        </select>
+          placeholder="Todos los estados"
+          options={[
+            { value: "", label: "Todos los estados" },
+            { value: "active", label: "Activos" },
+            { value: "inactive", label: "Inactivos" },
+          ]}
+        />
 
         {availableTeams.length > 0 && (
-          <select
+          <Select
             value={teamFilter}
             onChange={(e) => setTeamFilter(e.target.value)}
-            className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-          >
-            <option value="">Todos los equipos</option>
-            {availableTeams.map((team) => (
-              <option key={team} value={team}>
-                {team}
-              </option>
-            ))}
-          </select>
+            placeholder="Todos los equipos"
+            options={[{ value: "", label: "Todos los equipos" }, ...availableTeams.map((team) => ({ value: team, label: team }))]}
+          />
         )}
-      </div>
+      </FilterBar>
 
       {/* Users Table */}
-      {isLoading ? (
-        <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden">
-          <div className="animate-pulse p-6 space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-dt-border rounded"></div>
-            ))}
-          </div>
-        </div>
-      ) : filteredUsers.length === 0 ? (
-        <EmptyState
-          icon={FiUsers}
-          title="No hay usuarios"
-          description={
-            searchTerm || roleFilter
-              ? "No se encontraron usuarios con los filtros aplicados"
-              : "Crea tu primer usuario para comenzar"
-          }
-          action={
-            !searchTerm &&
-            !roleFilter && {
-              label: "Crear Usuario",
-              onClick: () => setIsCreateModalOpen(true),
+      <DynamicTable
+        columns={columns}
+        data={filteredUsers}
+        isLoading={isLoading}
+        page={pageParam}
+        itemsPerPage={limitParam}
+        onPageChange={(newPage) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", String(newPage));
+          setSearchParams(params);
+        }}
+        onItemsPerPageChange={(newLimit) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("limit", String(newLimit));
+          params.set("page", "1");
+          setSearchParams(params);
+        }}
+        totalPages={users?.pagination?.totalPages}
+        totalItems={users?.pagination?.totalItems}
+        emptyState={
+          <EmptyState
+            icon={FiUsers}
+            title="No hay usuarios"
+            description={
+              searchTerm || roleFilter
+                ? "No se encontraron usuarios con los filtros aplicados"
+                : "Crea tu primer usuario para comenzar"
             }
-          }
-        />
-      ) : (
-        <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-dt-background border-b border-dt-border">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase">
-                    Usuario
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase">
-                    Correo
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase">
-                    Rol
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase">
-                    Estado
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase">
-                    KPIs
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-dt-subtle uppercase">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-dt-border">
-                {filteredUsers.map((user) => {
-                  const metrics = getUserMetrics(user);
-                  return (
-                    <tr
-                      key={user.id}
-                      className="hover:bg-dt-background/50 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-dt-accent/20 flex items-center justify-center">
-                            <span className="text-sm font-semibold text-dt-accent">
-                              {(user.nombre || "?").charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="font-medium text-dt-foreground block">
-                              {user.nombre || "—"}
-                            </span>
-                            <span className="text-xs text-dt-subtle">
-                              {user.equipo || "Sin equipo"}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-dt-subtle">
-                        {user.correo || user.email || "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge
-                          variant={getRoleBadgeVariant(user.rol)}
-                          icon={FiShield}
-                        >
-                          {user.rol || "—"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge
-                          variant={user.activo ? "success" : "neutral"}
-                          icon={user.activo ? FiCheckCircle : FiXCircle}
-                        >
-                          {user.activo ? "Activo" : "Inactivo"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-dt-subtle">
-                        <div className="space-y-1">
-                          <div className="flex justify-between">
-                            <span>Asignados</span>
-                            <span className="font-semibold text-dt-foreground">
-                              {metrics.assigned}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Resueltos</span>
-                            <span className="font-semibold text-dt-foreground">
-                              {metrics.resolved}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>SLA</span>
-                            <Badge variant={getSlaVariant(metrics.sla)}>
-                              {Math.round(metrics.sla || 0)}%
-                            </Badge>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handleToggleActive(user)}
-                            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                            title={user.activo ? "Desactivar" : "Activar"}
-                          >
-                            {user.activo ? (
-                              <FiToggleRight
-                                size={20}
-                                className="text-green-500"
-                              />
-                            ) : (
-                              <FiToggleLeft size={20} />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => setPasswordManagerUser(user)}
-                            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                            title="Gestionar contraseña"
-                          >
-                            <FiKey size={16} />
-                          </button>
-                          <button
-                            onClick={() => setEditingUser(user)}
-                            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                            title="Editar"
-                          >
-                            <FiEdit2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+            action={!searchTerm && !roleFilter ? { label: "Crear Usuario", onClick: () => setIsCreateModalOpen(true) } : undefined}
+          />
+        }
+      />
 
       {/* Create Modal */}
       {isCreateModalOpen && (

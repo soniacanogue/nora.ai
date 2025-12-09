@@ -21,12 +21,30 @@ const SearchInput = ({
     if (value && suggestions.length > 0) {
       const filtered = suggestions.filter((suggestion) =>
         suggestion.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredSuggestions(filtered.slice(0, 10)); // Limitar a 10 sugerencias
-      setIsOpen(filtered.length > 0);
+      ).slice(0, 10); // Limitar a 10 sugerencias
+
+      // Evitar actualizar estado si las sugerencias filtradas no han cambiado
+      const eq = (a, b) => {
+        if (a === b) return true;
+        if (!a || !b) return false;
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) return false;
+        }
+        return true;
+      };
+
+      if (!eq(filtered, filteredSuggestions)) {
+        setFilteredSuggestions(filtered);
+      }
+
+      const shouldOpen = filtered.length > 0;
+      if (shouldOpen !== isOpen) {
+        setIsOpen(shouldOpen);
+      }
     } else {
-      setFilteredSuggestions([]);
-      setIsOpen(false);
+      if (filteredSuggestions.length !== 0) setFilteredSuggestions([]);
+      if (isOpen) setIsOpen(false);
     }
   }, [value, suggestions]);
 

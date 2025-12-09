@@ -38,3 +38,69 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Ambient glow animations for AppLayout background */
+.ambient-glow {
+  animation: ambientFloat 14s ease-in-out infinite;
+  opacity: 0.6;
+  will-change: transform, opacity, filter;
+  transform-origin: center;
+}
+
+.ambient-glow-2 {
+  animation: ambientDrift 20s linear infinite;
+  opacity: 0.5;
+  will-change: transform, opacity, filter;
+  transform-origin: center;
+}
+
+@keyframes ambientFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: hue-rotate(0deg) saturate(100%);
+    opacity: 0.5;
+  }
+  25% {
+    transform: translate3d(-20px, 10px, 0) scale(1.03) rotate(2deg);
+    filter: hue-rotate(8deg) saturate(110%);
+    opacity: 0.62;
+  }
+  50% {
+    transform: translate3d(0, 30px, 0) scale(1.06) rotate(-2deg);
+    filter: hue-rotate(-8deg) saturate(120%);
+    opacity: 0.56;
+  }
+  75% {
+    transform: translate3d(20px, 10px, 0) scale(1.03) rotate(1deg);
+    filter: hue-rotate(4deg) saturate(105%);
+    opacity: 0.62;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: hue-rotate(0deg) saturate(100%);
+    opacity: 0.5;
+  }
+}
+
+@keyframes ambientDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: hue-rotate(0deg) saturate(100%);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translate3d(18px, -22px, 0) scale(1.05) rotate(3deg);
+    filter: hue-rotate(18deg) saturate(125%);
+    opacity: 0.62;
+  }
+  80% {
+    transform: translate3d(-22px, 12px, 0) scale(1.02) rotate(-2deg);
+    filter: hue-rotate(-12deg) saturate(110%);
+    opacity: 0.48;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: hue-rotate(0deg) saturate(100%);
+    opacity: 0.4;
+  }
+}

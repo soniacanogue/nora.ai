@@ -13,9 +13,11 @@ import {
   FiSettings,
   FiAlertTriangle,
 } from "react-icons/fi";
+import PageHeader from "@/shared/components/layout/PageHeader";
 import toast from "react-hot-toast";
 import { useAuditLogs, exportAuditLogs } from "../hooks";
 import Button from "@/shared/components/ui/Button";
+import FilterPanel from "@/shared/components/ui/FilterPanel";
 import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
@@ -45,9 +47,9 @@ export const AuditLogsPage = () => {
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / filters.limit);
   const isCriticalEvent = (log) => {
-    const haystack = `${log.accion || ""} ${log.detalles || ""} ${
-      log.recurso || ""
-    }`.toLowerCase();
+    const haystack = `${log.accion || log.cud || log.tipoEvento || ""} ${
+      log.detalles || JSON.stringify(log.payload) || ""
+    } ${log.recurso || log.tabla || ""}`.toLowerCase();
     const criticalKeywords = [
       "delete",
       "permis",
@@ -61,14 +63,93 @@ export const AuditLogsPage = () => {
     return criticalKeywords.some((keyword) => haystack.includes(keyword));
   };
 
+  const getTimestamp = (log) => {
+    return log.timestamp || log.creadoEn || log.modificadoEn || null;
+  };
+
+  const getUserDisplay = (log) => {
+    return log.usuarioNombre || "Sistema";
+  };
+
+  const getActionText = (log) => {
+    return log.accion || log.cud || log.tipoEvento || "Evento";
+  };
+
+  const getResourceText = (log) => {
+    return log.recurso || log.tabla || log.entidadId || "-";
+  };
+
+  const formatDetails = (log) => {
+    if (log.detalles) return log.detalles;
+    if (log.mensaje) return log.mensaje;
+    if (log.payload) {
+      try {
+        if (typeof log.payload === "string") return log.payload;
+        // Show a compact representation of payload (prefer nombre/correo/email)
+        const preferredKeys = ["nombre", "name", "correo", "email", "id"];
+        const entries = Object.entries(log.payload || {});
+        // Try to pick preferred keys first
+        const picked = [];
+        for (const key of preferredKeys) {
+          if (key in log.payload) {
+            picked.push([key, log.payload[key]]);
+          }
+        }
+        // Add other keys up to a small limit
+        for (const [k, v] of entries) {
+          if (picked.find((p) => p[0] === k)) continue;
+          if (picked.length >= 4) break;
+          picked.push([k, v]);
+        }
+        if (picked.length) {
+          return picked
+            .map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`)
+            .join(" | ");
+        }
+        return JSON.stringify(log.payload);
+      } catch (e) {
+        return JSON.stringify(log.payload);
+      }
+    }
+    const extras = [];
+    if (log.ip) extras.push(`IP: ${log.ip}`);
+    if (log.userAgent) extras.push(`UA: ${log.userAgent}`);
+    return extras.join(" | ") || "-";
+  };
+
   const timelineLogs = useMemo(() => {
     return [...logs]
-      .filter((log) => log.timestamp)
-      .sort(
-        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      )
+      .filter((log) => getTimestamp(log))
+      .sort((a, b) => new Date(getTimestamp(b)).getTime() - new Date(getTimestamp(a)).getTime())
       .slice(0, 8);
   }, [logs]);
+
+  const filterConfig = useMemo(() => {
+    return [
+      {
+        key: "action",
+        type: "select",
+        label: "Tipo de Acción",
+        options: [
+          { value: "", label: "Todas" },
+          { value: "CREATE", label: "Crear" },
+          { value: "UPDATE", label: "Actualizar" },
+          { value: "DELETE", label: "Eliminar" },
+          { value: "LOGIN", label: "Inicio de sesión" },
+          { value: "LOGOUT", label: "Cierre de sesión" },
+        ],
+      },
+      { key: "startDate", type: "date", label: "Fecha Desde" },
+      { key: "endDate", type: "date", label: "Fecha Hasta" },
+      {
+        key: "userId",
+        type: "select",
+        label: "Usuario",
+        options: [{ value: "", label: "Todos" }, ...(usersList || []).map((u) => ({ value: u.id, label: u.nombre }))],
+      },
+      { key: "resource", type: "text", label: "Recurso", placeholder: "tickets, usuarios, plantillas..." },
+    ];
+  }, [usersList]);
 
   const handleSearch = (e) => {
     setFilters({ ...filters, search: e.target.value, page: 1 });
@@ -98,11 +179,11 @@ export const AuditLogsPage = () => {
     // Client-side CSV export fallback
     const headers = ["Timestamp", "Usuario", "Acción", "Recurso", "Detalles"];
     const rows = logs.map((log) => [
-      new Date(log.timestamp).toLocaleString(),
-      log.usuario?.nombre || "Sistema",
-      log.accion,
-      log.recurso || "-",
-      log.detalles || "-",
+      new Date(getTimestamp(log) || Date.now()).toLocaleString(),
+      getUserDisplay(log),
+      getActionText(log),
+      getResourceText(log),
+      formatDetails(log),
     ]);
 
     const csvContent = [
@@ -156,19 +237,11 @@ export const AuditLogsPage = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FiFileText className="text-2xl text-dt-accent" />
-          <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">
-              Auditoría del Sistema
-            </h1>
-            <p className="text-sm text-dt-subtle">
-              Registro de eventos y acciones en el sistema
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        icon={FiFileText}
+        title="Auditoría del Sistema"
+        description="Registro de eventos y acciones en el sistema"
+      >
         <div className="flex gap-2">
           <Button
             onClick={() => setShowFilters(!showFilters)}
@@ -181,7 +254,7 @@ export const AuditLogsPage = () => {
             Exportar CSV
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Search and Filters */}
       <div className="space-y-4">
@@ -197,85 +270,13 @@ export const AuditLogsPage = () => {
           />
         </div>
 
-        {/* Advanced Filters */}
-        {showFilters && (
-          <div className="bg-dt-card border border-dt-border rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-dt-foreground mb-2">
-                  Tipo de Acción
-                </label>
-                <select
-                  value={filters.action}
-                  onChange={(e) => handleFilterChange("action", e.target.value)}
-                  className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-                >
-                  <option value="">Todas</option>
-                  <option value="CREATE">Crear</option>
-                  <option value="UPDATE">Actualizar</option>
-                  <option value="DELETE">Eliminar</option>
-                  <option value="LOGIN">Inicio de sesión</option>
-                  <option value="LOGOUT">Cierre de sesión</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-dt-foreground mb-2">
-                  Fecha Desde
-                </label>
-                <input
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(e) =>
-                    handleFilterChange("startDate", e.target.value)
-                  }
-                  className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-dt-foreground mb-2">
-                  Fecha Hasta
-                </label>
-                <input
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(e) =>
-                    handleFilterChange("endDate", e.target.value)
-                  }
-                  className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-dt-foreground mb-2">
-                  Usuario
-                </label>
-                <select
-                  value={filters.userId}
-                  onChange={(e) => handleFilterChange("userId", e.target.value)}
-                  className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-                >
-                  <option value="">Todos</option>
-                  {usersList.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-dt-foreground mb-2">
-                  Recurso
-                </label>
-                <input
-                  type="text"
-                  value={filters.resource}
-                  onChange={(e) => handleFilterChange("resource", e.target.value)}
-                  placeholder="tickets, usuarios, plantillas..."
-                  className="w-full px-3 py-2 bg-dt-background border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Advanced Filters: replaced by reusable FilterPanel */}
+        <FilterPanel
+          open={showFilters}
+          config={filterConfig}
+          values={filters}
+          onChange={handleFilterChange}
+        />
       </div>
 
       {/* Logs List */}
@@ -328,7 +329,8 @@ export const AuditLogsPage = () => {
                 <tbody className="divide-y divide-dt-border">
                   {logs.map((log, index) => {
                     const critical = isCriticalEvent(log);
-                    const ActionIcon = getActionIcon(log.accion);
+                    const actionText = getActionText(log);
+                    const ActionIcon = getActionIcon(actionText);
                     return (
                       <tr
                         key={log.id || index}
@@ -342,8 +344,8 @@ export const AuditLogsPage = () => {
                           <div className="flex items-center gap-2">
                             <FiClock className="text-dt-subtle" size={14} />
                             <span>
-                              {log.timestamp
-                                ? formatDistanceToNow(new Date(log.timestamp))
+                              {getTimestamp(log)
+                                ? formatDistanceToNow(new Date(getTimestamp(log)))
                                 : "N/A"}
                             </span>
                           </div>
@@ -351,17 +353,17 @@ export const AuditLogsPage = () => {
                         <td className="px-4 py-3 text-sm text-dt-foreground">
                           <div className="flex items-center gap-2">
                             <FiUser className="text-dt-subtle" size={14} />
-                            <span>{log.usuario?.nombre || "Sistema"}</span>
+                            <span>{getUserDisplay(log)}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <Badge
-                              variant={critical ? "danger" : getActionColor(log.accion)}
+                              variant={critical ? "danger" : getActionColor(actionText)}
                             >
                               <span className="flex items-center gap-1">
                                 <ActionIcon size={12} />
-                                {log.accion}
+                                {actionText}
                               </span>
                             </Badge>
                             {critical && (
@@ -372,10 +374,10 @@ export const AuditLogsPage = () => {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-dt-subtle">
-                          {log.recurso || "-"}
+                          {getResourceText(log)}
                         </td>
                         <td className="px-4 py-3 text-sm text-dt-subtle max-w-md truncate">
-                          {log.detalles || log.mensaje || "-"}
+                          {formatDetails(log)}
                         </td>
                       </tr>
                     );
@@ -405,7 +407,8 @@ export const AuditLogsPage = () => {
                 <div className="absolute left-2 top-0 bottom-0 w-px bg-dt-border"></div>
                 {timelineLogs.map((log, index) => {
                   const critical = isCriticalEvent(log);
-                  const ActionIcon = getActionIcon(log.accion);
+                  const actionText = getActionText(log);
+                  const ActionIcon = getActionIcon(actionText);
                   return (
                     <div key={log.id || index} className="mb-6 last:mb-0 relative">
                       <span
@@ -417,22 +420,22 @@ export const AuditLogsPage = () => {
                       ></span>
                       <div className="flex items-center gap-2 text-xs text-dt-subtle">
                         <FiClock size={12} />
-                        {log.timestamp
-                          ? formatDistanceToNow(new Date(log.timestamp))
+                        {getTimestamp(log)
+                          ? formatDistanceToNow(new Date(getTimestamp(log)))
                           : "N/A"}
                         <span className="text-[10px] uppercase tracking-wide">
-                          {log.usuario?.nombre || "Sistema"}
+                          {getUserDisplay(log)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={critical ? "danger" : getActionColor(log.accion)}>
+                        <Badge variant={critical ? "danger" : getActionColor(actionText)}>
                           <span className="flex items-center gap-1">
                             <ActionIcon size={12} />
-                            {log.accion}
+                            {actionText}
                           </span>
                         </Badge>
                         <span className="text-sm text-dt-foreground">
-                          {log.detalles || log.mensaje || log.recurso || "Evento"}
+                          {formatDetails(log) || getResourceText(log) || "Evento"}
                         </span>
                       </div>
                     </div>

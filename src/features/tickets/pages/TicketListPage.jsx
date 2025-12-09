@@ -10,6 +10,8 @@ import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import ExportModal from "../components/ExportModal";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
 import DynamicSearch from "@/shared/components/ui/DynamicSearch";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import { FiInbox } from "react-icons/fi";
 import { createTicket } from "../api/ticketsApi";
 import toast from "react-hot-toast";
 
@@ -375,10 +377,7 @@ const TicketListPage = () => {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-dt-foreground flex-shrink-0">
-          Tickets de Nivel 2
-        </h1>
+      <PageHeader icon={FiInbox} title={getPageTitle()}>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <div className="w-full md:w-64 lg:w-80">
             <DynamicSearch
@@ -389,7 +388,6 @@ const TicketListPage = () => {
               suggestions={searchSuggestions}
             />
           </div>
-            {/* Pagination controls removed here — using DynamicTable's built-in pagination */}
           <div className="flex gap-2">
             {currentUser?.rol === "ADMINISTRADOR" && (
               <Button variant="outline" size="md" onClick={() => setIsExportOpen(true)} className="whitespace-nowrap">
@@ -408,7 +406,7 @@ const TicketListPage = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </PageHeader>
 
       <DynamicTable
         columns={columns}

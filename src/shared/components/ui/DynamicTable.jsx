@@ -110,7 +110,7 @@ const DynamicTable = ({
   };
 
   return (
-    <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden flex flex-col">
+    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden flex flex-col shadow-glow">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-dt-background border-b border-dt-border">

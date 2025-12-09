@@ -17,6 +17,11 @@ import Button from "@/shared/components/ui/Button";
 import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
+import SearchInput from "@/shared/components/ui/SearchInput";
+import Select from "@/shared/components/ui/Select";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import FilterBar from "@/shared/components/ui/FilterBar";
+import SkeletonList from "@/shared/components/ui/SkeletonList";
 import { formatDistanceToNow } from "@/shared/utils/formatters";
 
 /**
@@ -201,86 +206,48 @@ export const TagsListPage = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FiTag className="text-2xl text-dt-accent" />
-          <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">
-              Gestión de Etiquetas
-            </h1>
-            <p className="text-sm text-dt-subtle">
-              Administra etiquetas maestras para categorizar tickets
-            </p>
-          </div>
-        </div>
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          variant="primary"
-          icon={FiPlus}
-        >
-          Nueva Etiqueta
-        </Button>
-      </div>
+      <PageHeader
+        icon={FiTag}
+        title="Gestión de Etiquetas"
+        description="Administra etiquetas maestras para categorizar tickets"
+        action={{ label: "Nueva Etiqueta", onClick: () => setIsCreateModalOpen(true), icon: FiPlus }}
+      />
 
       {/* Search Bar */}
-      <div className="relative">
-        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
-        <input
-          type="text"
-          placeholder="Buscar etiquetas..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground placeholder-dt-subtle focus:outline-none focus:ring-2 focus:ring-dt-accent"
-        />
-      </div>
+      <SearchInput
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Buscar etiquetas..."
+      />
 
       {/* Advanced Filters */}
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-sm text-dt-subtle uppercase tracking-wide">
-          <FiFilter />
-          <span>Filtros</span>
-        </div>
-        <select
+      <FilterBar>
+        <Select
           value={usageFilter}
           onChange={(event) => setUsageFilter(event.target.value)}
-          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-        >
-          <option value="all">Todos los niveles de uso</option>
-          <option value="high">Alto uso (50+)</option>
-          <option value="medium">Medio (10-49)</option>
-          <option value="low">Bajo (&lt;10)</option>
-          <option value="unused">Sin uso</option>
-        </select>
+          placeholder="Todos los niveles de uso"
+          options={[
+            { value: "all", label: "Todos los niveles de uso" },
+            { value: "high", label: "Alto uso (50+)" },
+            { value: "medium", label: "Medio (10-49)" },
+            { value: "low", label: "Bajo (<10)" },
+            { value: "unused", label: "Sin uso" },
+          ]}
+        />
 
         {availableCategories.length > 0 && (
-          <select
+          <Select
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value)}
-            className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-accent"
-          >
-            <option value="">Todas las categorías</option>
-            {availableCategories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+            placeholder="Todas las categorías"
+            options={[{ value: "", label: "Todas las categorías" }, ...availableCategories.map((category) => ({ value: category, label: category }))]}
+          />
         )}
-      </div>
+      </FilterBar>
 
       {/* Tags Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-dt-card border border-dt-border rounded-lg p-4 animate-pulse"
-            >
-              <div className="h-4 bg-dt-border rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-dt-border rounded w-full"></div>
-            </div>
-          ))}
-        </div>
+        <SkeletonList count={6} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" />
       ) : filteredTags.length === 0 ? (
         <EmptyState
           icon={FiTag}

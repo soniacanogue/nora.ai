@@ -51,3 +51,29 @@ export const updateUser = async (userId, updates) => {
   const { data } = await apiClient.patch(`/users/${userId}`, updates);
   return data;
 };
+
+/**
+ * Request a magic link to be sent to the given email.
+ * The backend will call Supabase Admin API using the service_role key.
+ * @param {string} email
+ * @param {string} [redirectTo] - Optional: where Supabase should redirect after verification (frontend callback)
+ */
+export const sendMagicLink = async (email, redirectTo) => {
+  const payload = { email };
+  if (redirectTo) payload.redirectTo = redirectTo;
+  const { data } = await apiClient.post('/auth/magic-link', payload);
+  return data;
+};
+
+/**
+ * Change or set password for a user (requires authentication)
+ * @param {string} userId
+ * @param {string} newPassword
+ * @param {string} [currentPassword]
+ */
+export const changePassword = async (userId, newPassword, currentPassword) => {
+  const payload = { userId, newPassword };
+  if (currentPassword) payload.currentPassword = currentPassword;
+  const { data } = await apiClient.post('/users/change-password', payload);
+  return data;
+};

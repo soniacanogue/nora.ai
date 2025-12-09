@@ -11,6 +11,8 @@ import ProtectedRoute from "./shared/components/ProtectedRoute";
 
 // --- Page Components ---
 import LoginPage from "./features/auth/pages/LoginPage";
+import AuthCallback from "./features/auth/pages/AuthCallback";
+import SetPasswordPage from "./features/auth/pages/SetPasswordPage";
 import OnboardingPage from "./features/auth/pages/OnboardingPage";
 import ProfilePage from "./features/auth/pages/ProfilePage";
 import TicketListPage from "./features/tickets/pages/TicketListPage";
@@ -65,6 +67,23 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <LoginPage />
+            </PageTransition>
+          }
+        />
+        {/* Callback route for Supabase magic link */}
+        <Route
+          path="/auth/callback"
+          element={
+            <PageTransition>
+              <AuthCallback />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/auth/set-password"
+          element={
+            <PageTransition>
+              <SetPasswordPage />
             </PageTransition>
           }
         />

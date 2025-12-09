@@ -3,7 +3,9 @@ import { Link, useSearchParams } from "react-router-dom"; // Importar Link
 import { useOrders } from "../hooks/useOrders"; // 1. Usar el hook de datos
 import { useDynamicSearch } from "@/shared/hooks/useDynamicSearch";
 import DynamicSearch from "@/shared/components/ui/DynamicSearch";
+import { FiShoppingCart } from "react-icons/fi";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
+import PageHeader from "@/shared/components/layout/PageHeader";
 
 const OrderListPage = () => {
   const [sortConfig, setSortConfig] = useState({ key: null, order: "asc" });
@@ -141,10 +143,7 @@ const OrderListPage = () => {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-dt-foreground flex-shrink-0">
-          Órdenes Importadas
-        </h1>
+      <PageHeader icon={FiShoppingCart} title="Órdenes Importadas">
         <div className="w-full md:flex-1 md:max-w-none lg:max-w-4xl xl:max-w-5xl">
           <DynamicSearch
             id="search"
@@ -155,7 +154,7 @@ const OrderListPage = () => {
             suggestions={searchSuggestions}
           />
         </div>
-      </div>
+      </PageHeader>
 
       <DynamicTable
         columns={columns}

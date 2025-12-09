@@ -8,6 +8,10 @@ import toast from "react-hot-toast";
 import { useAgents, useCreateAgent, useDeleteAgent } from "../hooks/useAgents";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
+import DynamicTable from "@/shared/components/ui/DynamicTable";
+import EmptyState from "@/shared/components/ui/EmptyState";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import { FiActivity } from "react-icons/fi";
 
 export function AgentListPage() {
   const navigate = useNavigate();
@@ -65,6 +69,28 @@ export function AgentListPage() {
       });
     }
   };
+
+  const columns = useMemo(() => [
+    { key: "nombre", label: "Nombre", sortable: true, className: "text-dt-foreground font-medium" },
+    { key: "descripcion", label: "Descripción", sortable: true, className: "text-dt-subtle truncate max-w-md text-sm" },
+    { key: "umbralConfianza", label: "Umbral", sortable: true, className: "text-dt-subtle font-mono" },
+    {
+      key: "actions",
+      label: "Acciones",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (agent) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/ai-agents/edit/${agent.id}`)}>
+            Editar
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(agent.id)} disabled={deleteAgentMutation.isLoading}>
+            Eliminar
+          </Button>
+        </div>
+      ),
+    },
+  ], [navigate, deleteAgentMutation.isLoading]);
 
   // --- NUEVO: La configuración para el formulario de creación de agentes ---
   const agentFormConfig = {
@@ -143,83 +169,22 @@ export function AgentListPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-dt-foreground">
-          Configuración de Agentes de IA
-        </h1>
-        {/* --- AJUSTE: El <Link> se reemplaza por un <Button> que abre el modal --- */}
-        <Button
-          variant="primary"
-          size="md"
-          fullWidth={false}
-          onClick={() => setIsModalOpen(true)}
-        >
-          Crear Agente
-        </Button>
-      </div>
+      <PageHeader
+        icon={FiActivity}
+        title="Configuración de Agentes de IA"
+        description="Crea y administra agentes basados en IA"
+        action={{ label: "Crear Agente", onClick: () => setIsModalOpen(true), variant: "primary" }}
+      />
 
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden shadow-sharp">
-        <table className="w-full">
-          {/* ... (el contenido de la tabla se mantiene exactamente igual) ... */}
-          <thead className="bg-white/5 text-left text-dt-subtle text-xs uppercase tracking-wider font-mono border-b border-white/10">
-            <tr>
-              <th
-                className="p-4 text-left cursor-pointer hover:text-dt-accent transition-colors"
-                onClick={() => handleSort("nombre")}
-              >
-                Nombre {getSortIcon("nombre")}
-              </th>
-              <th
-                className="p-4 text-left cursor-pointer hover:text-dt-accent transition-colors"
-                onClick={() => handleSort("descripcion")}
-              >
-                Descripción {getSortIcon("descripcion")}
-              </th>
-              <th
-                className="p-4 text-left cursor-pointer hover:text-dt-accent transition-colors"
-                onClick={() => handleSort("umbralConfianza")}
-              >
-                Umbral {getSortIcon("umbralConfianza")}
-              </th>
-              <th className="p-4 text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {sortedAgents?.map((agent) => (
-              <tr
-                key={agent.id}
-                className="hover:bg-white/5 transition-colors group"
-              >
-                <td className="p-4 text-dt-foreground font-medium">
-                  {agent.nombre}
-                </td>
-                <td className="p-4 text-dt-subtle truncate max-w-md text-sm">
-                  {agent.descripcion}
-                </td>
-                <td className="p-4 text-dt-subtle font-mono">
-                  {agent.umbralConfianza}
-                </td>
-                <td className="p-4 text-right space-x-4">
-                  <Button
-                    variant="link"
-                    onClick={() =>
-                      navigate(`/admin/ai-agents/edit/${agent.id}`)
-                    }
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="danger-link"
-                    onClick={() => handleDelete(agent.id)}
-                    disabled={deleteAgentMutation.isLoading}
-                  >
-                    Eliminar
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden">
+        <DynamicTable
+          columns={columns}
+          data={sortedAgents}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+          isLoading={isLoading}
+          emptyState={<EmptyState title="No hay agentes" description="Crea tu primer agente para comenzar" action={{ label: "Crear Agente", onClick: () => setIsModalOpen(true) }} />}
+        />
       </div>
 
       {/* --- NUEVO: El componente DynamicFormModal renderizado en la página --- */}

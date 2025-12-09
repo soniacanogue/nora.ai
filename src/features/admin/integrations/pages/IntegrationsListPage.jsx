@@ -29,6 +29,9 @@ import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
 import Modal from "@/shared/components/ui/Modal";
+import SearchInput from "@/shared/components/ui/SearchInput";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import SkeletonList from "@/shared/components/ui/SkeletonList";
 import { formatDistanceToNow } from "@/shared/utils/formatters";
 
 const LOGS_PAGE_SIZE = 25;
@@ -394,26 +397,12 @@ export const IntegrationsListPage = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FiLink className="text-2xl text-dt-accent" />
-          <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">
-              Gestión de Integraciones
-            </h1>
-            <p className="text-sm text-dt-subtle">
-              Configura conexiones con servicios externos
-            </p>
-          </div>
-        </div>
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          variant="primary"
-          icon={FiPlus}
-        >
-          Nueva Integración
-        </Button>
-      </div>
+      <PageHeader
+        icon={FiLink}
+        title="Gestión de Integraciones"
+        description="Configura conexiones con servicios externos"
+        action={{ label: "Nueva Integración", onClick: () => setIsCreateModalOpen(true), icon: FiPlus }}
+      />
 
       {/* Info Banner */}
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
@@ -435,30 +424,15 @@ export const IntegrationsListPage = () => {
       </div>
 
       {/* Search Bar */}
-      <div className="relative">
-        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
-        <input
-          type="text"
-          placeholder="Buscar integraciones..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground placeholder-dt-subtle focus:outline-none focus:ring-2 focus:ring-dt-accent"
-        />
-      </div>
+      <SearchInput
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Buscar integraciones..."
+      />
 
       {/* Integrations List */}
       {isLoading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-dt-card border border-dt-border rounded-lg p-6 animate-pulse"
-            >
-              <div className="h-5 bg-dt-border rounded w-1/4 mb-3"></div>
-              <div className="h-4 bg-dt-border rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
+        <SkeletonList count={3} className="space-y-4" />
       ) : filteredIntegrations.length === 0 ? (
         <EmptyState
           icon={FiLink}

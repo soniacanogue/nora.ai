@@ -188,3 +188,81 @@
     background-color: #0A0A0A;
   }
 }
+
+/* Ambient glow animations (global) */
+@layer utilities {
+  .ambient-glow {
+    animation: ambientFloat 14s ease-in-out infinite;
+    opacity: 0.6;
+    will-change: transform, opacity, filter;
+    transform-origin: center;
+  }
+
+  .ambient-glow-2 {
+    animation: ambientDrift 20s linear infinite;
+    opacity: 0.5;
+    will-change: transform, opacity, filter;
+    transform-origin: center;
+  }
+}
+
+@keyframes ambientFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: blur(100px) hue-rotate(0deg) saturate(100%);
+    opacity: 0.5;
+  }
+  25% {
+    transform: translate3d(-40px, 40px, 0) scale(1.05) rotate(3deg);
+    filter: blur(140px) hue-rotate(12deg) saturate(115%);
+    opacity: 0.68;
+  }
+  50% {
+    transform: translate3d(0, 80px, 0) scale(1.12) rotate(-3deg);
+    filter: blur(140px) hue-rotate(-12deg) saturate(140%);
+    opacity: 0.72;
+  }
+  75% {
+    transform: translate3d(40px, 40px, 0) scale(1.05) rotate(2deg);
+    filter: blur(140px) hue-rotate(6deg) saturate(120%);
+    opacity: 0.68;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: blur(100px) hue-rotate(0deg) saturate(100%);
+    opacity: 0.5;
+  }
+}
+
+@keyframes ambientDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: blur(100px) hue-rotate(0deg) saturate(100%);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translate3d(30px, -120px, 0) scale(1.08) rotate(4deg);
+    filter: blur(140px) hue-rotate(22deg) saturate(140%);
+    opacity: 0.78;
+  }
+  80% {
+    transform: translate3d(-40px, -60px, 0) scale(1.03) rotate(-3deg);
+    filter: blur(140px) hue-rotate(-16deg) saturate(120%);
+    opacity: 0.52;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: blur(100px) hue-rotate(0deg) saturate(100%);
+    opacity: 0.4;
+  }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-glow,
+  .ambient-glow-2 {
+    animation: none !important;
+    opacity: 0.45 !important;
+    transform: none !important;
+  }
+}

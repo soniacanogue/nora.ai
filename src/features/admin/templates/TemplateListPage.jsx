@@ -7,6 +7,10 @@ import toast from "react-hot-toast";
 import { useTemplates, useCreateTemplate, useDeleteTemplate } from "./hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
+import DynamicTable from "@/shared/components/ui/DynamicTable";
+import EmptyState from "@/shared/components/ui/EmptyState";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import { FiFileText } from "react-icons/fi";
 
 export function TemplateListPage() {
   const navigate = useNavigate();
@@ -64,6 +68,27 @@ export function TemplateListPage() {
     }
   };
 
+  const columns = useMemo(() => [
+    { key: "nombre", label: "Nombre", sortable: true, className: "text-dt-foreground" },
+    { key: "plantillaAsunto", label: "Asunto", sortable: true, className: "text-dt-subtle truncate max-w-md" },
+    {
+      key: "actions",
+      label: "Acciones",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (template) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/templates/edit/${template.id}`)}>
+            Editar
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(template.id)} disabled={deleteTemplateMutation.isLoading}>
+            Eliminar
+          </Button>
+        </div>
+      ),
+    },
+  ], [navigate, deleteTemplateMutation.isLoading]);
+
   const templateFormConfig = {
     fields: {
       nombre: {
@@ -114,69 +139,28 @@ export function TemplateListPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-dt-foreground">
-          Gestión de Plantillas
-        </h1>
-        <Button
-          variant="secondary"
-          size="md"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Crear Plantilla
-        </Button>
-      </div>
+      <PageHeader
+        icon={FiFileText}
+        title="Gestión de Plantillas"
+        description={"Administra plantillas de correo y respuestas"}
+        action={{ label: "Crear Plantilla", onClick: () => setIsModalOpen(true), variant: "secondary" }}
+      />
 
-      <div className="bg-dt-primary border border-secondary rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="border-b border-secondary">
-            <tr>
-              <th
-                className="p-4 text-left cursor-pointer"
-                onClick={() => handleSort("nombre")}
-              >
-                Nombre {getSortIcon("nombre")}
-              </th>
-              <th
-                className="p-4 text-left cursor-pointer"
-                onClick={() => handleSort("plantillaAsunto")}
-              >
-                Asunto {getSortIcon("plantillaAsunto")}
-              </th>
-              <th className="p-4 text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedTemplates?.map((template) => (
-              <tr
-                key={template.id}
-                className="border-b border-secondary hover:bg-white/5 transition-colors"
-              >
-                <td className="p-4 text-dt-foreground">{template.nombre}</td>
-                <td className="p-4 text-dt-subtle truncate max-w-md">
-                  {template.plantillaAsunto}
-                </td>
-                <td className="p-4 text-right space-x-4">
-                  <Button
-                    variant="link"
-                    onClick={() =>
-                      navigate(`/admin/templates/edit/${template.id}`)
-                    }
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="danger-link"
-                    onClick={() => handleDelete(template.id)}
-                    disabled={deleteTemplateMutation.isLoading}
-                  >
-                    Eliminar
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden">
+        <DynamicTable
+          columns={columns}
+          data={sortedTemplates}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+          isLoading={isLoading}
+          emptyState={
+            <EmptyState
+              title="No hay plantillas"
+              description="Crea tu primera plantilla para comenzar"
+              action={{ label: "Crear Plantilla", onClick: () => setIsModalOpen(true) }}
+            />
+          }
+        />
       </div>
 
       <DynamicFormModal

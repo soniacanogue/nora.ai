@@ -5,6 +5,7 @@ import AuthLayout from "../../../shared/components/layout/AuthLayout";
 import Input from "../../../shared/components/ui/Input";
 import Button from "../../../shared/components/ui/Button";
 import { useAuth } from "../../../shared/hooks/useAuth";
+import { sendMagicLink } from "../api/authApi";
 
 const LoginPage = () => {
   // Estados para guardar lo que el usuario escribe
@@ -31,6 +32,21 @@ const LoginPage = () => {
       toast.error(
         error.message || "Error al iniciar sesión. Verifica tus credenciales.",
       );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendMagicLink = async (event) => {
+    event.preventDefault();
+    if (!email) return toast.error('Ingresa un correo válido');
+    setLoading(true);
+    try {
+      await sendMagicLink(email);
+      toast.success('Magic link enviado. Revisa tu correo.');
+    } catch (error) {
+      console.error('Magic link error:', error);
+      toast.error(error.message || 'No se pudo enviar el magic link.');
     } finally {
       setLoading(false);
     }
@@ -80,6 +96,15 @@ const LoginPage = () => {
             className="w-full shadow-glow hover:shadow-glow-strong transition-all duration-300"
           >
             {loading ? "Autenticando..." : "Iniciar Sesión"}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={loading}
+            onClick={handleSendMagicLink}
+            className="w-full mt-2"
+          >
+            {loading ? 'Enviando...' : 'Enviar Magic Link'}
           </Button>
         </form>
 

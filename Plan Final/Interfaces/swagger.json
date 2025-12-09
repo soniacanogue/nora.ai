@@ -171,6 +171,48 @@
         ]
       }
     },
+    "/auth/magic-link": {
+      "post": {
+        "operationId": "AuthController_sendMagicLink",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MagicLinkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Magic link enviado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No se pudo enviar el magic link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleMessageDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enviar magic link (sign-in con OTP) al correo proporcionado",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/audit/logs": {
       "get": {
         "operationId": "AuditController_findAll",
@@ -492,7 +534,7 @@
             "bearer": []
           }
         ],
-        "summary": "Cambiar la contraseña de un usuario (admin)",
+        "summary": "Cambiar la contraseña: admin o el propio usuario",
         "tags": [
           "Users"
         ]
@@ -2732,6 +2774,25 @@
           "newPassword"
         ]
       },
+      "MagicLinkDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "usuario@dominio.com",
+            "description": "Correo del usuario al que enviar el magic link"
+          },
+          "redirectTo": {
+            "type": "string",
+            "description": "URL a la que Supabase redirigirá al usuario tras el enlace",
+            "example": "https://nora-ai-flame.vercel.app/auth/callback"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
       "CreateUserDto": {
         "type": "object",
         "properties": {
@@ -2821,6 +2882,12 @@
             "minLength": 8,
             "description": "Nueva contraseña (mínimo 8 caracteres)",
             "example": "N3wP4ssw0rd!"
+          },
+          "currentPassword": {
+            "type": "string",
+            "minLength": 8,
+            "description": "Contraseña actual — requerida si el usuario se cambia a sí mismo",
+            "example": "C0rrentP@ss"
           }
         },
         "required": [

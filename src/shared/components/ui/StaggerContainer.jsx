@@ -16,9 +16,11 @@ const item = {
 };
 
 export const StaggerContainer = ({ children, className, as = "div" }) => {
-  const Component = motion[as] || motion.div;
-  // If 'as' is a string like 'tbody', motion.tbody exists.
-  // If it's a component, we might need to wrap it or use motion(Component)
+  // If `as` is a string (like 'div', 'tbody', 'nav'), try to use the
+  // corresponding `motion[...]` element. If `as` is a React component
+  // (function/class), use `motion(as)` to create an animated version.
+  const Component = typeof as === "string" ? (motion[as] || motion.div) : motion(as);
+
   return (
     <Component
       variants={container}
@@ -32,7 +34,7 @@ export const StaggerContainer = ({ children, className, as = "div" }) => {
 };
 
 export const StaggerItem = ({ children, className, as = "div", ...props }) => {
-  const Component = motion[as] || motion.div;
+  const Component = typeof as === "string" ? (motion[as] || motion.div) : motion(as);
   return (
     <Component variants={item} className={className} {...props}>
       {children}

@@ -24,37 +24,18 @@ const OnboardingPage = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Update profile with new data and set primeraVez to false
+      // Update profile with new data (do NOT clear primeraVez here)
       const updatedUser = await updateUserApi(currentUser.id, {
         ...formData,
-        primeraVez: false,
       });
 
       updateUser(updatedUser);
       toast.success("Perfil actualizado correctamente");
-      navigate("/");
+      // Redirect user to create password flow
+      navigate("/auth/set-password");
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Error al actualizar el perfil");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSkip = async () => {
-    setIsLoading(true);
-    try {
-      // Just set primeraVez to false
-      const updatedUser = await updateUserApi(currentUser.id, {
-        primeraVez: false,
-      });
-
-      updateUser(updatedUser);
-      toast.success("Bienvenido a Nora");
-      navigate("/");
-    } catch (error) {
-      console.error("Error skipping onboarding:", error);
-      toast.error("Error al finalizar la configuración");
     } finally {
       setIsLoading(false);
     }
@@ -118,15 +99,7 @@ const OnboardingPage = () => {
               Guardar y Continuar
             </Button>
 
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={handleSkip}
-              disabled={isLoading}
-            >
-              Omitir por ahora
-            </Button>
+            {/* Skip removed: user must set password in the next step */}
           </div>
         </form>
       </div>

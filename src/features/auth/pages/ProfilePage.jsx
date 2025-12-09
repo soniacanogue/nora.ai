@@ -83,6 +83,7 @@ const ProfilePage = () => {
     }
   };
 
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white/5 backdrop-blur-md rounded-md border border-white/10">
       <h2 className="text-2xl font-bold mb-4">Editar Perfil</h2>
@@ -112,6 +113,7 @@ const ProfilePage = () => {
           <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
             Cancelar
           </Button>
+          
         </div>
       </form>
 

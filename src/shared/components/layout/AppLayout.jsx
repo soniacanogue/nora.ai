@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/shared/hooks/useAuth";
+import { toast } from "react-hot-toast";
 import NoraLogo from "@/shared/components/ui/NoraLogo";
 import UserAvatar from "@/shared/components/ui/UserAvatar";
 
@@ -14,7 +15,14 @@ const roleDisplayNames = {
 };
 
 const AppLayout = () => {
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser, isLoading, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Sesión cerrada");
+    navigate("/login");
+  };
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [expandedSections, setExpandedSections] = useState({
     principal: true, // Default open for better UX
@@ -460,13 +468,19 @@ const AppLayout = () => {
                 <p className="text-xs text-dt-subtle font-mono">
                   {roleDisplayNames[currentUser.rol] || "Usuario"}
                 </p>
-                  <div className="mt-2 flex items-center justify-center gap-2">
+                  <div className="mt-2 flex items-center justify-center gap-3">
                     <Link
                       to="/profile"
                       className="text-xs text-dt-accent hover:underline"
                     >
                       Editar perfil
                     </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="text-xs text-red-500 hover:underline"
+                    >
+                      Cerrar sesión
+                    </button>
                   </div>
               </>
             )}
@@ -481,10 +495,18 @@ const AppLayout = () => {
       </aside>
 
       <main className="flex-1 p-8 overflow-y-auto relative">
+        {/* Debug helper (solo en desarrollo): registra clicks y elemento en el punto para detectar overlays) */}
+        {process.env.NODE_ENV !== "production" && <DebugClickInspector />}
         {/* Background ambient glow */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-dt-accent/5 rounded-full blur-[100px]"></div>
-          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px]"></div>
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+          <div
+            aria-hidden="true"
+            className="absolute top-[-15%] right-[-10%] w-[650px] h-[650px] bg-dt-accent/30 rounded-full mix-blend-overlay transform-gpu will-change-transform ambient-glow"
+          ></div>
+          <div
+            aria-hidden="true"
+            className="absolute bottom-[-12%] left-[-8%] w-[600px] h-[600px] bg-blue-500/20 rounded-full mix-blend-overlay transform-gpu will-change-transform ambient-glow-2"
+          ></div>
         </div>
         <div className="relative z-10">
           <Outlet />
@@ -495,3 +517,27 @@ const AppLayout = () => {
 };
 
 export default AppLayout;
+
+// Componente de depuración para ayudar a localizar overlays/elementos que bloqueen clicks
+const DebugClickInspector = () => {
+  React.useEffect(() => {
+    const handler = (e) => {
+      try {
+        const elAtPoint = document.elementFromPoint(e.clientX, e.clientY);
+        console.debug("[ClickInspector] event.target:", e.target);
+        console.debug("[ClickInspector] elementFromPoint:", elAtPoint);
+        if (elAtPoint) {
+          const cs = window.getComputedStyle(elAtPoint);
+          console.debug("[ClickInspector] computed: pointer-events=", cs.pointerEvents, " z-index=", cs.zIndex);
+        }
+      } catch (err) {
+        console.error("[ClickInspector] error:", err);
+      }
+    };
+
+    document.addEventListener("click", handler, { capture: true });
+    return () => document.removeEventListener("click", handler, { capture: true });
+  }, []);
+
+  return null;
+};

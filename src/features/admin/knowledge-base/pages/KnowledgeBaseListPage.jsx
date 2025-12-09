@@ -13,6 +13,9 @@ import {
   useDeleteKnowledgeBaseDoc,
   useKnowledgeBaseCategories,
 } from "../hooks/useKnowledgeBase";
+import SearchInput from "@/shared/components/ui/SearchInput";
+import Select from "@/shared/components/ui/Select";
+import PageHeader from "@/shared/components/layout/PageHeader";
 
 // TODO: UC-14 - Knowledge Base Management UI
 // This component requires backend implementation of:
@@ -198,52 +201,30 @@ export const KnowledgeBaseListPage = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FiBook className="text-2xl text-dt-accent" />
-          <div>
-            <h1 className="text-2xl font-bold text-dt-foreground">
-              Base de Conocimiento
-            </h1>
-            <p className="text-sm text-dt-subtle">
-              Gestiona documentos, FAQs y políticas para la IA
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-dt-accent text-white rounded-lg hover:bg-dt-accent-hover transition-colors"
-        >
-          <FiPlus />
-          Nuevo Documento
-        </button>
-      </div>
+      <PageHeader
+        icon={FiBook}
+        title="Base de Conocimiento"
+        description="Gestiona documentos, FAQs y políticas para la IA"
+        action={{ label: "Nuevo Documento", onClick: handleCreate, icon: FiPlus }}
+      />
 
       {/* Filters */}
       <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
-          <input
-            type="text"
-            placeholder="Buscar documentos..."
+        <div className="flex-1">
+          <SearchInput
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground placeholder-dt-subtle focus:outline-none focus:border-dt-accent"
+            placeholder="Buscar documentos..."
+            className="flex-1"
           />
         </div>
-        <select
+        <Select
           value={categoryFilter}
           onChange={handleCategoryChange}
-          className="px-4 py-2 bg-dt-card border border-dt-border rounded-lg text-dt-foreground focus:outline-none focus:border-dt-accent disabled:opacity-60"
+          placeholder="Todas las categorías"
+          options={[{ value: "", label: "Todas las categorías" }, ...normalizedCategories.map((category) => ({ value: category, label: CATEGORY_LABELS[category] || category }))]}
           disabled={isLoadingCategories}
-        >
-          <option value="">Todas las categorías</option>
-          {normalizedCategories.map((category) => (
-            <option key={category} value={category}>
-              {CATEGORY_LABELS[category] || category}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       {isFetching && !isLoading && (
