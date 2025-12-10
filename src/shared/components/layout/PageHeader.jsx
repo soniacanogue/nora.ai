@@ -3,7 +3,7 @@ import Button from "@/shared/components/ui/Button";
 
 const PageHeader = ({ icon: Icon, title, description, action, children, className = "" }) => {
   return (
-    <div className={`flex items-center justify-between ${className}`}>
+    <div className={`flex items-center justify-between mb-4 ${className}`}>
       <div className="flex items-center gap-3">
         {Icon && <Icon className="text-2xl text-dt-accent" />}
         <div>

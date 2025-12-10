@@ -24,7 +24,7 @@ export const useCreateMessage = (options = {}) => {
       return res;
     },
     onSuccess: (data, variables) => {
-      toast.success(`Mensaje guardado en ticket ${variables.ticketId}.`);
+      toast.success(`Mensaje guardado correctamente.`);
       queryClient.invalidateQueries({ queryKey: ["ticket", variables.ticketId] });
       if (options.onSuccess) options.onSuccess(data, variables);
     },

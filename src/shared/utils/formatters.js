@@ -69,4 +69,17 @@ export const formatDistanceToNow = (date) => {
   }
 };
 
-// Podríamos añadir más formateadores aquí (prioridad, etiquetas, etc.)
+const PRIORITY_MAP = {
+  baja: "Baja",
+  media: "Media",
+  alta: "Alta",
+  urgente: "Urgente",
+};
+
+/**
+ * Traduce una prioridad a un formato legible.
+ * @param {string} priority - La prioridad interna.
+ * @returns {string} - La etiqueta legible.
+ */
+export const formatPriority = (priority) =>
+  priority ? PRIORITY_MAP[priority] || priority : "Sin Prioridad";

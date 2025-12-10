@@ -143,18 +143,17 @@ const OrderListPage = () => {
 
   return (
     <div>
-      <PageHeader icon={FiShoppingCart} title="Órdenes Importadas">
-        <div className="w-full md:flex-1 md:max-w-none lg:max-w-4xl xl:max-w-5xl">
-          <DynamicSearch
-            id="search"
-            label="Buscar"
-            placeholder="Buscar por ID, email, tracking, transportista..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            suggestions={searchSuggestions}
-          />
-        </div>
-      </PageHeader>
+      <PageHeader icon={FiShoppingCart} title="Órdenes Importadas" />
+
+      <div className="w-full md:w-64 lg:w-80">
+        <DynamicSearch
+          id="search"
+          placeholder="Buscar por ID, email, tracking, transportista..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          suggestions={searchSuggestions}
+        />
+      </div>
 
       <DynamicTable
         columns={columns}

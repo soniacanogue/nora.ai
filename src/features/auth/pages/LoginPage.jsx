@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import AuthLayout from "../../../shared/components/layout/AuthLayout";
@@ -15,8 +15,15 @@ const LoginPage = () => {
   // Estado para controlar si estamos enviando el formulario
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, currentUser } = useAuth();
   const navigate = useNavigate();
+
+  // Redirigir automáticamente cuando el usuario esté autenticado
+  useEffect(() => {
+    if (currentUser) {
+      navigate("/");
+    }
+  }, [currentUser, navigate]);
 
   // Función que se ejecuta al enviar el formulario
   const handleSubmit = async (event) => {
@@ -26,7 +33,7 @@ const LoginPage = () => {
     try {
       await login(email, password);
       toast.success("¡Inicio de sesión exitoso!");
-      navigate("/");
+      // No navegar aquí, esperar a que currentUser se cargue
     } catch (error) {
       console.error("Login error:", error);
       toast.error(

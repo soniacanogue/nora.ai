@@ -38,7 +38,7 @@ const SimpleBarChart = ({
   let barKeys = [];
   if (Array.isArray(data) && data.length > 0 && data[0].hasOwnProperty('Asignados')) {
     chartData = data.map((item) => ({
-      name: item.fecha,
+      name: item.name,
       Asignados: item["Asignados"],
       Resueltos: item["Resueltos"],
       Activos: item["Activos"],
@@ -56,13 +56,7 @@ const SimpleBarChart = ({
     // --- CORRECCIÓN 1: Quitar la altura fija de aquí ---
     <div className="bg-white/5 backdrop-blur-md p-6 rounded-lg border border-white/10 flex flex-col h-full shadow-sharp">
       <h3 className="text-xs font-bold text-dt-subtle uppercase tracking-wider mb-6">
-        <span>Tendencia de Tickets (</span>
-        <span style={{color: '#8A2BE2', fontWeight: 'bold'}}>Asignados</span>
-        <span>, </span>
-        <span style={{color: '#32CD32', fontWeight: 'bold'}}>Resueltos</span>
-        <span>, </span>
-        <span style={{color: '#FFA500', fontWeight: 'bold'}}>Activos</span>
-        <span>)</span>
+        {title}
       </h3>
       {/* --- CORRECCIÓN 2: Dar altura explícita al contenedor del gráfico --- */}
       <div className="flex-grow">
@@ -104,6 +98,7 @@ const SimpleBarChart = ({
                 dataKey={key}
                 fill={idx === 0 ? "#8A2BE2" : idx === 1 ? "#32CD32" : "#FFA500"}
                 radius={[2, 2, 0, 0]}
+                minPointSize={1}
                 activeBar={{
                   fill: idx === 0 ? "#9932CC" : idx === 1 ? "#228B22" : "#FF8C00",
                   filter: "drop-shadow(0 0 8px rgba(138, 43, 226, 0.5))",

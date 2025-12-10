@@ -24,7 +24,7 @@ export const useReplyToTicket = (options = {}) => {
       return res;
     },
     onSuccess: (data, variables) => {
-      toast.success(`Respuesta enviada para ticket ${variables.ticketId}.`);
+      toast.success(`Respuesta enviada correctamente.`);
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       queryClient.invalidateQueries({ queryKey: ["ticket", variables.ticketId] });
       if (options.onSuccess) options.onSuccess(data, variables);

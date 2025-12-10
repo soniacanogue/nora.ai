@@ -343,7 +343,7 @@ const SuggestionPanel = ({
         {/* Decorative AI header line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-dt-accent to-transparent opacity-50"></div>
 
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col gap-4 mb-6">
           <h2 className="text-lg font-bold text-dt-foreground flex items-center gap-2">
             <span className="material-symbols-outlined text-dt-accent animate-pulse">
               smart_toy

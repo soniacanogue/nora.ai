@@ -6,6 +6,8 @@ import Papa from "papaparse";
 import { useImportBatch } from "../hooks/useImport";
 import Button from "src/shared/components/ui/Button";
 import Select from "src/shared/components/ui/Select";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import { FiUpload } from "react-icons/fi";
 
 const REQUIRED_FIELDS = ["orderId", "emailCliente", "estado"];
 const BATCH_SIZE = 10;
@@ -115,26 +117,58 @@ const ImportOrdersPage = () => {
       }
 
       const batch = fileData.slice(i, i + BATCH_SIZE);
-      const mappedBatch = batch.map((row) => {
+      const validRows = [];
+      const invalidRows = [];
+
+      batch.forEach((row, idx) => {
         const mappedRow = {};
         Object.entries(mapping).forEach(([targetField, sourceHeader]) => {
           mappedRow[targetField] = row[sourceHeader];
         });
-        return mappedRow;
+
+        // Validate required fields
+        const isValid = REQUIRED_FIELDS.every(field => 
+          mappedRow[field] && mappedRow[field].toString().trim() !== ''
+        );
+
+        if (isValid) {
+          validRows.push(mappedRow);
+        } else {
+          invalidRows.push({
+            rowIndex: i + idx + 1,
+            reason: `Campos requeridos faltantes: ${REQUIRED_FIELDS.filter(field => 
+              !mappedRow[field] || mappedRow[field].toString().trim() === ''
+            ).join(', ')}`
+          });
+        }
       });
 
+      // If no valid rows in batch, skip or handle
+      if (validRows.length === 0) {
+        currentSummary.failed += batch.length;
+        currentSummary.errors.push(`Lote ${Math.floor(i / BATCH_SIZE) + 1}: Todas las filas inválidas`);
+        processed += batch.length;
+        setProgress(Math.round((processed / total) * 100));
+        setSummary({ ...currentSummary });
+        continue;
+      }
+
       try {
-        const result = await importBatch(mappedBatch);
+        const result = await importBatch(validRows);
 
         // Update summary based on result
         const batchImported =
-          result.imported !== undefined ? result.imported : mappedBatch.length;
-        const batchFailed = result.failed !== undefined ? result.failed : 0;
-        const batchErrors = result.errors || [];
+          result.insertados !== undefined ? result.insertados : validRows.length;
+        const batchFailed = result.errores !== undefined ? result.errores : 0;
+        const batchErrors = result.logErrores || [];
 
         currentSummary.imported += batchImported;
-        currentSummary.failed += batchFailed;
-        currentSummary.errors = [...currentSummary.errors, ...batchErrors];
+        currentSummary.failed += batchFailed + invalidRows.length;
+        currentSummary.errors = [
+          ...currentSummary.errors, 
+          ...invalidRows.map(inv => `Fila ${inv.rowIndex}: ${inv.reason}`),
+          ...batchErrors
+        ];
       } catch (err) {
         console.error("Batch failed", err);
         currentSummary.failed += batch.length;
@@ -199,9 +233,8 @@ const ImportOrdersPage = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-dt-foreground mb-6">
-        Importar Órdenes desde CSV
-      </h1>
+      <PageHeader icon={FiUpload} title="Importar Órdenes desde CSV" />
+
       <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-8 shadow-glow min-h-[300px]">
         {renderContent()}
       </div>

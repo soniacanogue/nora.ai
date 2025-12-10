@@ -175,10 +175,12 @@ const ConversationBubble = ({ message }) => {
   const isCustomer = from === "customer";
 
   const bubbleAlignment = isCustomer ? "items-start" : "items-end";
-  // Customer: Glassmorphism dark. Agent: Electric Violet Gradient.
+  // Customer: Glassmorphism dark. Agent: Opaque purple or blue for internal notes.
   const bubbleColor = isCustomer
     ? "bg-white/5 border border-white/10 backdrop-blur-sm"
-    : "bg-gradient-to-br from-dt-accent to-dt-accent-hover shadow-glow border border-transparent";
+    : isInternalNote
+    ? "bg-blue-700/10 border border-blue-600/40"
+    : "bg-purple-700/10 border border-purple-600/40";
 
   const textColor = "text-dt-foreground";
   const hasAttachments = attachments.length > 0;

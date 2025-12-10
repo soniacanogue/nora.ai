@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import StatCard from "../components/StatCard";
 import SimpleBarChart from "../components/SimpleBarChart";
-import TeamPerformanceTable from "../components/TeamPerformanceTable";
 import PieChart from "../components/PieChart";
+import RecentActivityFeed from "../components/RecentActivityFeed";
 import { AdminDashboardSkeleton } from "../components/DashboardSkeleton";
 import { getAdminDashboardData } from "../api/dashboardApi";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import EmptyState from "@/shared/components/ui/EmptyState";
-import { formatTicketStatus, formatChannel } from "@/shared/utils/formatters";
+import { formatTicketStatus, formatChannel, formatPriority } from "@/shared/utils/formatters";
 import { RollingNumber } from "@/shared/components/ui/RollingNumber";
 
 const AdminDashboardPage = () => {
@@ -41,6 +41,63 @@ const AdminDashboardPage = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  const derivedData = React.useMemo(() => {
+    if (!dashboardData) return null;
+    const { resumen, metricas, distribucion: rawDistribucion, tendencias: rawTendencias, actividadReciente, myMetrics, myQueues } = dashboardData;
+    const currentKpis = timeRange === "today" ? {
+      created: myMetrics.today.ticketsTotal,
+      resolved: myMetrics.today.resolvedToday,
+      avgFirstResponseTime: myMetrics.today.avgFirstResponseMin,
+      avgResolutionTime: myMetrics.today.avgResolutionMin,
+    } : {
+      created: resumen.total,
+      resolved: resumen.cerrados,
+      avgFirstResponseTime: metricas.promedioTiempoPrimerRespuestaMin,
+      avgResolutionTime: metricas.promedioTiempoResolucionMin,
+    };
+
+    const distribucion = {
+      porEstado: rawDistribucion.porEstado.map(item => ({ estado: item.estado, count: item._count.id })),
+      porPrioridad: rawDistribucion.porPrioridad.map(item => ({ prioridad: item.prioridad, count: item._count.id })),
+    };
+
+    // Generate all dates in the range
+    const startDate = new Date(fechaDesde);
+    const endDate = new Date(fechaHasta);
+    const allDates = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      allDates.push(new Date(d));
+    }
+
+    // Map rawTendencias by date string
+    const tendenciasMap = new Map();
+    rawTendencias.forEach(item => {
+      const dateStr = new Date(item.fecha).toISOString().split('T')[0];
+      tendenciasMap.set(dateStr, item);
+    });
+
+    // Fill tendencias with all dates, using data or defaults
+    const tendencias = allDates.map(date => {
+      const dateStr = date.toISOString().split('T')[0];
+      const item = tendenciasMap.get(dateStr);
+      return {
+        name: date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
+        Asignados: item ? item.ticketsTotales : 0,
+        Resueltos: item ? item.conteoResueltos : 0,
+        Activos: item ? item.ticketsActivos : 0,
+      };
+    });
+
+    const actividadRecienteFormatted = actividadReciente.map(ticket => ({
+      eventId: ticket.id,
+      ticketId: ticket.id,
+      message: `Ticket: ${ticket.asunto} - ${formatTicketStatus(ticket.estado)}`,
+      timestamp: ticket.creadoEn,
+    }));
+
+    return { resumen, metricas, distribucion, tendencias, actividadReciente: actividadRecienteFormatted, myMetrics, myQueues, currentKpis };
+  }, [timeRange, dashboardData]);
+
   if (isLoading) {
     return <AdminDashboardSkeleton />;
   }
@@ -56,7 +113,7 @@ const AdminDashboardPage = () => {
     );
   }
 
-  if (!dashboardData) {
+  if (!derivedData) {
     return (
       <EmptyState
         message="No se encontraron datos para el dashboard del administrador."
@@ -69,8 +126,7 @@ const AdminDashboardPage = () => {
     );
   }
 
-  const { kpis, workload, teamPerformance, distribution } = dashboardData;
-  const currentKpis = timeRange === "today" ? kpis.today : kpis.last7Days;
+  const { resumen, metricas, distribucion, tendencias, actividadReciente, myMetrics, myQueues, currentKpis } = derivedData;
 
   return (
     <div>
@@ -157,34 +213,39 @@ const AdminDashboardPage = () => {
       </div>
 
       {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Main Chart - Spans 2 columns */}
         <div className="lg:col-span-2">
           <SimpleBarChart
-            data={workload}
-            title="Carga de Trabajo Actual"
+            data={tendencias}
+            title="Tendencias de Trabajo"
             nameFormatter={formatTicketStatus}
           />
-        </div>
-        {/* Team Performance - Spans 1 column */}
-        <div className="lg:col-span-1">
-          <TeamPerformanceTable teamPerformance={teamPerformance} />
         </div>
       </div>
 
       {/* Pie Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PieChart
-          data={distribution.byChannel}
-          title="Distribución por Canal"
-          nameKey="channel"
-          nameFormatter={formatChannel}
+          data={distribucion.porEstado}
+          title="Distribución por Estado"
+          nameKey="estado"
+          dataKey="count"
+          nameFormatter={formatTicketStatus}
         />
         <PieChart
-          data={distribution.byTag}
-          title="Distribución por Etiqueta"
-          nameKey="tag"
+          data={distribucion.porPrioridad}
+          title="Distribución por Prioridad"
+          nameKey="prioridad"
+          dataKey="count"
+          nameFormatter={formatPriority}
         />
+      </div>
+
+      {/* Recent Activity */}
+      <div className="mt-6">
+        <h2 className="text-xl font-bold text-dt-foreground mb-4">Actividad Reciente</h2>
+        <RecentActivityFeed activities={actividadReciente} />
       </div>
     </div>
   );

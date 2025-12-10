@@ -108,6 +108,7 @@ const TicketListPage = () => {
         if (sortConfig.key === "assigneeId" || sortConfig.key === "assignee" || sortConfig.key === "usuarioAsignado") {
           const getAgentName = (t) => {
             return (
+              t.usuarioAsignadoNombre ||
               (t.usuarioAsignado && t.usuarioAsignado.nombre) ||
               (t.assignee && t.assignee.nombre) ||
               t.assigneeId ||
@@ -136,9 +137,13 @@ const TicketListPage = () => {
 
         // Handle nested properties or special cases
         if (sortConfig.key === "cliente") {
-          aValue = a.cliente?.nombre || "";
-          bValue = b.cliente?.nombre || "";
+          aValue = a.clienteNombre || "";
+          bValue = b.clienteNombre || "";
         }
+
+        // Case-insensitive sorting for strings
+        if (typeof aValue === "string") aValue = aValue.toLowerCase();
+        if (typeof bValue === "string") bValue = bValue.toLowerCase();
 
         if (aValue < bValue) {
           return sortConfig.order === "asc" ? -1 : 1;
@@ -228,7 +233,7 @@ const TicketListPage = () => {
         label: "Cliente",
         sortable: true,
         className: "text-dt-subtle",
-        render: (ticket) => ticket?.cliente?.nombre || "Anónimo",
+        render: (ticket) => ticket?.clienteNombre || "Anónimo",
       },
       {
         key: "assigneeId",
@@ -262,7 +267,7 @@ const TicketListPage = () => {
         key: "actions",
         label: "Acción",
         render: (ticket) =>
-          !ticket.assigneeId && (
+          !ticket.assigneeId && !ticket.usuarioAsignadoNombre && (
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <Button
                 variant="primary"
@@ -384,35 +389,34 @@ const TicketListPage = () => {
   return (
     <div>
       <PageHeader icon={FiInbox} title={getPageTitle()}>
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <div className="w-full md:w-64 lg:w-80">
-            <DynamicSearch
-              id="search-tickets"
-              placeholder="Buscar tickets..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              suggestions={searchSuggestions}
-            />
-          </div>
-          <div className="flex gap-2">
-            {currentUser?.rol === "ADMINISTRADOR" && (
-              <Button variant="outline" size="md" onClick={() => setIsExportOpen(true)} className="whitespace-nowrap">
-                Exportar CSV
-              </Button>
-            )}
-
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth={false}
-              onClick={openModal}
-              className="whitespace-nowrap"
-            >
-              Crear Ticket
+        <div className="flex gap-2">
+          {currentUser?.rol === "ADMINISTRADOR" && (
+            <Button variant="outline" size="md" onClick={() => setIsExportOpen(true)} className="whitespace-nowrap">
+              Exportar CSV
             </Button>
-          </div>
+          )}
+
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth={false}
+            onClick={openModal}
+            className="whitespace-nowrap"
+          >
+            Crear Ticket
+          </Button>
         </div>
       </PageHeader>
+
+      <div className="w-full md:w-64 lg:w-80">
+        <DynamicSearch
+          id="search-tickets"
+          placeholder="Buscar tickets..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          suggestions={searchSuggestions}
+        />
+      </div>
 
       <DynamicTable
         columns={columns}

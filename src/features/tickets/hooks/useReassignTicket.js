@@ -15,7 +15,7 @@ export const useReassignTicket = (options = {}) => {
     mutationFn: (variables) =>
       reassignTicket(variables.ticketId, variables.newAssigneeId),
     onSuccess: (data, variables) => {
-      toast.success(`Ticket ${variables.ticketId} reasignado correctamente.`);
+      toast.success(`Ticket reasignado correctamente.`);
       // Invalidate tickets list to refresh the queue
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       // Also invalidate the ticket detail just in case

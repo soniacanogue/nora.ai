@@ -27,14 +27,14 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 const COLORS = [
-  "#8A2BE2", // dt-accent (morado principal)
-  "#9932CC", // dt-accent-hover (morado más oscuro)
-  "#9370DB", // MediumSlateBlue (variación morada)
-  "#BA55D3", // MediumOrchid (variación morada)
-  "#DA70D6", // Orchid (variación morada)
-  "#DDA0DD", // Plum (variación morada clara)
-  "#EE82EE", // Violet (variación morada)
-  "#FF69B4", // HotPink (variación rosa-morada)
+  "#6B46C1", // muted purple
+  "#4C51BF", // muted indigo
+  "#2D3748", // muted gray
+  "#38A169", // muted green
+  "#3182CE", // muted blue
+  "#D69E2E", // muted yellow
+  "#E53E3E", // muted red
+  "#805AD5", // muted purple variant
 ];
 
 const PieChart = ({

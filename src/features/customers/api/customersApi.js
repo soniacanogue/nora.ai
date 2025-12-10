@@ -47,6 +47,17 @@ export const getCustomerById = async (customerId) => {
   }
 };
 
+export const updateCustomer = async (customerId, customerData) => {
+  if (!customerId) throw new Error("Customer ID is required");
+  try {
+    const { data } = await apiClient.patch(`/customers/${customerId}`, customerData);
+    return data;
+  } catch (error) {
+    console.error(`Failed to update customer ${customerId}:`, error);
+    throw error;
+  }
+};
+
 /**
  * Optional helper to fetch tickets by customer id if customer endpoint does not include them
  */

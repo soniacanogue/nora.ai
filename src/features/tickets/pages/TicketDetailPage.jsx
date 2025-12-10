@@ -22,13 +22,13 @@ const TicketDetailPage = () => {
   if (isError || !ticket) return <div className="flex items-center justify-center h-screen text-center text-dt-error">Error o ticket no encontrado</div>;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-dt-background">
+    <div className="flex flex-col h-ticket-detail overflow-hidden bg-dt-background">
       {/* HEADER: Fijo arriba */}
       <div className="flex-none border-b border-white/5 bg-dt-background z-20">
         <TicketHeader ticket={ticket} onOpenResolve={() => toggleModal('resolve', true)} />
       </div>
       {/* CUERPO: Dividido en 2 columnas (Chat vs Sidebar) */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* Conversación: scroll independiente, responsive */}
         <main className="flex-1 overflow-y-auto relative bg-gradient-to-br from-transparent to-white/[0.02]">
           <div className="mx-auto min-h-full flex flex-col w-full max-w-4xl px-2 sm:px-6 pb-20">
@@ -36,7 +36,7 @@ const TicketDetailPage = () => {
           </div>
         </main>
         {/* Sidebar: responsive, oculta en mobile, drawer en mobile si lo deseas */}
-        <aside className="hidden md:block w-[400px] flex-none border-l border-white/10 bg-dt-surface-dark overflow-y-auto custom-scrollbar">
+        <aside className="w-full md:w-[400px] flex-none border-t md:border-t-0 md:border-l border-white/10 glass overflow-y-auto custom-scrollbar">
           <TicketSidebar
             ticket={ticket}
             onOpenMerge={() => toggleModal('merge', true)}

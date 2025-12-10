@@ -21,7 +21,7 @@ const ExportModal = ({ isOpen, onClose, initialFilters = {} }) => {
 
       const result = await exportTicketsToCsv(filters);
 
-      // Flexible handling: backend may return { url } or raw csv text or { csv }
+      // Flexible handling: backend may return { url } or raw csv text or { csv } or { filename, content }
       if (!result) {
         toast.error("Exportación falló: respuesta vacía del servidor");
         return;
@@ -35,14 +35,16 @@ const ExportModal = ({ isOpen, onClose, initialFilters = {} }) => {
         return;
       }
 
-      // If backend returned a CSV string under `csv` or `data`, use it
-      const csvText = result.csv || result.data || (typeof result === "string" ? result : null);
+      // If backend returned a CSV string under `csv`, `data`, `content`, or directly a string
+      const csvText = result.csv || result.data || result.content || (typeof result === "string" ? result : null);
       if (csvText) {
-        const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+        const filename = result.filename || `tickets_export_${new Date().toISOString().slice(0,10)}.csv`;
+        // Add BOM for UTF-8 encoding to prevent character issues in Excel
+        const blob = new Blob(['\ufeff' + csvText], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `tickets_export_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();

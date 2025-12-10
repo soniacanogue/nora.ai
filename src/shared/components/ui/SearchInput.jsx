@@ -93,7 +93,7 @@ const SearchInput = ({
   };
 
   return (
-    <div className={`w-full relative ${className}`}>
+    <div className={`w-full relative mb-4 ${className}`}>
       {label && (
         <label
           htmlFor={id}
@@ -123,19 +123,7 @@ const SearchInput = ({
                 key={index}
                 type="button"
                 onClick={() => handleSelectSuggestion(suggestion)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8A2BE2";
-                  e.currentTarget.style.color = "#FFFFFF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "";
-                  e.currentTarget.style.color = "";
-                }}
-                className="w-full text-left px-4 py-2 text-dt-foreground transition-none"
-                style={{
-                  transition: "none",
-                  willChange: "background-color, color",
-                }}
+                className="w-full text-left px-4 py-2 text-dt-foreground hover:bg-accent hover:text-white transition-colors"
               >
                 {suggestion}
               </button>
