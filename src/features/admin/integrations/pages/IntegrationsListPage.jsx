@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   FiLink,
   FiPlus,
@@ -13,6 +14,7 @@ import {
   FiList,
   FiActivity,
   FiClock,
+  FiFilter,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import {
@@ -24,14 +26,14 @@ import {
   useIntegrationLogs,
 } from "../hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
+import DynamicTable from "@/shared/components/ui/DynamicTable";
 import Button from "@/shared/components/ui/Button";
 import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
 import Modal from "@/shared/components/ui/Modal";
-import SearchInput from "@/shared/components/ui/SearchInput";
 import PageHeader from "@/shared/components/layout/PageHeader";
-import SkeletonList from "@/shared/components/ui/SkeletonList";
+import FilterPanel from "@/shared/components/ui/FilterPanel";
 import { formatDistanceToNow } from "@/shared/utils/formatters";
 
 const LOGS_PAGE_SIZE = 25;
@@ -160,9 +162,11 @@ const IntegrationLogsModal = ({ integration, onClose }) => {
  * Full CRUD implementation for managing external service integrations
  */
 export const IntegrationsListPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingIntegration, setEditingIntegration] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedIntegrationForLogs, setSelectedIntegrationForLogs] =
     useState(null);
   const [integrationCapabilities, setIntegrationCapabilities] = useState({
@@ -170,11 +174,32 @@ export const IntegrationsListPage = () => {
     canViewLogs: true,
   });
 
+  const pageParam = Number(searchParams.get("page") || 1);
+  const limitParam = Number(searchParams.get("limit") || 25);
+  const sortBy = searchParams.get("sortBy") || "nombre";
+  const sortOrder = searchParams.get("sortOrder") || "asc";
+
+  const sortConfig = { key: sortBy, order: sortOrder };
+
   const { data: integrations = [], isLoading, error } = useIntegrations();
   const createIntegrationMutation = useCreateIntegration();
   const updateIntegrationMutation = useUpdateIntegration();
   const deleteIntegrationMutation = useDeleteIntegration();
   const testIntegrationMutation = useTestIntegration();
+
+  const handleSort = (key) => {
+    const newOrder = sortBy === key && sortOrder === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortBy", key);
+    params.set("sortOrder", newOrder);
+    setSearchParams(params);
+  };
+
+  const filterConfig = useMemo(() => [], []);
+
+  const handleFilterChange = (key, value) => {
+    // Ready for future filters
+  };
 
   const handleCapabilityUnavailable = (capabilityKey, message) => {
     let shouldAnnounce = false;
@@ -338,6 +363,87 @@ export const IntegrationsListPage = () => {
     setSelectedIntegrationForLogs(integration);
   };
 
+  const columns = useMemo(() => [
+    {
+      key: "nombre",
+      label: "Nombre",
+      sortable: true,
+      className: "text-dt-foreground font-medium",
+      render: (integration) => integration.nombre || "—",
+    },
+    {
+      key: "endpoint",
+      label: "Endpoint",
+      sortable: true,
+      className: "text-dt-subtle text-sm",
+      render: (integration) => (
+        <div className="truncate max-w-xs" title={integration.endpoint}>
+          {integration.endpoint || "—"}
+        </div>
+      ),
+    },
+    {
+      key: "activo",
+      label: "Estado",
+      sortable: true,
+      render: (integration) => (
+        <Badge variant={integration.activo ? "success" : "neutral"} icon={integration.activo ? FiCheckCircle : FiAlertCircle}>
+          {integration.activo ? "Activo" : "Inactivo"}
+        </Badge>
+      ),
+    },
+    {
+      key: "health",
+      label: "Salud",
+      render: (integration) => {
+        const health = getHealthSnapshot(integration);
+        return (
+          <Badge variant={getHealthVariant(health.status)} icon={FiActivity}>
+            {getHealthLabel(health.status)}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "creadoEn",
+      label: "Creado",
+      sortable: true,
+      className: "text-dt-subtle font-mono text-xs",
+      render: (integration) => new Date(integration?.creadoEn || integration?.createdAt || 0).toLocaleDateString(),
+    },
+    {
+      key: "actions",
+      label: "Acciones",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (integration) => (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => handleToggleActive(integration)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title={integration.activo ? "Desactivar" : "Activar"}
+          >
+            {integration.activo ? <FiToggleRight size={20} className="text-green-500" /> : <FiToggleLeft size={20} />}
+          </button>
+          <button
+            onClick={() => setEditingIntegration(integration)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title="Editar"
+          >
+            <FiEdit2 size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(integration)}
+            className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
+            title="Eliminar"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ], [getHealthSnapshot, getHealthVariant, getHealthLabel, handleToggleActive, handleDelete]);
+
   const integrationFormConfig = {
     fields: {
       nombre: {
@@ -401,34 +507,43 @@ export const IntegrationsListPage = () => {
         icon={FiLink}
         title="Gestión de Integraciones"
         description="Configura conexiones con servicios externos"
-        action={{ label: "Nueva Integración", onClick: () => setIsCreateModalOpen(true), icon: FiPlus }}
-      />
-
-      {/* Info Banner */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <FiAlertCircle className="text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="text-dt-foreground font-semibold mb-1">
-              Integraciones Clave del Sistema
-            </p>
-            <ul className="text-dt-subtle space-y-1 text-xs">
-              <li>• Mailgun - Envío y recepción de correos electrónicos</li>
-              <li>• OpenRouter - API de IA para generación de respuestas</li>
-              <li>
-                • Almacenamiento - S3/Azure/GCS para archivos adjuntos
-              </li>
-            </ul>
-          </div>
+      >
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="secondary"
+            icon={FiFilter}
+          >
+            Filtros
+          </Button>
+          <Button onClick={() => setIsCreateModalOpen(true)} variant="primary" icon={FiPlus}>
+            Nueva Integración
+          </Button>
         </div>
-      </div>
+      </PageHeader>
 
-      {/* Search Bar */}
-      <SearchInput
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Buscar integraciones..."
-      />
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
+          <input
+            type="text"
+            placeholder="Buscar integraciones por nombre o endpoint..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Advanced Filters */}
+        <FilterPanel
+          open={showFilters}
+          config={filterConfig}
+          values={{}}
+          onChange={handleFilterChange}
+        />
+      </div>
 
       {/* Integrations List */}
       {isLoading ? (
