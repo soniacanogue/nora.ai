@@ -545,160 +545,39 @@ export const IntegrationsListPage = () => {
         />
       </div>
 
-      {/* Integrations List */}
-      {isLoading ? (
-        <SkeletonList count={3} className="space-y-4" />
-      ) : filteredIntegrations.length === 0 ? (
-        <EmptyState
-          icon={FiLink}
-          title="No hay integraciones"
-          description={
-            searchTerm
-              ? "No se encontraron integraciones con ese criterio de búsqueda"
-              : "Crea tu primera integración para comenzar"
-          }
-          action={
-            !searchTerm && {
-              label: "Crear Integración",
-              onClick: () => setIsCreateModalOpen(true),
+      {/* Integrations Table */}
+      <DynamicTable
+        columns={columns}
+        data={filteredIntegrations}
+        sortConfig={sortConfig}
+        onSort={handleSort}
+        isLoading={isLoading}
+        page={pageParam}
+        itemsPerPage={limitParam}
+        onPageChange={(newPage) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", String(newPage));
+          setSearchParams(params);
+        }}
+        onItemsPerPageChange={(newLimit) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("limit", String(newLimit));
+          params.set("page", "1");
+          setSearchParams(params);
+        }}
+        emptyState={
+          <EmptyState
+            icon={FiLink}
+            title="No hay integraciones"
+            description={
+              searchTerm
+                ? "No se encontraron integraciones con los filtros aplicados"
+                : "Crea tu primera integración para comenzar"
             }
-          }
-        />
-      ) : (
-        <div className="space-y-4">
-          {filteredIntegrations.map((integration) => {
-            const health = getHealthSnapshot(integration);
-            const healthVariant = getHealthVariant(health.status);
-            const lastCheckLabel = health.lastCheck
-              ? formatDistanceToNow(new Date(health.lastCheck))
-              : "Sin verificación";
-
-            return (
-              <div
-                key={integration.id}
-                className="bg-dt-card border border-dt-border rounded-lg p-6 hover:border-dt-accent/50 transition-colors group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-dt-foreground">
-                        {integration.nombre}
-                      </h3>
-                      <Badge variant={integration.activo ? "success" : "neutral"}>
-                        {integration.activo ? "Activo" : "Inactivo"}
-                      </Badge>
-                      <Badge variant={healthVariant}>
-                        <span className="flex items-center gap-1">
-                          <FiActivity /> {getHealthLabel(health.status)}
-                        </span>
-                      </Badge>
-                    </div>
-                    {integration.endpoint && (
-                      <p className="text-sm text-dt-subtle mb-1">
-                        <span className="font-medium">Endpoint:</span>{" "}
-                        {integration.endpoint}
-                      </p>
-                    )}
-                    {integration.urlWebhook && (
-                      <p className="text-sm text-dt-subtle">
-                        <span className="font-medium">Webhook:</span>{" "}
-                        {integration.urlWebhook}
-                      </p>
-                    )}
-                    <p className="text-xs text-dt-subtle mt-2 flex items-center gap-1">
-                      <FiClock /> Última verificación: {lastCheckLabel}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleToggleActive(integration)}
-                      className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                      title={
-                        integration.activo ? "Desactivar" : "Activar"
-                      }
-                    >
-                      {integration.activo ? (
-                        <FiToggleRight size={20} className="text-green-500" />
-                      ) : (
-                        <FiToggleLeft size={20} />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setEditingIntegration(integration)}
-                      className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
-                      title="Editar"
-                    >
-                      <FiEdit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(integration)}
-                      className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
-                      title="Eliminar"
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                  <div className="bg-dt-background border border-dt-border rounded-lg p-3">
-                    <p className="text-xs text-dt-subtle uppercase tracking-wide">
-                      Uptime
-                    </p>
-                    <p className="text-xl font-semibold text-dt-foreground">
-                      {health.uptime != null ? `${health.uptime}%` : "N/D"}
-                    </p>
-                  </div>
-                  <div className="bg-dt-background border border-dt-border rounded-lg p-3">
-                    <p className="text-xs text-dt-subtle uppercase tracking-wide">
-                      Latencia promedio
-                    </p>
-                    <p className="text-xl font-semibold text-dt-foreground">
-                      {health.latencyMs != null
-                        ? `${health.latencyMs} ms`
-                        : "N/D"}
-                    </p>
-                  </div>
-                  <div className="bg-dt-background border border-dt-border rounded-lg p-3">
-                    <p className="text-xs text-dt-subtle uppercase tracking-wide">
-                      Errores últimas 24h
-                    </p>
-                    <p className="text-xl font-semibold text-dt-foreground">
-                      {health.errors24h}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3 mt-4">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    fullWidth={false}
-                    onClick={() => handleTest(integration)}
-                    isLoading={testIntegrationMutation.isPending}
-                    disabled={!integrationCapabilities.canTest}
-                  >
-                    <span className="flex items-center gap-2">
-                      <FiPlay /> Probar conexión
-                    </span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    fullWidth={false}
-                    onClick={() => handleViewLogs(integration)}
-                    disabled={!integrationCapabilities.canViewLogs}
-                  >
-                    <span className="flex items-center gap-2">
-                      <FiList /> Ver logs
-                    </span>
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+            action={!searchTerm ? { label: "Nueva Integración", onClick: () => setIsCreateModalOpen(true) } : undefined}
+          />
+        }
+      />
 
       {/* Create Modal */}
       {isCreateModalOpen && (
