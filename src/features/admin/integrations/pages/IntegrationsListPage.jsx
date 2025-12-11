@@ -181,7 +181,12 @@ export const IntegrationsListPage = () => {
 
   const sortConfig = { key: sortBy, order: sortOrder };
 
-  const { data: integrations = [], isLoading, error } = useIntegrations();
+  const { data: integrations = [], isLoading, error } = useIntegrations({
+    page: pageParam,
+    limit: limitParam,
+    sortBy,
+    sortOrder,
+  });
   const createIntegrationMutation = useCreateIntegration();
   const updateIntegrationMutation = useUpdateIntegration();
   const deleteIntegrationMutation = useDeleteIntegration();

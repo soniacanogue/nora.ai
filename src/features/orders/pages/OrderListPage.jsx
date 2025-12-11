@@ -26,6 +26,8 @@ const OrderListPage = () => {
   const { orders, isLoading, error, pagination } = useOrders({
     page: pageParam,
     limit: limitParam,
+    sortBy,
+    sortOrder,
   });
 
   const handleSort = (key) => {
@@ -79,6 +81,31 @@ const OrderListPage = () => {
 
     return result;
   }, [orders, searchTerm, estadoFilter]);
+
+  // Apply client-side sorting for fields the backend doesn't sort by email.
+  // The backend supports `clienteId` sorting but that sorts by ID, not email.
+  // When the UI requests sorting by `clienteId` (the Email column), sort locally
+  // by `order.cliente.correo` to provide expected behavior.
+  const sortedOrders = useMemo(() => {
+    if (!filteredOrders) return [];
+    const result = [...filteredOrders];
+
+    if (!sortBy) return result;
+
+    // If sorting by clienteId, sort by cliente.correo (client-side)
+    if (sortBy === "clienteId") {
+      result.sort((a, b) => {
+        const aVal = (a.cliente?.correo || "").toString().toLowerCase();
+        const bVal = (b.cliente?.correo || "").toString().toLowerCase();
+        if (aVal === bVal) return 0;
+        return sortOrder === "asc" ? (aVal < bVal ? -1 : 1) : (aVal > bVal ? -1 : 1);
+      });
+      return result;
+    }
+
+    // For other fields, assume backend already applied sorting (server-side)
+    return result;
+  }, [filteredOrders, sortBy, sortOrder]);
 
   const getEstadoBadgeVariant = (estado) => {
     switch (estado) {
@@ -205,7 +232,7 @@ const OrderListPage = () => {
       {/* Orders Table */}
       <DynamicTable
         columns={columns}
-        data={filteredOrders}
+        data={sortedOrders}
         sortConfig={sortConfig}
         onSort={handleSort}
         isLoading={isLoading}

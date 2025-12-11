@@ -11,10 +11,10 @@ const TAGS_QUERY_KEY = "tags";
 /**
  * Hook to fetch all tags
  */
-export const useTags = () => {
+export const useTags = (filters = {}) => {
   return useQuery({
-    queryKey: [TAGS_QUERY_KEY],
-    queryFn: tagsApi.getAll,
+    queryKey: [TAGS_QUERY_KEY, filters],
+    queryFn: () => tagsApi.getAll(filters),
   });
 };
 

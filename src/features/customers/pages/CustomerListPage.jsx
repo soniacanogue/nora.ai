@@ -25,6 +25,7 @@ const CustomerListPage = () => {
   // Search and filters
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [localSort, setLocalSort] = useState({ key: null, order: "asc" });
 
   // Filters from URL
   const pageParam = Number(searchParams.get("page") || 1);
@@ -33,6 +34,9 @@ const CustomerListPage = () => {
   const sortOrder = searchParams.get("sortOrder") || "asc";
 
   const sortConfig = { key: sortBy, order: sortOrder };
+
+  // Use local sort for client-side sortable columns (tickets/ordenes)
+  const effectiveSortConfig = localSort.key ? localSort : sortConfig;
 
   // Hook for data with pagination
   const {
@@ -43,6 +47,8 @@ const CustomerListPage = () => {
   } = useCustomers({
     page: pageParam,
     limit: limitParam,
+    sortBy,
+    sortOrder,
   });
 
   // Extract customers and pagination info
@@ -50,6 +56,14 @@ const CustomerListPage = () => {
   const pagination = customersData?.pagination || {};
 
   const handleSort = (key) => {
+    // For tickets and ordenes columns we perform client-side sorting
+    if (key === "ticketsCount" || key === "ordenesCount") {
+      const current = localSort.key === key ? localSort.order : sortOrder;
+      const newOrder = current === "asc" ? "desc" : "asc";
+      setLocalSort({ key, order: newOrder });
+      return;
+    }
+
     const newOrder = sortBy === key && sortOrder === "asc" ? "desc" : "asc";
     const params = new URLSearchParams(searchParams);
     params.set("sortBy", key);
@@ -66,7 +80,7 @@ const CustomerListPage = () => {
 
   // Filtered customers
   const filteredCustomers = useMemo(() => {
-    let result = customers;
+    let result = customers ? [...customers] : [];
 
     // Filter by search
     if (searchTerm) {
@@ -79,8 +93,26 @@ const CustomerListPage = () => {
       });
     }
 
+    // Client-side sorting for ticketsCount / ordenesCount
+    if (localSort.key === "ticketsCount" || localSort.key === "ordenesCount") {
+      const key = localSort.key;
+      const order = localSort.order === "asc" ? 1 : -1;
+
+      const getCount = (customer) => {
+        if (key === "ticketsCount") return customer._count?.tickets || customer.tickets?.length || customer.ticketsCount || 0;
+        return customer._count?.ordenes || customer.ordenes?.length || customer.ordenesCount || 0;
+      };
+
+      result.sort((a, b) => {
+        const ca = getCount(a);
+        const cb = getCount(b);
+        if (ca === cb) return 0;
+        return ca > cb ? order : -order;
+      });
+    }
+
     return result;
-  }, [customers, searchTerm]);
+  }, [customers, searchTerm, localSort]);
 
   const handleCustomerClick = (customer) => {
     navigate(`/customers/${customer.id}`);
@@ -127,6 +159,7 @@ const CustomerListPage = () => {
       {
         key: "ticketsCount",
         label: "Tickets",
+        sortable: true,
         className: "text-dt-subtle text-center",
         render: (customer) => {
           const count = customer._count?.tickets || customer.tickets?.length || customer.ticketsCount || 0;
@@ -140,6 +173,7 @@ const CustomerListPage = () => {
       {
         key: "ordenesCount",
         label: "Órdenes",
+        sortable: true,
         className: "text-dt-subtle text-center",
         render: (customer) => {
           const count = customer._count?.ordenes || customer.ordenes?.length || customer.ordenesCount || 0;
@@ -278,7 +312,7 @@ const CustomerListPage = () => {
       <DynamicTable
         columns={columns}
         data={filteredCustomers}
-        sortConfig={sortConfig}
+        sortConfig={effectiveSortConfig}
         onSort={handleSort}
         isLoading={isLoading}
         page={pageParam}

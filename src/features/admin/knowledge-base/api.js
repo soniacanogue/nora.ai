@@ -70,6 +70,16 @@ const buildListQueryParams = (filters = {}) => {
     params.set("pagina", page);
   }
 
+  // Sorting
+  if (filters.sortBy) {
+    // normalize UI keys to backend expected keys if necessary
+    params.set("sortBy", filters.sortBy);
+  }
+
+  if (filters.sortOrder) {
+    params.set("sortOrder", filters.sortOrder);
+  }
+
   return params.toString();
 };
 

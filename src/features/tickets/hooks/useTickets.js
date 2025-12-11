@@ -22,7 +22,7 @@ export const useTickets = (
   return useQuery({
     // La queryKey incluye filtros, paginación y ordenamiento para que sea única
     queryKey: ["tickets", { ...mappedFilters, page: mappedFilters.page, limit: mappedFilters.limit }, sort],
-    queryFn: () => getTickets(mappedFilters), // Pasamos los filtros (incluye page/limit) a la API
+    queryFn: () => getTickets(mappedFilters, sort), // Pasamos filtros + ordenamiento al API
     staleTime: 60 * 1000, // 1 minuto de cache
   });
 };

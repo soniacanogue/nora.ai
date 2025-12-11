@@ -35,8 +35,8 @@ const defaultTicket = {
  *   - canal: string
  * @returns {Promise<Array>}
  */
-export const getTickets = async (filters = {}) => {
-  console.log("Fetching ticket list with filters:", filters);
+export const getTickets = async (filters = {}, sort = {}) => {
+  console.log("Fetching ticket list with filters:", filters, "sort:", sort);
   try {
     const params = new URLSearchParams();
 
@@ -55,6 +55,24 @@ export const getTickets = async (filters = {}) => {
     add("canal", filters.canal);
     add("page", filters.page);
     add("limit", filters.limit);
+
+    // Handle server-side sorting when provided. We intentionally skip
+    // sending sort params for 'prioridad' because that column uses
+    // a domain-specific order and is handled client-side.
+    if (sort && sort.key && sort.key !== "prioridad") {
+      // Map some frontend keys to the backend-supported sort fields
+      const sortKeyMap = {
+        cliente: "clienteId",
+        clienteNombre: "clienteId",
+        creadoEn: "modificadoEn", // frontend shows 'Actualización' under creadoEn key
+        usuarioAsignado: "assigneeId",
+        assignee: "assigneeId",
+      };
+
+      const mappedKey = sortKeyMap[sort.key] || sort.key;
+      add("sortBy", mappedKey);
+      if (sort.order) add("sortOrder", sort.order);
+    }
 
     const queryString = params.toString();
     const endpoint = `/tickets${queryString ? `?${queryString}` : ""}`;

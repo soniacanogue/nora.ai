@@ -6,6 +6,7 @@ import { useClaimTicket } from "../hooks/useClaimTicket"; // Nuevo
 import { useAuth } from "@/shared/hooks/useAuth"; // Para obtener el agente actual
 import { useDynamicSearch } from "@/shared/hooks/useDynamicSearch";
 import Button from "@/shared/components/ui/Button";
+import Badge from "@/shared/components/ui/Badge";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import ExportModal from "../components/ExportModal";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
@@ -23,11 +24,21 @@ const TicketListPage = () => {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
 
-  // -- State para ordenamiento --
-  const [sortConfig, setSortConfig] = useState({
-    key: "prioridad",
-    order: "desc",
-  });
+  // -- State para ordenamiento (inicial desde query params si existen)
+  const initialSort = (() => {
+    const s = searchParams.get("sortBy") || "prioridad";
+    const order = searchParams.get("sortOrder") || "desc";
+    // Map backend keys back to frontend column keys
+    const reverseMap = {
+      clienteId: "cliente",
+      modificadoEn: "creadoEn",
+      actualizadoEn: "creadoEn",
+      assigneeId: "assigneeId",
+    };
+    return { key: reverseMap[s] || s, order };
+  })();
+
+  const [sortConfig, setSortConfig] = useState(initialSort);
 
   // -- Filtros desde la URL --
   const estadoFilter = searchParams.get("estado");
@@ -46,7 +57,7 @@ const TicketListPage = () => {
     assigneeId: assigneeFilter,
     page: pageParam,
     limit: limitParam,
-  });
+  }, sortConfig);
 
   // Note: previously we reset `page=1` when filters changed. That behavior
   // caused the page query param to be overwritten on page load (e.g. when
@@ -164,7 +175,28 @@ const TicketListPage = () => {
     if (sortConfig.key === key && sortConfig.order === "asc") {
       order = "desc";
     }
-    setSortConfig({ key, order });
+    const newSort = { key, order };
+    setSortConfig(newSort);
+
+    // Update URL so server-side fetch includes sorting (except prioridad)
+    const params = new URLSearchParams(searchParams);
+    // Map frontend key to backend param names
+    const sortKeyMap = {
+      cliente: "clienteId",
+      creadoEn: "modificadoEn",
+      usuarioAsignado: "assigneeId",
+      assignee: "assigneeId",
+    };
+    if (key === "prioridad") {
+      // prioridad: handle client-side only, remove any server sort params
+      params.delete("sortBy");
+      params.delete("sortOrder");
+    } else {
+      const mapped = sortKeyMap[key] || key;
+      params.set("sortBy", mapped);
+      params.set("sortOrder", order);
+    }
+    setSearchParams(params);
   };
 
   const handleTicketCreated = () => {
@@ -234,6 +266,23 @@ const TicketListPage = () => {
         sortable: true,
         className: "text-dt-subtle",
         render: (ticket) => ticket?.clienteNombre || "Anónimo",
+      },
+      {
+        key: "estado",
+        label: "Estado",
+        sortable: true,
+        className: "text-dt-subtle",
+        render: (ticket) => {
+          const estado = ticket?.estado || "—";
+          const variant = estado === "resuelto" || estado === "cerrado" || estado === "entregado"
+            ? "success"
+            : estado === "esperando_cliente" || estado === "pendiente"
+              ? "warning"
+              : estado === "escalado" || estado === "urgente" || estado === "nuevo"
+                ? "danger"
+                : "neutral";
+          return <Badge variant={variant}>{estado}</Badge>;
+        },
       },
       {
         key: "assigneeId",

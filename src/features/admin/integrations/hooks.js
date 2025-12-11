@@ -11,10 +11,11 @@ const INTEGRATIONS_QUERY_KEY = "integrations";
 /**
  * Hook to fetch all integrations
  */
-export const useIntegrations = () => {
+export const useIntegrations = (filters = {}) => {
   return useQuery({
-    queryKey: [INTEGRATIONS_QUERY_KEY],
-    queryFn: integrationsApi.getAll,
+    queryKey: [INTEGRATIONS_QUERY_KEY, filters],
+    queryFn: () => integrationsApi.getAll(filters),
+    keepPreviousData: true,
   });
 };
 

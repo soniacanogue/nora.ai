@@ -16,9 +16,13 @@ export const tagsApi = {
    * Fetch all tags
    * @returns {Promise<Array>} List of tags
    */
-  getAll: async () => {
-    const response = await apiClient.get("/tags");
-    return response.data.data;
+  getAll: async (params = {}) => {
+    const response = await apiClient.get("/tags", { params });
+    // Support responses that are either array or { data: [], pagination: {} }
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.data)) return data.data;
+    return [];
   },
 
   /**

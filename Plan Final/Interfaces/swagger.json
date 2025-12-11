@@ -272,7 +272,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla LogEvento",
             "schema": {
               "type": "string",
               "enum": [
@@ -422,7 +422,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla Usuario",
             "schema": {
               "type": "string",
               "enum": [
@@ -736,7 +736,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla Ticket",
             "schema": {
               "type": "string",
               "enum": [
@@ -1561,7 +1561,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla ConfigAgente",
             "schema": {
               "type": "string",
               "enum": [
@@ -2056,7 +2056,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla Orden",
             "schema": {
               "type": "string",
               "enum": [
@@ -2197,7 +2197,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla Cliente",
             "schema": {
               "type": "string",
               "enum": [
@@ -2429,7 +2429,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla Plantilla",
             "schema": {
               "type": "string",
               "enum": [
@@ -2632,7 +2632,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla Etiqueta",
             "schema": {
               "type": "string",
               "enum": [
@@ -2871,7 +2871,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla Integracion",
             "schema": {
               "type": "string",
               "enum": [
@@ -3116,7 +3116,7 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Campo para ordenar",
+            "description": "Campo para ordenar de la tabla BaseConocimiento",
             "schema": {
               "type": "string",
               "enum": [

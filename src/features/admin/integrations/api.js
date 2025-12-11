@@ -40,9 +40,33 @@ export const integrationsApi = {
    * Fetch all integrations
    * @returns {Promise<Array>} List of integrations
    */
-  getAll: async () => {
-    const response = await apiClient.get("/integrations");
-    return response.data;
+  getAll: async (params = {}) => {
+    const response = await apiClient.get("/integrations", { params });
+    const data = response.data;
+
+    let arr = [];
+    let pagination = null;
+
+    if (Array.isArray(data)) {
+      arr = data;
+    } else if (data && Array.isArray(data.data)) {
+      arr = data.data;
+      pagination = data.pagination || data.meta || null;
+    }
+
+    const mapped = arr.map((i) => ({ ...i }));
+
+    try {
+      Object.defineProperty(mapped, "pagination", {
+        value: pagination,
+        enumerable: false,
+        writable: false,
+      });
+    } catch {
+      mapped.pagination = pagination;
+    }
+
+    return mapped;
   },
 
   /**

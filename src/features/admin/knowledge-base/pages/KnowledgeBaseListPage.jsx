@@ -67,8 +67,10 @@ export const KnowledgeBaseListPage = () => {
       category: categoryFilter || undefined,
       page: pageParam,
       limit: limitParam,
+      sortBy,
+      sortOrder,
     }),
-    [searchTerm, categoryFilter, pageParam, limitParam],
+    [searchTerm, categoryFilter, pageParam, limitParam, sortBy, sortOrder],
   );
 
   const {
@@ -158,6 +160,18 @@ export const KnowledgeBaseListPage = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (
+      window.confirm("¿Estás seguro de que deseas eliminar este documento?")
+    ) {
+      deleteDocMutation.mutate(id);
+    }
+  };
+
+  const handleEdit = (document) => {
+    setEditingDocument(document);
+  };
+
   const columns = useMemo(() => [
     {
       key: "pregunta",
@@ -218,18 +232,6 @@ export const KnowledgeBaseListPage = () => {
       ),
     },
   ], [handleDelete, handleEdit, getCategoryBadgeVariant]);
-
-  const handleDelete = async (id) => {
-    if (
-      window.confirm("¿Estás seguro de que deseas eliminar este documento?")
-    ) {
-      deleteDocMutation.mutate(id);
-    }
-  };
-
-  const handleEdit = (document) => {
-    setEditingDocument(document);
-  };
 
   const handleCreate = () => {
     setIsCreateModalOpen(true);

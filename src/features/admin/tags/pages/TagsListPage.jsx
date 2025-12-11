@@ -43,7 +43,12 @@ export const TagsListPage = () => {
 
   const sortConfig = { key: sortBy, order: sortOrder };
 
-  const { data: tags = [], isLoading, error } = useTags();
+  const { data: tags = [], isLoading, error } = useTags({
+    page: pageParam,
+    limit: limitParam,
+    sortBy,
+    sortOrder,
+  });
   const createTagMutation = useCreateTag();
   const updateTagMutation = useUpdateTag();
   const deleteTagMutation = useDeleteTag();
@@ -82,6 +87,33 @@ export const TagsListPage = () => {
       return formatDistanceToNow(new Date(tag.ultimaActividad));
     } catch (error) {
       return "Sin registro";
+    }
+  };
+
+  const handleDelete = (tag) => {
+    const usageCount = getUsageCount(tag);
+    if (usageCount > 0) {
+      toast.error(
+        `No puedes eliminar etiquetas en uso. ${tag.nombre} está presente en ${usageCount} ${
+          usageCount === 1 ? "ticket" : "tickets"
+        }`
+      );
+      return;
+    }
+
+    if (
+      window.confirm(
+        `¿Estás seguro de que quieres eliminar la etiqueta "${tag.nombre}"?`
+      )
+    ) {
+      deleteTagMutation.mutate(tag.id, {
+        onSuccess: () => {
+          toast.success("Etiqueta eliminada");
+        },
+        onError: (err) => {
+          toast.error(err.message || "Error al eliminar etiqueta");
+        },
+      });
     }
   };
 
@@ -257,33 +289,6 @@ export const TagsListPage = () => {
         },
       }
     );
-  };
-
-  const handleDelete = (tag) => {
-    const usageCount = getUsageCount(tag);
-    if (usageCount > 0) {
-      toast.error(
-        `No puedes eliminar etiquetas en uso. ${tag.nombre} está presente en ${usageCount} ${
-          usageCount === 1 ? "ticket" : "tickets"
-        }`
-      );
-      return;
-    }
-
-    if (
-      window.confirm(
-        `¿Estás seguro de que quieres eliminar la etiqueta "${tag.nombre}"?`
-      )
-    ) {
-      deleteTagMutation.mutate(tag.id, {
-        onSuccess: () => {
-          toast.success("Etiqueta eliminada");
-        },
-        onError: (err) => {
-          toast.error(err.message || "Error al eliminar etiqueta");
-        },
-      });
-    }
   };
 
   const tagFormConfig = {
