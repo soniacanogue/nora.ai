@@ -3,13 +3,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useCustomers } from "../hooks/useCustomer";
 import { updateCustomer } from "../api/customersApi";
-import { useDynamicSearch } from "@/shared/hooks/useDynamicSearch";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
-import DynamicSearch from "@/shared/components/ui/DynamicSearch";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
 import PageHeader from "@/shared/components/layout/PageHeader";
-import { FiUsers } from "react-icons/fi";
+import FilterPanel from "@/shared/components/ui/FilterPanel";
+import EmptyState from "@/shared/components/ui/EmptyState";
+import ErrorState from "@/shared/components/ui/ErrorState";
+import { FiUsers, FiPlus, FiFilter, FiSearch, FiEdit2 } from "react-icons/fi";
 import toast from "react-hot-toast";
 
 const CustomerListPage = () => {
@@ -20,16 +21,18 @@ const CustomerListPage = () => {
   // State for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-
-  // State for sorting
-  const [sortConfig, setSortConfig] = useState({
-    key: "nombre",
-    order: "asc",
-  });
+  
+  // Search and filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   // Filters from URL
   const pageParam = Number(searchParams.get("page") || 1);
   const limitParam = Number(searchParams.get("limit") || 25);
+  const sortBy = searchParams.get("sortBy") || "nombre";
+  const sortOrder = searchParams.get("sortOrder") || "asc";
+
+  const sortConfig = { key: sortBy, order: sortOrder };
 
   // Hook for data with pagination
   const {
@@ -46,68 +49,38 @@ const CustomerListPage = () => {
   const customers = customersData?.data || customersData || [];
   const pagination = customersData?.pagination || {};
 
-  // Search configuration
-  const searchConfig = useMemo(
-    () => ({
-      searchKeys: [
-        "id",
-        "nombre",
-        "correo",
-        "telefono",
-      ],
-    }),
-    [],
-  );
+  const handleSort = (key) => {
+    const newOrder = sortBy === key && sortOrder === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortBy", key);
+    params.set("sortOrder", newOrder);
+    setSearchParams(params);
+  };
 
-  // Hook for dynamic search
-  const {
-    searchTerm,
-    setSearchTerm,
-    filteredData: searchedCustomers,
-    suggestions: searchSuggestions,
-  } = useDynamicSearch(customers, searchConfig);
+  // Filter config - similar to UsersListPage
+  const filterConfig = useMemo(() => [], []); // No filters for now, but structure is ready
 
-  // Sorted customers
-  const sortedCustomers = useMemo(() => {
-    if (!searchedCustomers) return [];
-    let result = [...searchedCustomers];
-    if (sortConfig.key) {
-      result.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+  const handleFilterChange = (key, value) => {
+    // Ready for future filters
+  };
 
-        // Special cases for count fields
-        if (sortConfig.key === "ticketsCount") {
-          aValue = a._count?.tickets || a.tickets?.length || a.ticketsCount || 0;
-          bValue = b._count?.tickets || b.tickets?.length || b.ticketsCount || 0;
-        } else if (sortConfig.key === "ordenesCount") {
-          aValue = a._count?.ordenes || a.ordenes?.length || a.ordenesCount || 0;
-          bValue = b._count?.ordenes || b.ordenes?.length || b.ordenesCount || 0;
-        }
+  // Filtered customers
+  const filteredCustomers = useMemo(() => {
+    let result = customers;
 
-        // Case-insensitive sorting for strings
-        if (typeof aValue === "string") aValue = aValue.toLowerCase();
-        if (typeof bValue === "string") bValue = bValue.toLowerCase();
-
-        if (aValue < bValue) {
-          return sortConfig.order === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.order === "asc" ? 1 : -1;
-        }
-        return 0;
+    // Filter by search
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      result = result.filter((customer) => {
+        const nombre = (customer.nombre || customer.name || "").toString().toLowerCase();
+        const correo = (customer.correo || customer.email || "").toString().toLowerCase();
+        const telefono = (customer.telefono || "").toString().toLowerCase();
+        return nombre.includes(search) || correo.includes(search) || telefono.includes(search);
       });
     }
-    return result;
-  }, [searchedCustomers, sortConfig]);
 
-  const handleSort = (key) => {
-    let order = "asc";
-    if (sortConfig.key === key && sortConfig.order === "asc") {
-      order = "desc";
-    }
-    setSortConfig({ key, order });
-  };
+    return result;
+  }, [customers, searchTerm]);
 
   const handleCustomerClick = (customer) => {
     navigate(`/customers/${customer.id}`);
@@ -130,7 +103,7 @@ const CustomerListPage = () => {
         key: "nombre",
         label: "Nombre",
         sortable: true,
-        className: "text-dt-foreground font-medium cursor-pointer group-hover:text-white transition-colors",
+        className: "text-dt-foreground font-medium cursor-pointer",
         render: (customer) => (
           <div onClick={() => handleCustomerClick(customer)}>
             {customer?.nombre || customer?.name || "Sin nombre"}
@@ -142,19 +115,18 @@ const CustomerListPage = () => {
         label: "Correo",
         sortable: true,
         className: "text-dt-subtle",
-        render: (customer) => customer?.correo || customer?.email || "Sin email",
+        render: (customer) => customer?.correo || customer?.email || "—",
       },
       {
         key: "telefono",
         label: "Teléfono",
         sortable: true,
         className: "text-dt-subtle",
-        render: (customer) => customer?.telefono || "Sin teléfono",
+        render: (customer) => customer?.telefono || "—",
       },
       {
         key: "ticketsCount",
         label: "Tickets",
-        sortable: true,
         className: "text-dt-subtle text-center",
         render: (customer) => {
           const count = customer._count?.tickets || customer.tickets?.length || customer.ticketsCount || 0;
@@ -168,7 +140,6 @@ const CustomerListPage = () => {
       {
         key: "ordenesCount",
         label: "Órdenes",
-        sortable: true,
         className: "text-dt-subtle text-center",
         render: (customer) => {
           const count = customer._count?.ordenes || customer.ordenes?.length || customer.ordenesCount || 0;
@@ -188,23 +159,23 @@ const CustomerListPage = () => {
       },
       {
         key: "actions",
-        label: "Acción",
+        label: "Acciones",
+        headerClassName: "text-right",
+        className: "text-right",
         render: (customer) => (
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <Button
-              variant="primary"
-              size="sm"
-              fullWidth={false}
+          <div className="flex justify-end gap-2">
+            <button
               onClick={() => handleEditCustomer(customer)}
-              className="text-xs py-1 px-3 h-8"
+              className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+              title="Editar"
             >
-              Editar
-            </Button>
+              <FiEdit2 size={16} />
+            </button>
           </div>
         ),
       },
     ],
-    [navigate, handleEditCustomer],
+    [handleCustomerClick, handleEditCustomer],
   );
 
   const formConfig = {
@@ -250,31 +221,66 @@ const CustomerListPage = () => {
     },
   };
 
-  if (isError) {
-    return <div className="text-red-500">Error: {error.message}</div>;
+  if (isError || error) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          message="Error al cargar los clientes"
+          details={error?.message}
+        />
+      </div>
+    );
   }
 
   return (
-    <div>
-      <PageHeader icon={FiUsers} title="Clientes" />
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <PageHeader
+        icon={FiUsers}
+        title="Gestión de Clientes"
+        description="Administra los clientes del sistema"
+      >
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="secondary"
+            icon={FiFilter}
+          >
+            Filtros
+          </Button>
+        </div>
+      </PageHeader>
 
-      <div className="w-full md:w-64 lg:w-80">
-        <DynamicSearch
-          id="search-customers"
-          placeholder="Buscar clientes..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          suggestions={searchSuggestions}
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
+          <input
+            type="text"
+            placeholder="Buscar clientes por nombre, correo o teléfono..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Advanced Filters */}
+        <FilterPanel
+          open={showFilters}
+          config={filterConfig}
+          values={{}}
+          onChange={handleFilterChange}
         />
       </div>
 
+      {/* Customers Table */}
       <DynamicTable
         columns={columns}
-        data={sortedCustomers}
+        data={filteredCustomers}
         sortConfig={sortConfig}
         onSort={handleSort}
         isLoading={isLoading}
-        // Controlled pagination
         page={pageParam}
         itemsPerPage={limitParam}
         onPageChange={(newPage) => {
@@ -288,21 +294,39 @@ const CustomerListPage = () => {
           params.set("page", "1");
           setSearchParams(params);
         }}
-        totalItems={pagination?.total || pagination?.totalItems || pagination?.totalCount || customers.length}
         totalPages={pagination?.totalPages}
+        totalItems={pagination?.total}
+        emptyState={
+          <EmptyState
+            icon={FiUsers}
+            title="No hay clientes"
+            description={
+              searchTerm
+                ? "No se encontraron clientes con los filtros aplicados"
+                : "No hay clientes registrados en el sistema"
+            }
+          />
+        }
       />
 
-      <DynamicFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Editar Cliente"
-        config={formConfig}
-        defaultValues={editingCustomer ? {
-          nombre: editingCustomer.nombre || "",
-          correo: editingCustomer.correo || "",
-          telefono: editingCustomer.telefono || "",
-        } : {}}
-      />
+      {/* Edit Modal */}
+      {isModalOpen && editingCustomer && (
+        <DynamicFormModal
+          title="Editar Cliente"
+          description="Modifica la información del cliente"
+          config={formConfig}
+          defaultValues={{
+            nombre: editingCustomer.nombre || "",
+            correo: editingCustomer.correo || "",
+            telefono: editingCustomer.telefono || "",
+          }}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingCustomer(null);
+          }}
+          isLoading={false}
+        />
+      )}
     </div>
   );
 };
