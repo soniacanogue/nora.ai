@@ -11,11 +11,14 @@ import {
 import {
   useKnowledgeBaseDocs,
   useDeleteKnowledgeBaseDoc,
+  useUpdateKnowledgeBaseDoc,
+  useCreateKnowledgeBaseDoc,
   useKnowledgeBaseCategories,
 } from "../hooks/useKnowledgeBase";
 import SearchInput from "@/shared/components/ui/SearchInput";
 import Select from "@/shared/components/ui/Select";
 import PageHeader from "@/shared/components/layout/PageHeader";
+import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 
 // TODO: UC-14 - Knowledge Base Management UI
 // This component requires backend implementation of:
@@ -42,6 +45,8 @@ export const KnowledgeBaseListPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [editingDocument, setEditingDocument] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const PAGE_SIZE = 20;
 
   const filters = useMemo(
@@ -81,6 +86,8 @@ export const KnowledgeBaseListPage = () => {
   const showingEnd = totalDocuments === 0 ? 0 : showingStart + documents.length - 1;
 
   const deleteDocMutation = useDeleteKnowledgeBaseDoc();
+  const updateDocMutation = useUpdateKnowledgeBaseDoc();
+  const createDocMutation = useCreateKnowledgeBaseDoc();
 
   const normalizedCategories = useMemo(() => {
     if (Array.isArray(categoryOptions) && categoryOptions.length > 0) {
@@ -97,12 +104,12 @@ export const KnowledgeBaseListPage = () => {
     }
   };
 
-  const handleEdit = (id) => {
-    navigate(`/admin/knowledge-base/edit/${id}`);
+  const handleEdit = (document) => {
+    setEditingDocument(document);
   };
 
   const handleCreate = () => {
-    navigate("/admin/knowledge-base/new");
+    setIsCreateModalOpen(true);
   };
 
   const handleSearchChange = (event) => {
@@ -123,6 +130,99 @@ export const KnowledgeBaseListPage = () => {
     setPage(nextPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Form configuration for editing documents
+  const formCategoryOptions = useMemo(() => {
+    if (Array.isArray(categoryOptions) && categoryOptions.length > 0) {
+      return categoryOptions.map((categoryValue) => {
+        const fallback = CATEGORY_LABELS[categoryValue] || categoryValue;
+        return {
+          value: categoryValue,
+          label: fallback,
+        };
+      });
+    }
+    return Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
+      value,
+      label,
+    }));
+  }, [categoryOptions]);
+
+  const getDocumentFormConfig = (isEditing = false) => ({
+    fields: {
+      titulo: {
+        label: "Título",
+        type: "text",
+        placeholder: "Ej: ¿Cómo hacer una devolución?",
+        required: true,
+      },
+      categoria: {
+        label: "Categoría",
+        type: "select",
+        options: formCategoryOptions,
+        required: true,
+        defaultValue: "FAQ",
+      },
+      contenido: {
+        label: "Contenido",
+        type: "textarea",
+        placeholder: "Escribe el contenido del documento aquí...",
+        rows: 12,
+        required: true,
+      },
+      etiquetas: {
+        label: "Etiquetas",
+        type: "text",
+        placeholder: "Etiquetas separadas por comas (ej: devoluciones, productos, ayuda)",
+      },
+    },
+    buttons: {
+      cancel: {
+        label: "Cancelar",
+        variant: "secondary",
+        onClick: () => {
+          if (isEditing) {
+            setEditingDocument(null);
+          } else {
+            setIsCreateModalOpen(false);
+          }
+        },
+      },
+      submit: {
+        label: (createDocMutation.isPending || updateDocMutation.isPending) 
+          ? (isEditing ? "Guardando..." : "Creando...") 
+          : (isEditing ? "Guardar Cambios" : "Crear Documento"),
+        variant: "primary",
+        disabled: createDocMutation.isPending || updateDocMutation.isPending,
+        onClick: async (formData) => {
+          try {
+            // Convert tags string to array
+            const processedData = {
+              ...formData,
+              etiquetas: formData.etiquetas
+                ? formData.etiquetas.split(',').map(tag => tag.trim()).filter(tag => tag)
+                : [],
+            };
+
+            if (isEditing && editingDocument) {
+              updateDocMutation.mutate(
+                { id: editingDocument.id, data: processedData },
+                {
+                  onSuccess: () => setEditingDocument(null),
+                },
+              );
+            } else {
+              createDocMutation.mutate(processedData, {
+                onSuccess: () => setIsCreateModalOpen(false),
+              });
+            }
+          } catch (error) {
+            console.error("Submit error:", error);
+          }
+        },
+      },
+    },
+  });
 
   if (isLoading) {
     return (
@@ -284,7 +384,7 @@ export const KnowledgeBaseListPage = () => {
                 </div>
                 <div className="flex items-center gap-2 ml-4">
                   <button
-                    onClick={() => handleEdit(doc.id)}
+                    onClick={() => handleEdit(doc)}
                     className="p-2 text-dt-subtle hover:text-dt-accent hover:bg-dt-accent/10 rounded transition-colors"
                     title="Editar"
                   >
@@ -343,6 +443,34 @@ export const KnowledgeBaseListPage = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Create Modal */}
+      {isCreateModalOpen && (
+        <DynamicFormModal
+          title="Crear Nuevo Documento"
+          description="Agrega un nuevo documento a la base de conocimiento"
+          config={getDocumentFormConfig(false)}
+          onClose={() => setIsCreateModalOpen(false)}
+          isLoading={createDocMutation.isPending}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {editingDocument && (
+        <DynamicFormModal
+          title="Editar Documento"
+          description="Modifica la información del documento"
+          config={getDocumentFormConfig(true)}
+          defaultValues={{
+            titulo: editingDocument.titulo || "",
+            categoria: editingDocument.categoria || "FAQ",
+            contenido: editingDocument.contenido || "",
+            etiquetas: editingDocument.etiquetas ? editingDocument.etiquetas.join(', ') : "",
+          }}
+          onClose={() => setEditingDocument(null)}
+          isLoading={updateDocMutation.isPending}
+        />
       )}
     </div>
   );

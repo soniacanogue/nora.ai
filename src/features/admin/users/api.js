@@ -32,7 +32,7 @@ export const usersApi = {
       arr = data;
     } else if (data && Array.isArray(data.data)) {
       arr = data.data;
-      pagination = data.pagination || null;
+      pagination = data.meta || data.pagination || null;
     }
 
     const mapped = arr.map((u) => ({

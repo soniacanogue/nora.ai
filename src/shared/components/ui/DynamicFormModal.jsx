@@ -12,6 +12,8 @@ const DynamicFormModal = ({
   description,
   config = {},
   defaultValues = {},
+  errors = {},
+  inline = false,
 }) => {
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({});
@@ -95,8 +97,8 @@ const DynamicFormModal = ({
 
   const { fields, buttons } = config;
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+  const formContent = (
+    <>
       {description && (
         <p className="text-sm text-dt-subtle mb-4 leading-relaxed">
           {description}
@@ -129,6 +131,9 @@ const DynamicFormModal = ({
                       placeholder={placeholder}
                       {...rest}
                     />
+                    {errors[key] && (
+                      <p className="mt-1 text-sm text-red-500">{errors[key]}</p>
+                    )}
                   </div>
                 );
               }
@@ -153,6 +158,62 @@ const DynamicFormModal = ({
                       required={required}
                       {...rest}
                     />
+                    {errors[key] && (
+                      <p className="mt-1 text-sm text-red-500">{errors[key]}</p>
+                    )}
+                  </div>
+                );
+              }
+
+              if (type === "number") {
+                return (
+                  <div key={key}>
+                    <label
+                      htmlFor={key}
+                      className="block text-sm font-medium text-dt-subtle mb-2"
+                    >
+                      {label}
+                      {required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <input
+                      id={key}
+                      type="number"
+                      className="w-full p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-primary-light"
+                      placeholder={placeholder}
+                      value={formData[key] ?? ""}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      required={required}
+                      {...rest}
+                    />
+                    {errors[key] && (
+                      <p className="mt-1 text-sm text-red-500">{errors[key]}</p>
+                    )}
+                  </div>
+                );
+              }
+
+              if (type === "date") {
+                return (
+                  <div key={key}>
+                    <label
+                      htmlFor={key}
+                      className="block text-sm font-medium text-dt-subtle mb-2"
+                    >
+                      {label}
+                      {required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <input
+                      id={key}
+                      type="date"
+                      className="w-full p-3 bg-dt-background border border-secondary rounded-md text-dt-foreground focus:outline-none focus:ring-2 focus:ring-dt-primary-light"
+                      value={formData[key] ?? ""}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      required={required}
+                      {...rest}
+                    />
+                    {errors[key] && (
+                      <p className="mt-1 text-sm text-red-500">{errors[key]}</p>
+                    )}
                   </div>
                 );
               }
@@ -171,17 +232,21 @@ const DynamicFormModal = ({
               }
 
               return (
-                <Input
-                  key={key}
-                  id={key}
-                  type={type}
-                  label={label}
-                  placeholder={placeholder}
-                  value={formData[key] ?? ""}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                  required={required}
-                  {...rest}
-                />
+                <div key={key}>
+                  <Input
+                    id={key}
+                    type={type}
+                    label={label}
+                    placeholder={placeholder}
+                    value={formData[key] ?? ""}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    required={required}
+                    {...rest}
+                  />
+                  {errors[key] && (
+                    <p className="mt-1 text-sm text-red-500">{errors[key]}</p>
+                  )}
+                </div>
               );
             })}
         </div>
@@ -222,6 +287,16 @@ const DynamicFormModal = ({
             })}
         </div>
       </form>
+    </>
+  );
+
+  if (inline) {
+    return formContent;
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+      {formContent}
     </Modal>
   );
 };

@@ -43,6 +43,8 @@ export function AgentForm({ initialData, onSubmit, isSubmitting, onCancel }) {
       nombre: initialData?.nombre || "",
       descripcion: initialData?.descripcion || "",
       promptBase: initialData?.promptBase || "",
+      modelo: initialData?.modelo || "",
+      temperatura: initialData?.temperatura || 0.3,
       umbralConfianza: initialData?.umbralConfianza || 0.75,
       promptsPorCanal: JSON.stringify(
         initialData?.promptsPorCanal || {},
@@ -65,6 +67,23 @@ export function AgentForm({ initialData, onSubmit, isSubmitting, onCancel }) {
         label="Descripción"
         {...register("descripcion")}
         error={errors.descripcion?.message}
+      />
+      <Input
+        id="modelo"
+        label="Modelo de IA"
+        placeholder="ej: x-ai/grok-4.1-fast:free"
+        {...register("modelo")}
+        error={errors.modelo?.message}
+      />
+      <Input
+        id="temperatura"
+        label="Temperatura (0.0 - 1.0)"
+        type="number"
+        step="0.1"
+        min="0"
+        max="1"
+        {...register("temperatura", { valueAsNumber: true })}
+        error={errors.temperatura?.message}
       />
       <div>
         <label

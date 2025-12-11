@@ -269,6 +269,42 @@
             }
           },
           {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "ticketId",
+                "usuarioId",
+                "tabla",
+                "cud",
+                "tipoEvento",
+                "entidadId",
+                "ip",
+                "userAgent",
+                "payload",
+                "creadoEn",
+                "modificadoEn"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "page",
             "required": false,
             "in": "query",
@@ -345,10 +381,108 @@
       },
       "get": {
         "operationId": "UsersController_findAll",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "nombre",
+            "required": false,
+            "in": "query",
+            "description": "Filter by nombre",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "correo",
+            "required": false,
+            "in": "query",
+            "description": "Filter by correo",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rol",
+            "required": false,
+            "in": "query",
+            "description": "Filter by rol",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "activo",
+            "required": false,
+            "in": "query",
+            "description": "Filter by activo",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "correo",
+                "rol",
+                "activo",
+                "primeraVez",
+                "creadoEn",
+                "modificadoEn"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 25,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Lista de usuarios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersListDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -583,7 +717,7 @@
             "name": "estado",
             "required": false,
             "in": "query",
-            "description": "Filter by ticket status (estado)",
+            "description": "Filter by ticket estado (estado)",
             "schema": {
               "type": "string"
             }
@@ -602,9 +736,26 @@
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Sort by field (e.g., createdAt, estado, priority)",
+            "description": "Campo para ordenar",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "id",
+                "clienteId",
+                "assigneeId",
+                "historialAsignacion",
+                "asunto",
+                "estado",
+                "prioridad",
+                "canal",
+                "creadoEn",
+                "modificadoEn",
+                "resueltoEn",
+                "requiereEscalado",
+                "asignadoEn",
+                "sugerenciaFusionId",
+                "ordenId"
+              ]
             }
           },
           {
@@ -870,16 +1021,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApproveAiDto"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": ""
@@ -1225,6 +1366,16 @@
       "post": {
         "operationId": "TicketsController_exportToCsv",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportTicketsDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -1389,12 +1540,41 @@
         "operationId": "AiController_getAllConfigs",
         "parameters": [
           {
+            "name": "nombre",
+            "required": false,
+            "in": "query",
+            "description": "Filter by nombre",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "modelo",
+            "required": false,
+            "in": "query",
+            "description": "Filter by modelo",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sortBy",
             "required": false,
             "in": "query",
-            "description": "Sort by field (e.g., createdAt, name, model)",
+            "description": "Campo para ordenar",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "descripcion",
+                "promptBase",
+                "promptsPorCanal",
+                "modelo",
+                "temperatura",
+                "umbralConfianza",
+                "actualizadoEn"
+              ]
             }
           },
           {
@@ -1408,6 +1588,28 @@
                 "asc",
                 "desc"
               ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 20,
+              "type": "number"
             }
           }
         ],
@@ -1682,58 +1884,6 @@
         ]
       }
     },
-    "/dashboards/supervisor": {
-      "get": {
-        "operationId": "DashboardsController_getSupervisorStats",
-        "parameters": [
-          {
-            "name": "fechaDesde",
-            "required": false,
-            "in": "query",
-            "description": "Fecha de inicio (ISO 8601)",
-            "schema": {
-              "example": "2025-12-01T00:00:00Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "fechaHasta",
-            "required": false,
-            "in": "query",
-            "description": "Fecha de fin (ISO 8601)",
-            "schema": {
-              "example": "2025-12-07T23:59:59Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "agenteId",
-            "required": false,
-            "in": "query",
-            "description": "ID del agente para filtrar",
-            "schema": {
-              "format": "uuid",
-              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Obtener métricas para supervisores",
-        "tags": [
-          "Dashboards"
-        ]
-      }
-    },
     "/uploads": {
       "post": {
         "operationId": "UploadsController_uploadFile",
@@ -1883,20 +2033,84 @@
       },
       "get": {
         "operationId": "OrdersController_findAll",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "estado",
+            "required": false,
+            "in": "query",
+            "description": "Filter by order estado (estado)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "numeroSeguimiento",
+            "required": false,
+            "in": "query",
+            "description": "Filter by numeroSeguimiento",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "clienteId",
+                "estado",
+                "numeroSeguimiento",
+                "transportista",
+                "articulos",
+                "ultimaActualizacionEn",
+                "creadoEn",
+                "modificadoEn"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 50,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -1971,18 +2185,70 @@
         "operationId": "CustomersController_findAll",
         "parameters": [
           {
-            "name": "q",
+            "name": "search",
             "required": false,
             "in": "query",
-            "description": "Término de búsqueda",
+            "description": "Búsqueda general (nombre o correo)",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "correo",
+                "telefono",
+                "creadoEn",
+                "modificadoEn"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 20,
+              "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de clientes que coinciden con el término de búsqueda"
+            "description": "Lista de clientes con paginación"
           },
           "401": {
             "description": "No autorizado"
@@ -1993,7 +2259,38 @@
             "bearer": []
           }
         ],
-        "summary": "Buscar clientes por nombre o correo",
+        "summary": "Buscar clientes con filtros avanzados",
+        "tags": [
+          "Customers"
+        ]
+      },
+      "post": {
+        "operationId": "CustomersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente creado exitosamente"
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear un nuevo cliente",
         "tags": [
           "Customers"
         ]
@@ -2031,6 +2328,51 @@
         "tags": [
           "Customers"
         ]
+      },
+      "patch": {
+        "operationId": "CustomersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del cliente",
+            "schema": {
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cliente actualizado exitosamente"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Cliente no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar un cliente existente",
+        "tags": [
+          "Customers"
+        ]
       }
     },
     "/templates": {
@@ -2064,7 +2406,78 @@
       },
       "get": {
         "operationId": "TemplatesController_findAll",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "nombre",
+            "required": false,
+            "in": "query",
+            "description": "Filter by nombre",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "canal",
+            "required": false,
+            "in": "query",
+            "description": "Filter by canal",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "plantillaAsunto",
+                "plantillaCuerpo",
+                "creadoEn",
+                "modificadoEn"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -2205,20 +2618,70 @@
       },
       "get": {
         "operationId": "TagsController_findAll",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "nombre",
+            "required": false,
+            "in": "query",
+            "description": "Filter by nombre",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "descripcion",
+                "color"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -2385,7 +2848,81 @@
       },
       "get": {
         "operationId": "IntegrationsController_findAll",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "nombre",
+            "required": false,
+            "in": "query",
+            "description": "Filter by nombre",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "activo",
+            "required": false,
+            "in": "query",
+            "description": "Filter by activo",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "claveApiEnc",
+                "endpoint",
+                "urlWebhook",
+                "configJson",
+                "activo",
+                "creadoEn",
+                "modificadoEn"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -2558,25 +3095,74 @@
         "operationId": "KnowledgeBaseController_findAll",
         "parameters": [
           {
-            "name": "search",
+            "name": "titulo",
             "required": false,
             "in": "query",
-            "description": "Término para filtrar la KB",
+            "description": "Filter by titulo",
             "schema": {
-              "maxLength": 200,
-              "example": "garantía",
               "type": "string"
             }
           },
           {
-            "name": "category",
+            "name": "categoria",
             "required": false,
             "in": "query",
-            "description": "Categoría para filtrar",
+            "description": "Filter by categoria",
             "schema": {
-              "maxLength": 100,
-              "example": "Soporte",
               "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Campo para ordenar",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "pregunta",
+                "procedimiento",
+                "respuesta",
+                "categoria",
+                "creadoEn",
+                "modificadoEn"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order direction",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "default": 20,
+              "type": "number"
             }
           }
         ],
@@ -2954,6 +3540,82 @@
           "rol"
         ]
       },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "nombre": {
+            "type": "string",
+            "example": "Pedro Gómez"
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "example": "usuario@dominio.com"
+          },
+          "activo": {
+            "type": "boolean",
+            "example": true
+          },
+          "rol": {
+            "type": "string",
+            "example": "AGENTE"
+          },
+          "asignados": {
+            "type": "number",
+            "example": 0,
+            "description": "Número de tickets asignados"
+          },
+          "resueltos": {
+            "type": "number",
+            "example": 0,
+            "description": "Número de tickets resueltos"
+          },
+          "sla": {
+            "type": "string",
+            "example": "0%",
+            "description": "Porcentaje de cumplimiento de SLA"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "correo",
+          "activo",
+          "rol",
+          "asignados",
+          "resueltos",
+          "sla"
+        ]
+      },
+      "UsersListDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "total": 123,
+              "page": 1,
+              "limit": 50,
+              "totalPages": 3
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
       "UpdateUserDto": {
         "type": "object",
         "properties": {
@@ -3286,6 +3948,16 @@
             "type": "string",
             "description": "Contenido de la respuesta"
           },
+          "canal": {
+            "type": "string",
+            "description": "Canal por el que se envía la respuesta (opcional)",
+            "enum": [
+              "correo",
+              "whatsapp",
+              "formulario_web",
+              "api"
+            ]
+          },
           "nuevoEstado": {
             "type": "string",
             "enum": [
@@ -3334,10 +4006,6 @@
           "messageId",
           "contenidoTexto"
         ]
-      },
-      "ApproveAiDto": {
-        "type": "object",
-        "properties": {}
       },
       "EscalateTicketDto": {
         "type": "object",
@@ -3412,6 +4080,35 @@
         "required": [
           "targetTicketId"
         ]
+      },
+      "ExportTicketsDto": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "description": "Filter by ticket estado (estado)"
+          },
+          "prioridad": {
+            "type": "string",
+            "description": "Filter by priority"
+          },
+          "canal": {
+            "type": "string",
+            "description": "Filter by channel"
+          },
+          "assigneeId": {
+            "type": "string",
+            "description": "Filter by assignee user ID"
+          },
+          "fechaDesde": {
+            "type": "string",
+            "description": "Start date filter (YYYY-MM-DD)"
+          },
+          "fechaHasta": {
+            "type": "string",
+            "description": "End date filter (YYYY-MM-DD)"
+          }
+        }
       },
       "UpdateInternalNoteDto": {
         "type": "object",
@@ -3615,6 +4312,51 @@
           "orderId",
           "estado"
         ]
+      },
+      "CreateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre del cliente",
+            "example": "Juan Pérez"
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico del cliente",
+            "example": "juan.perez@example.com"
+          },
+          "telefono": {
+            "type": "string",
+            "description": "Teléfono del cliente",
+            "example": "+1234567890"
+          }
+        },
+        "required": [
+          "correo"
+        ]
+      },
+      "UpdateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre del cliente",
+            "example": "Juan Pérez"
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico del cliente",
+            "example": "juan.perez@example.com"
+          },
+          "telefono": {
+            "type": "string",
+            "description": "Teléfono del cliente",
+            "example": "+1234567890"
+          }
+        }
       },
       "CreateTemplateDto": {
         "type": "object",

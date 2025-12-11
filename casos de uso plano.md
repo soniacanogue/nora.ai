@@ -74,7 +74,6 @@ La respuesta del sistema tras el envío del formulario (paso 9) debe mostrarse a
 Media-Alta. Se anticipa que será un canal de entrada principal para nuevos clientes o para problemas no relacionados con una conversación de correo electrónico existente.
 
 ### **Comentarios**
-- Es imperativo que el formulario esté protegido contra spam (ej. utilizando un CAPTCHA invisible o un honeypot) para evitar la creación masiva de tickets basura.
 - La validación de datos debe existir tanto en el frontend (para una experiencia de usuario fluida) como en el backend (por seguridad y para garantizar la integridad de los datos).
 
 
@@ -413,7 +412,7 @@ Un Agente de Triaje revisa un ticket y determina que la consulta es demasiado co
 ### **Excepciones (Flujos Alternativos)**
 **E1: Escalada accidental.**
   - El agente hace clic en "Escalar" por error.
-  - La inclusión de un paso de confirmación (como en el paso 6) ayuda a mitigar este riesgo. Sin una confirmación, el agente necesitaría buscar el ticket y revertir la acción manualmente si tiene los permisos, o pedir a un supervisor que lo haga.
+  - La inclusión de un paso de confirmación (como en el paso 6) ayuda a mitigar este riesgo. Sin una confirmación, el agente necesitaría buscar el ticket y revertir la acción manualmente si tiene los permisos, o pedir a un sdministrador que lo haga.
   ### **Rendimiento**
 La acción de escalar un ticket y la actualización de la UI debe ser instantánea, completándose en **menos de 1 segundo**.
 
@@ -727,7 +726,7 @@ Agente Especialista
 ### **Requisitos asociados**
 **Funcionales:**
 - **RF-AGENT-008:** El sistema deberá permitir a los agentes dejar notas internas y @mencionar a otros agentes.
-- **RF-SUPERVISOR-002:** Las notas deben ser visibles en el historial completo revisado por supervisores.
+- **RF-ADMIN-005:** Las notas deben ser visibles en el historial completo revisado por sdministradores.
 
 ### **Descripción**
 Un agente añade un comentario privado a un ticket. Este comentario es estrictamente para uso interno y nunca es visible para el cliente final. Puede incluir texto enriquecido y menciones a otros usuarios del sistema para solicitar su ayuda o informarles.
@@ -1267,7 +1266,7 @@ Agente Especialista, Administrador (heredan la capacidad)
 **Funcionales:**
 - **RF-AGENT-005 (Relacionado):** Este caso de uso es una alternativa más específica a la escalada general. Un agente puede elegir escalar a la cola o reasignar a un individuo.
 - **RF-AGENT-008 (Relacionado):** La capacidad de @mencionar es clave para la colaboración, y la nota de reasignación es una forma de mención contextual.
-- **RF-SUPERVISOR-002:** El historial del ticket debe reflejar claramente la acción de reasignación.
+- **RF-ADMIN-005:** El historial del ticket debe reflejar claramente la acción de reasignación.
 **No Funcionales:**
 - **NFR-USAB-001 (Implícito):** La acción de reasignar debe ser accesible y fácil de ejecutar desde la vista del ticket.
 
@@ -1331,7 +1330,7 @@ Agente Especialista
 **Sistema** (Para el proceso de streaming/generación de CSV)
 
 ### **Actores Secundarios**
-Supervisor de Soporte, Administrador                 
+Administrador                 
 
 ### **Objetivos asociados**
 1. **Habilitar el Análisis Externo:** Permitir que los datos de los tickets sean extraídos del sistema para su análisis en herramientas de BI, hojas de cálculo u otros sistemas.
@@ -1346,7 +1345,7 @@ Supervisor de Soporte, Administrador
 - **NFR-PERF-001:** La exportación de grandes volúmenes debe usar streaming para evitar timeouts y uso excesivo de memoria.
 
 ### **Descripción**
-Un usuario autorizado (Agente, Supervisor o Admin) necesita obtener un conjunto de datos de tickets para análisis externo. El usuario accede a la sección de reportes, aplica una serie de filtros para definir el conjunto de datos deseado (ej. por rango de fechas, estado, etiqueta) y solicita la exportación. El sistema procesa la solicitud en segundo plano y notifica al usuario cuando el archivo CSV está listo para ser descargado.
+Un usuario autorizado (Agente o Admin) necesita obtener un conjunto de datos de tickets para análisis externo. El usuario accede a la sección de reportes, aplica una serie de filtros para definir el conjunto de datos deseado (ej. por rango de fechas, estado, etiqueta) y solicita la exportación. El sistema procesa la solicitud en segundo plano y notifica al usuario cuando el archivo CSV está listo para ser descargado.
 
 ### **Precondición**
 1. El usuario ha iniciado sesión en el sistema y tiene los permisos necesarios para acceder a la funcionalidad de reportes.
@@ -1384,7 +1383,7 @@ Un usuario autorizado (Agente, Supervisor o Admin) necesita obtener un conjunto 
 El tiempo para generar la notificación de que la exportación está lista (paso 9) debería ser razonable, incluso para grandes volúmenes. Ej: para 10,000 registros, el tiempo no debería exceder los 2 minutos.
 
 ### **Frecuencia**
-Baja-Media. Se espera que sea utilizada principalmente por Supervisores y Administradores de forma semanal o mensual.
+Baja-Media. Se espera que sea utilizada principalmente por Administradores de forma semanal o mensual.
 
 ### **Comentarios**
 - El procesamiento asíncrono (paso 6) es fundamental para la experiencia del usuario y la estabilidad del sistema. Una exportación síncrona bloquearía el navegador y podría causar timeouts en la solicitud HTTP.
@@ -1408,14 +1407,14 @@ Agente triaje, Administrador
 
 ### **Requisitos asociados**
 **Funcionales:**
-- **RF-SUPERVISOR-001:** Un supervisor debe poder visualizar dashboards de rendimiento.
+- **RF-ADMIN-004:** Un sdministrador debe poder visualizar dashboards de rendimiento.
 - **RF-AGENT-009:** El sistema debe monitorizar SLAs y resaltar visualmente los tickets.
 **Interfaces:**
-- **UI-01:** Dashboard de Supervisor con KPIs clave.
+- **UI-01:** Dashboard de sdministrador con KPIs clave.
 - **UI-02 / UI-03:** Paneles de agente que incluyen indicadores de SLA.
 
 ### **Descripción**
-Un usuario autorizado (Agente, Supervisor o Administrador) accede a una sección dedicada en la interfaz web para visualizar un panel de control con métricas y KPIs sobre la operación de soporte. La información presentada se filtra automáticamente según el rol y los permisos del usuario.
+Un usuario autorizado (Agente o Administrador) accede a una sección dedicada en la interfaz web para visualizar un panel de control con métricas y KPIs sobre la operación de soporte. La información presentada se filtra automáticamente según el rol y los permisos del usuario.
 
 ### **Precondición**
 1. El usuario está autenticado en el sistema.
@@ -1424,17 +1423,16 @@ Un usuario autorizado (Agente, Supervisor o Administrador) accede a una sección
 
 ### **Secuencia Normal (Flujo Principal)**
 1. El **Usuario** navega a la sección "Dashboard" o "Métricas" a través del menú principal de la aplicación.
-2. El **Sistema** identifica el rol del usuario (Agente, Supervisor, Admin).
+2. El **Sistema** identifica el rol del usuario (Agente, Admin).
 3. El **Sistema** recupera los datos operativos relevantes de la base de datos, aplicando los filtros de permisos correspondientes:
   - **Agente:** Métricas personales (mis tickets asignados, mi tiempo de respuesta, etc.).
-  - **Supervisor:** Métricas agregadas de su equipo y métricas individuales de los agentes bajo su cargo.
-  - **Administrador:** Métricas globales de todo el sistema.
+  - **sdministrador:** Métricas globales de todo el sistema.
 4. El **Sistema** presenta el dashboard, que contiene varios widgets visuales, tales como:
   - **Tarjetas de KPIs:** Tickets Abiertos, Tickets Resueltos Hoy, Tiempo Medio de Primera Respuesta (FRT), Tiempo Medio de Resolución (TTR), Tasa de Resolución en Primer Contacto (FCR), Puntuación de Satisfacción del Cliente (CSAT).
   - **Gráficos de Tendencia:** Un gráfico de líneas mostrando el volumen de tickets creados vs. resueltos en los últimos 7/30 días.
   - **Listas de Prioridad:** Una lista de los tickets más antiguos sin resolver o aquellos que están a punto de incumplir su SLA.
 5. El **Usuario** puede interactuar con el dashboard para refinar la vista, por ejemplo, cambiando el rango de fechas (hoy, últimos 7 días, último mes).
-6. Si el usuario es Supervisor o Administrador, puede filtrar las métricas por agente o por equipo.
+6. Si el usuario es Administrador, puede filtrar las métricas por agente o por equipo.
 
 ### **Postcondición**
 1. El usuario ha visualizado el estado actual y el rendimiento histórico de la operación de soporte, de acuerdo con sus permisos.
@@ -1451,7 +1449,7 @@ Un usuario autorizado (Agente, Supervisor o Administrador) accede a una sección
 La carga inicial del dashboard con los datos del período predeterminado (ej. "últimos 7 días") debe completarse en **menos de 5 segundos**. Las operaciones de filtrado deben actualizar la vista en **menos de 3 segundos**.
 
 ### **Frecuencia**
-Alta. Se espera que sea una de las primeras pantallas que los Supervisores y Administradores consulten diariamente. Los agentes la consultarán periódicamente para autoevaluar su rendimiento.
+Alta. Se espera que sea una de las primeras pantallas que los Administradores consulten diariamente. Los agentes la consultarán periódicamente para autoevaluar su rendimiento.
 
 ### **Comentarios**
 - Para optimizar el rendimiento (NFR-PERF), los cálculos de métricas complejas no deben realizarse en tiempo real sobre la base de datos transaccional en cada carga. Se debe considerar una estrategia de pre-agregación (ej. tablas de resumen actualizadas periódicamente) para garantizar tiempos de carga rápidos.

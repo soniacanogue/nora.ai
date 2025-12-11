@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import toast from "react-hot-toast";
 
-import { useTemplates, useCreateTemplate, useDeleteTemplate } from "./hooks";
+import { useTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate } from "./hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
@@ -16,9 +16,11 @@ export function TemplateListPage() {
   const navigate = useNavigate();
   const [sortConfig, setSortConfig] = useState({ key: "nombre", order: "asc" });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
 
   const { data: templates, isLoading, error } = useTemplates();
   const createTemplateMutation = useCreateTemplate();
+  const updateTemplateMutation = useUpdateTemplate();
   const deleteTemplateMutation = useDeleteTemplate();
 
   const sortedTemplates = useMemo(() => {
@@ -78,7 +80,7 @@ export function TemplateListPage() {
       className: "text-right",
       render: (template) => (
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/templates/edit/${template.id}`)}>
+          <Button variant="ghost" size="sm" onClick={() => setEditingTemplate(template)}>
             Editar
           </Button>
           <Button variant="danger" size="sm" onClick={() => handleDelete(template.id)} disabled={deleteTemplateMutation.isLoading}>
@@ -89,7 +91,7 @@ export function TemplateListPage() {
     },
   ], [navigate, deleteTemplateMutation.isLoading]);
 
-  const templateFormConfig = {
+  const getTemplateFormConfig = (isEditing = false) => ({
     fields: {
       nombre: {
         label: "Nombre de la Plantilla",
@@ -114,25 +116,45 @@ export function TemplateListPage() {
       cancel: {
         label: "Cancelar",
         variant: "secondary",
-        onClick: () => setIsModalOpen(false),
+        onClick: () => {
+          setIsModalOpen(false);
+          setEditingTemplate(null);
+        },
       },
       submit: {
-        label: "Crear Plantilla",
+        label: (createTemplateMutation.isLoading || updateTemplateMutation.isLoading) 
+          ? (isEditing ? "Guardando..." : "Creando...") 
+          : (isEditing ? "Guardar Cambios" : "Crear Plantilla"),
         variant: "primary",
+        disabled: createTemplateMutation.isLoading || updateTemplateMutation.isLoading,
         onClick: (formData) => {
-          createTemplateMutation.mutate(formData, {
-            onSuccess: () => {
-              toast.success("Plantilla creada exitosamente.");
-              setIsModalOpen(false);
-            },
-            onError: (err) => {
-              toast.error(err.message || "Error al crear la plantilla.");
-            },
-          });
+          if (isEditing && editingTemplate) {
+            // Update existing template
+            updateTemplateMutation.mutate({ id: editingTemplate.id, data: formData }, {
+              onSuccess: () => {
+                toast.success("Plantilla actualizada exitosamente.");
+                setEditingTemplate(null);
+              },
+              onError: (err) => {
+                toast.error(err.message || "Error al actualizar la plantilla.");
+              },
+            });
+          } else {
+            // Create new template
+            createTemplateMutation.mutate(formData, {
+              onSuccess: () => {
+                toast.success("Plantilla creada exitosamente.");
+                setIsModalOpen(false);
+              },
+              onError: (err) => {
+                toast.error(err.message || "Error al crear la plantilla.");
+              },
+            });
+          }
         },
       },
     },
-  };
+  });
 
   if (isLoading) return <div>Cargando plantillas...</div>;
   if (error) return <div className="text-red-500">Error: {error.message}</div>;
@@ -167,8 +189,20 @@ export function TemplateListPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Crear Nueva Plantilla"
-        config={templateFormConfig}
+        config={getTemplateFormConfig(false)}
       />
+
+      {/* Modal para editar plantilla */}
+      {editingTemplate && (
+        <DynamicFormModal
+          title="Editar Plantilla"
+          description="Modifica el contenido de la plantilla"
+          config={getTemplateFormConfig(true)}
+          defaultValues={editingTemplate}
+          onClose={() => setEditingTemplate(null)}
+          isLoading={updateTemplateMutation.isPending}
+        />
+      )}
     </div>
   );
 }

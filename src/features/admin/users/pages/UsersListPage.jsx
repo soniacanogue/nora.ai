@@ -14,6 +14,7 @@ import {
   FiActivity,
   FiPieChart,
   FiBarChart2,
+  FiFilter,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -32,10 +33,8 @@ import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
 import Modal from "@/shared/components/ui/Modal";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
-import SearchInput from "@/shared/components/ui/SearchInput";
-import Select from "@/shared/components/ui/Select";
 import PageHeader from "@/shared/components/layout/PageHeader";
-import FilterBar from "@/shared/components/ui/FilterBar";
+import FilterPanel from "@/shared/components/ui/FilterPanel";
 
 const PasswordManagerModal = ({ user, onClose }) => {
   const [mode, setMode] = useState("change");
@@ -376,14 +375,42 @@ export const UsersListPage = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [teamFilter, setTeamFilter] = useState("");
   const [passwordManagerUser, setPasswordManagerUser] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const pageParam = Number(searchParams.get("page") || 1);
-  const limitParam = Number(searchParams.get("limit") || 25);
+  const limitParam = Number(searchParams.get("limit") || 10);
+  const sortBy = searchParams.get("sortBy") || "creadoEn";
+  const sortOrder = searchParams.get("sortOrder") || "desc";
 
-  const { data: users = [], isLoading, error } = useUsers({ page: pageParam, limit: limitParam });
+  const sortConfig = { key: sortBy, order: sortOrder };
+
+  const handleSort = (key) => {
+    const newOrder = sortBy === key && sortOrder === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortBy", key);
+    params.set("sortOrder", newOrder);
+    setSearchParams(params);
+  };
+
+  const handleFilterChange = (key, value) => {
+    if (key === "roleFilter") setRoleFilter(value);
+    else if (key === "statusFilter") setStatusFilter(value);
+    else if (key === "teamFilter") setTeamFilter(value);
+  };
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
+
+  const filters = useMemo(() => ({
+    rol: roleFilter || undefined,
+    activo: statusFilter === "active" ? true : statusFilter === "inactive" ? false : undefined,
+    sortBy,
+    sortOrder,
+    page: pageParam,
+    limit: limitParam,
+  }), [roleFilter, statusFilter, sortBy, sortOrder, pageParam, limitParam]);
+
+  const { data: users = [], isLoading, error } = useUsers(filters);
 
   const availableTeams = useMemo(() => {
     const uniqueTeams = new Set();
@@ -395,8 +422,37 @@ export const UsersListPage = () => {
     return Array.from(uniqueTeams);
   }, [users]);
 
+  const filterConfig = useMemo(() => [
+    {
+      key: "roleFilter",
+      type: "select",
+      label: "Rol",
+      options: [
+        { value: "", label: "Todos los roles" },
+        { value: "ADMINISTRADOR", label: "Administradores" },
+        { value: "AGENTE", label: "Agentes" },
+      ],
+    },
+    {
+      key: "statusFilter",
+      type: "select",
+      label: "Estado",
+      options: [
+        { value: "", label: "Todos los estados" },
+        { value: "active", label: "Activos" },
+        { value: "inactive", label: "Inactivos" },
+      ],
+    },
+    {
+      key: "teamFilter",
+      type: "select",
+      label: "Equipo",
+      options: [{ value: "", label: "Todos los equipos" }, ...availableTeams.map((team) => ({ value: team, label: team }))],
+    },
+  ], [availableTeams]);
+
   const userStats = useMemo(() => {
-    if (!users.length) {
+    if (!users || !users.length) {
       return {
         total: 0,
         active: 0,
@@ -407,23 +463,26 @@ export const UsersListPage = () => {
       };
     }
 
-    const total = users.length;
+    const total = users.pagination?.total || users.length;
     const active = users.filter((user) => user.activo).length;
-    const inactive = total - active;
+    const inactive = total - active; // approximate
     const assigned = users.reduce(
-      (sum, user) => sum + (user.metricas?.ticketsAsignados ?? user.ticketsAsignados ?? 0),
+      (sum, user) => sum + (user.asignados ?? user.metricas?.ticketsAsignados ?? user.ticketsAsignados ?? 0),
       0
     );
     const resolved = users.reduce(
-      (sum, user) => sum + (user.metricas?.ticketsResueltos ?? user.ticketsResueltos ?? 0),
+      (sum, user) => sum + (user.resueltos ?? user.metricas?.ticketsResueltos ?? user.ticketsResueltos ?? 0),
       0
     );
-    const slaAvg = Math.round(
+    const slaAvg = users.length > 0 ? Math.round(
       users.reduce(
-        (sum, user) => sum + (user.metricas?.slaCumplido ?? user.slaCumplido ?? 0),
+        (sum, user) => {
+          const sla = user.sla ?? user.metricas?.slaCumplido ?? user.slaCumplido ?? 0;
+          return sum + (typeof sla === 'string' ? parseFloat(sla) : sla);
+        },
         0
-      ) / total
-    );
+      ) / users.length
+    ) : 0;
 
     return { total, active, inactive, assigned, resolved, slaAvg };
   }, [users]);
@@ -570,7 +629,6 @@ export const UsersListPage = () => {
         options: [
           { value: "ADMINISTRADOR", label: "Administrador" },
           { value: "AGENTE", label: "Agente" },
-          { value: "CLIENTE", label: "Cliente" },
         ],
         required: true,
       },
@@ -599,21 +657,23 @@ export const UsersListPage = () => {
   const getRoleBadgeVariant = (rol) => {
     switch (rol) {
       case "ADMINISTRADOR":
-        return "danger";
-      case "AGENTE":
         return "success";
-      case "CLIENTE":
-        return "neutral";
+      case "AGENTE":
+        return "warning";
       default:
         return "neutral";
     }
   };
 
-  const getUserMetrics = (user) => ({
-    assigned: user.metricas?.ticketsAsignados ?? user.ticketsAsignados ?? 0,
-    resolved: user.metricas?.ticketsResueltos ?? user.ticketsResueltos ?? 0,
-    sla: user.metricas?.slaCumplido ?? user.slaCumplido ?? 0,
-  });
+  const getUserMetrics = (user) => {
+    const slaValue = user.sla ?? user.metricas?.slaCumplido ?? user.slaCumplido ?? 0;
+    const parsedSla = typeof slaValue === 'string' ? parseFloat(slaValue) : slaValue;
+    return {
+      assigned: user.asignados ?? user.metricas?.ticketsAsignados ?? user.ticketsAsignados ?? 0,
+      resolved: user.resueltos ?? user.metricas?.ticketsResueltos ?? user.ticketsResueltos ?? 0,
+      sla: parsedSla,
+    };
+  };
 
   const getSlaVariant = (value) => {
     if (value >= 90) return "success";
@@ -662,6 +722,7 @@ export const UsersListPage = () => {
     {
       key: "activo",
       label: "Estado",
+      sortable: true,
       render: (user) => (
         <Badge variant={user.activo ? "success" : "neutral"} icon={user.activo ? FiCheckCircle : FiXCircle}>
           {user.activo ? "Activo" : "Inactivo"}
@@ -711,7 +772,7 @@ export const UsersListPage = () => {
             className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
             title="Gestionar contraseña"
           >
-            <FiKey size={16} />
+            <FiKey size={16} className="text-yellow-500" />
           </button>
           <button
             onClick={() => setEditingUser(user)}
@@ -743,8 +804,20 @@ export const UsersListPage = () => {
         icon={FiUsers}
         title="Gestión de Usuarios"
         description="Administra usuarios y permisos del sistema"
-        action={{ label: "Nuevo Usuario", onClick: () => setIsCreateModalOpen(true), icon: FiPlus }}
-      />
+      >
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="secondary"
+            icon={FiFilter}
+          >
+            Filtros
+          </Button>
+          <Button onClick={() => setIsCreateModalOpen(true)} variant="primary" icon={FiPlus}>
+            Crear Usuario
+          </Button>
+        </div>
+      </PageHeader>
 
         {/* KPI Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -768,52 +841,35 @@ export const UsersListPage = () => {
           ))}
         </div>
 
-      {/* Filters */}
-      <FilterBar>
-        <SearchInput
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar usuarios por nombre o correo..."
-          className="flex-1"
-        />
-
-        <Select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          placeholder="Todos los roles"
-          options={[
-            { value: "", label: "Todos los roles" },
-            { value: "ADMINISTRADOR", label: "Administradores" },
-            { value: "AGENTE", label: "Agentes" },
-            { value: "CLIENTE", label: "Clientes" },
-          ]}
-        />
-
-        <Select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          placeholder="Todos los estados"
-          options={[
-            { value: "", label: "Todos los estados" },
-            { value: "active", label: "Activos" },
-            { value: "inactive", label: "Inactivos" },
-          ]}
-        />
-
-        {availableTeams.length > 0 && (
-          <Select
-            value={teamFilter}
-            onChange={(e) => setTeamFilter(e.target.value)}
-            placeholder="Todos los equipos"
-            options={[{ value: "", label: "Todos los equipos" }, ...availableTeams.map((team) => ({ value: team, label: team }))]}
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
+          <input
+            type="text"
+            placeholder="Buscar usuarios por nombre o correo..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        )}
-      </FilterBar>
+        </div>
+
+        {/* Advanced Filters */}
+        <FilterPanel
+          open={showFilters}
+          config={filterConfig}
+          values={{ roleFilter, statusFilter, teamFilter }}
+          onChange={handleFilterChange}
+        />
+      </div>
 
       {/* Users Table */}
       <DynamicTable
         columns={columns}
         data={filteredUsers}
+        sortConfig={sortConfig}
+        onSort={handleSort}
         isLoading={isLoading}
         page={pageParam}
         itemsPerPage={limitParam}
@@ -829,7 +885,7 @@ export const UsersListPage = () => {
           setSearchParams(params);
         }}
         totalPages={users?.pagination?.totalPages}
-        totalItems={users?.pagination?.totalItems}
+        totalItems={users?.pagination?.total}
         emptyState={
           <EmptyState
             icon={FiUsers}

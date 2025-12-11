@@ -51,7 +51,7 @@ const AppLayout = () => {
   return (
     <div className="min-h-screen flex bg-dt-background text-dt-foreground font-sans selection:bg-dt-accent selection:text-white">
       <aside
-        className={`bg-dt-background/50 backdrop-blur-xl border-r border-white/5 flex flex-col h-screen sticky top-0 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"}`}
+        className={`bg-dt-background/50 backdrop-blur-xl border-r border-white/5 flex flex-col h-[125vh] sticky top-0 transition-all duration-300 ${sidebarOpen ? "w-80" : "w-24"}`}
       >
         {/* Fixed Header: Logo */}
         <div className="p-4 mb-4 flex-shrink-0">
@@ -449,11 +449,11 @@ const AppLayout = () => {
         </nav>
 
         {/* Fixed Footer: User Card & Toggle */}
-        <div className="p-4 flex-shrink-0 border-t border-white/5">
+        <div className="p-5 flex-shrink-0 border-t border-white/5">
           <div
             className={
               sidebarOpen
-                ? "p-3 rounded-md bg-white/5 border border-white/5 text-center backdrop-blur-sm"
+                ? "p-4 rounded-md bg-white/5 border border-white/5 text-center backdrop-blur-sm"
                 : "flex items-center justify-center"
             }
           >
@@ -487,25 +487,22 @@ const AppLayout = () => {
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="w-full mt-4 px-4 py-2 bg-transparent border border-white/10 text-dt-subtle rounded-md hover:bg-white/5 hover:text-dt-foreground transition-colors text-xs uppercase tracking-widest"
+            className="w-full mt-4 px-5 py-3 bg-transparent border border-white/10 text-dt-subtle rounded-md hover:bg-white/5 hover:text-dt-foreground transition-colors text-xs uppercase tracking-widest"
           >
             {sidebarOpen ? "Colapsar" : "▶"}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-y-auto relative">
-        {/* Debug helper (solo en desarrollo): registra clicks y elemento en el punto para detectar overlays) */}
-        {process.env.NODE_ENV !== "production" && <DebugClickInspector />}
-        {/* Background ambient glow */}
+      <main className="flex-1 p-8 overflow-y-auto relative">        {/* Background ambient glow */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
           <div
             aria-hidden="true"
-            className="absolute top-[-15%] right-[-10%] w-[650px] h-[650px] bg-dt-accent/30 rounded-full mix-blend-overlay transform-gpu will-change-transform ambient-glow"
+            className="absolute top-[-15%] right-[-10%] w-[812px] h-[812px] bg-dt-accent/30 rounded-full mix-blend-overlay transform-gpu will-change-transform ambient-glow"
           ></div>
           <div
             aria-hidden="true"
-            className="absolute bottom-[-12%] left-[-8%] w-[600px] h-[600px] bg-blue-500/20 rounded-full mix-blend-overlay transform-gpu will-change-transform ambient-glow-2"
+            className="absolute bottom-[-12%] left-[-8%] w-[750px] h-[750px] bg-blue-500/20 rounded-full mix-blend-overlay transform-gpu will-change-transform ambient-glow-2"
           ></div>
         </div>
         <div className="relative z-10">

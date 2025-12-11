@@ -266,23 +266,25 @@ const TicketListPage = () => {
       {
         key: "actions",
         label: "Acción",
-        render: (ticket) =>
-          !ticket.assigneeId && !ticket.usuarioAsignadoNombre && (
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        render: (ticket) => {
+          const isDisabled = isClaiming || !!ticket.assigneeId || !!ticket.usuarioAsignadoNombre;
+          return (
+            <div>
               <Button
-                variant="primary"
+                variant={isDisabled ? "secondary" : "primary"}
                 size="sm"
                 fullWidth={false}
                 onClick={() =>
                   claim({ ticketId: ticket.id, agentId: currentUser?.id })
                 }
-                disabled={isClaiming}
+                disabled={isDisabled}
                 className="text-xs py-1 px-3 h-8"
               >
                 Tomar
               </Button>
             </div>
-          ),
+          );
+        },
       },
     ],
     [isClaiming, currentUser, navigate, claim],
@@ -337,7 +339,6 @@ const TicketListPage = () => {
                   return {
                     nombreArchivo: f.name,
                     urlAlmacenamiento: url || null,
-                    storageId: id,
                     tipoMime: f.type,
                     tamano: f.size,
                   };
@@ -347,7 +348,7 @@ const TicketListPage = () => {
             }
 
             const payload = {
-              canal: "email",
+              canal: "correo",
               prioridad: "media",
               asunto: data.subject,
               mensajeInicial: data.message,

@@ -18,7 +18,7 @@ export const tagsApi = {
    */
   getAll: async () => {
     const response = await apiClient.get("/tags");
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -28,7 +28,7 @@ export const tagsApi = {
    */
   getById: async (id) => {
     const response = await apiClient.get(`/tags/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -41,7 +41,7 @@ export const tagsApi = {
    */
   create: async (data) => {
     const response = await apiClient.post("/tags", data);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -52,7 +52,7 @@ export const tagsApi = {
    */
   update: async (id, data) => {
     const response = await apiClient.patch(`/tags/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   /**

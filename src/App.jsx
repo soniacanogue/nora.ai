@@ -19,6 +19,8 @@ import TicketListPage from "./features/tickets/pages/TicketListPage";
 import TicketDetailPage from "./features/tickets/pages/TicketDetailPage";
 import ImportOrdersPage from "./features/orders/pages/ImportOrdersPage";
 import OrderListPage from "./features/orders/pages/OrderListPage";
+import CustomerListPage from "./features/customers/pages/CustomerListPage";
+import CustomerDetailPage from "./features/customers/pages/CustomerDetailPage";
 import NewTicketPage from "./features/tickets/pages/NewTicketPage";
 import TicketConfirmationPage from "./features/tickets/pages/TicketConfirmationPage";
 import AdminDashboardPage from "./features/dashboard/pages/AdminDashboardPage";
@@ -28,25 +30,14 @@ import { Navigate } from "react-router-dom";
 
 // --- NUEVO: Importaciones para las páginas de administración de Agentes AI ---
 import { AgentListPage } from "./features/admin/ai-agents/pages/AgentListPage";
-import { AgentFormPage } from "./features/admin/ai-agents/pages/AgentFormPage";
 
 // --- NUEVO: Importaciones para Plantillas ---
 import { TemplateListPage } from "./features/admin/templates/TemplateListPage";
-import { TemplateFormPage } from "./features/admin/templates/TemplateFormPage";
-
-// --- NUEVO: Importaciones para Base de Conocimiento ---
-import { KnowledgeBaseListPage } from "./features/admin/knowledge-base/pages/KnowledgeBaseListPage";
-import { KnowledgeBaseFormPage } from "./features/admin/knowledge-base/pages/KnowledgeBaseFormPage";
-
-// --- NUEVO: Importaciones para otras páginas de administración ---
 import { UsersListPage } from "./features/admin/users/pages/UsersListPage";
+import { KnowledgeBaseListPage } from "./features/admin/knowledge-base/pages/KnowledgeBaseListPage";
 import { TagsListPage } from "./features/admin/tags/pages/TagsListPage";
 import { IntegrationsListPage } from "./features/admin/integrations/pages/IntegrationsListPage";
 import { AuditLogsPage } from "./features/admin/audit-logs/pages/AuditLogsPage";
-
-// --- NUEVO: Importaciones para páginas de Clientes ---
-import CustomerDetailPage from "./features/customers/pages/CustomerDetailPage";
-import CustomerListPage from "./features/customers/pages/CustomerListPage";
 
 // Componente simple para una página 404
 const NotFoundPage = () => (
@@ -208,14 +199,6 @@ const AnimatedRoutes = () => {
               }
             />
             <Route
-              path="ai-agents/edit/:id"
-              element={
-                <PageTransition>
-                  <AgentFormPage />
-                </PageTransition>
-              }
-            />
-            <Route
               path="templates"
               element={
                 <PageTransition>
@@ -224,34 +207,10 @@ const AnimatedRoutes = () => {
               }
             />
             <Route
-              path="templates/edit/:id"
-              element={
-                <PageTransition>
-                  <TemplateFormPage />
-                </PageTransition>
-              }
-            />
-            <Route
               path="knowledge-base"
               element={
                 <PageTransition>
                   <KnowledgeBaseListPage />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="knowledge-base/new"
-              element={
-                <PageTransition>
-                  <KnowledgeBaseFormPage />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="knowledge-base/edit/:id"
-              element={
-                <PageTransition>
-                  <KnowledgeBaseFormPage />
                 </PageTransition>
               }
             />

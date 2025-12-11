@@ -1,138 +1,142 @@
-// Template form page for creating/editing a single template
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+// src/features/admin/templates/TemplateFormPage.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import { useTemplate, useCreateTemplate, useUpdateTemplate } from "./hooks";
+import Input from "@/shared/components/ui/Input";
 import Button from "@/shared/components/ui/Button";
+import PageHeader from "@/shared/components/layout/PageHeader";
+import { FiFileText } from "react-icons/fi";
 
 export function TemplateFormPage() {
-  const { id } = useParams();
   const navigate = useNavigate();
-  const isEditMode = Boolean(id);
+  const { id } = useParams();
+  const isEditing = !!id;
 
-  const { data: templateData, isLoading } = useTemplate(id);
-  const createTemplate = useCreateTemplate();
-  const updateTemplate = useUpdateTemplate();
+  const { data: template, isLoading: isLoadingTemplate } = useTemplate(id);
+  const createTemplateMutation = useCreateTemplate();
+  const updateTemplateMutation = useUpdateTemplate();
 
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     nombre: "",
     plantillaAsunto: "",
     plantillaCuerpo: "",
   });
 
   useEffect(() => {
-    if (templateData) {
-      setForm({
-        nombre: templateData.nombre || "",
-        plantillaAsunto: templateData.plantillaAsunto || "",
-        plantillaCuerpo: templateData.plantillaCuerpo || "",
+    if (isEditing && template) {
+      setFormData({
+        nombre: template.nombre || "",
+        plantillaAsunto: template.plantillaAsunto || "",
+        plantillaCuerpo: template.plantillaCuerpo || "",
       });
     }
-  }, [templateData]);
+  }, [template, isEditing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isEditMode) {
-      updateTemplate.mutate(
-        { id, ...form },
+    if (isEditing) {
+      updateTemplateMutation.mutate(
+        { id, data: formData },
         {
           onSuccess: () => {
-            toast.success("Plantilla actualizada");
+            toast.success("Plantilla actualizada exitosamente");
             navigate("/admin/templates");
           },
-          onError: (err) => toast.error(err.message || "Error"),
-        },
+          onError: () => {
+            toast.error("Error al actualizar la plantilla");
+          },
+        }
       );
     } else {
-      createTemplate.mutate(form, {
+      createTemplateMutation.mutate(formData, {
         onSuccess: () => {
-          toast.success("Plantilla creada");
+          toast.success("Plantilla creada exitosamente");
           navigate("/admin/templates");
         },
-        onError: (err) => toast.error(err.message || "Error"),
+        onError: () => {
+          toast.error("Error al crear la plantilla");
+        },
       });
     }
   };
 
-  if (isEditMode && isLoading) return <div>Cargando plantilla...</div>;
+  if (isEditing && isLoadingTemplate) {
+    return <div>Cargando...</div>;
+  }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-dt-foreground mb-6">
-        {isEditMode
-          ? `Editando: ${templateData?.nombre}`
-          : "Crear Nueva Plantilla"}
-      </h1>
+    <div className="space-y-6">
+      <PageHeader
+        title={isEditing ? "Editar Plantilla" : "Nueva Plantilla"}
+        subtitle={isEditing ? "Modifica los detalles de la plantilla" : "Crea una nueva plantilla de respuesta"}
+        icon={FiFileText}
+      />
 
-      <div className="bg-dt-primary border border-secondary rounded-lg p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-dt-subtle mb-2">
-              Nombre
-            </label>
-            <input
-              name="nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              className="w-full p-3 bg-dt-background border border-secondary rounded-md"
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-dt-foreground mb-2">
+            Nombre de la Plantilla *
+          </label>
+          <Input
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            placeholder="Ej: Respuesta a consulta de devolución"
+            required
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-dt-subtle mb-2">
-              Asunto
-            </label>
-            <input
-              name="plantillaAsunto"
-              value={form.plantillaAsunto}
-              onChange={handleChange}
-              className="w-full p-3 bg-dt-background border border-secondary rounded-md"
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-dt-foreground mb-2">
+            Asunto del Correo *
+          </label>
+          <Input
+            name="plantillaAsunto"
+            value={formData.plantillaAsunto}
+            onChange={handleChange}
+            placeholder="Ej: Sobre tu solicitud de devolución - Ticket #{{ticket.id}}"
+            required
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-dt-subtle mb-2">
-              Cuerpo
-            </label>
-            <textarea
-              name="plantillaCuerpo"
-              value={form.plantillaCuerpo}
-              onChange={handleChange}
-              rows={12}
-              className="w-full p-3 bg-dt-background border border-secondary rounded-md font-mono text-sm"
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-dt-foreground mb-2">
+            Cuerpo de la Plantilla *
+          </label>
+          <textarea
+            name="plantillaCuerpo"
+            value={formData.plantillaCuerpo}
+            onChange={handleChange}
+            rows={12}
+            className="w-full px-3 py-2 border border-dt-border rounded-md focus:outline-none focus:ring-2 focus:ring-dt-accent focus:border-transparent resize-vertical"
+            placeholder="Hola {{cliente.nombre}},&#10;&#10;Gracias por contactarnos..."
+            required
+          />
+        </div>
 
-          <div className="flex justify-end gap-4 pt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              onClick={() => navigate("/admin/templates")}
-              fullWidth={false}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              disabled={createTemplate.isLoading || updateTemplate.isLoading}
-              fullWidth={false}
-            >
-              {createTemplate.isLoading || updateTemplate.isLoading
-                ? "Guardando..."
-                : "Guardar Cambios"}
-            </Button>
-          </div>
-        </form>
-      </div>
+        <div className="flex gap-4">
+          <Button
+            type="submit"
+            isLoading={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+          >
+            {isEditing ? "Guardar Cambios" : "Crear Plantilla"}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate("/admin/templates")}
+          >
+            Cancelar
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

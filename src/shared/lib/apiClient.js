@@ -16,7 +16,6 @@ class ApiClient {
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
-    console.log("Auth Headers:", headers);
     return headers;
   }
 

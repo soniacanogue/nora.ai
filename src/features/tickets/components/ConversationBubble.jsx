@@ -201,7 +201,7 @@ const ConversationBubble = ({ message }) => {
       <div
         className={`max-w-xl rounded-2xl p-5 ${bubbleColor} transition-transform duration-200 hover:scale-[1.01]`}
       >
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-wider mb-4 font-semibold text-dt-subtle">
+        <div className={`flex items-center ${isCustomer ? 'justify-start' : 'justify-end'} text-[10px] uppercase tracking-wider mb-4 font-semibold text-dt-subtle`}>
           <div className="flex items-center gap-2">
             <span className="material-symbols-rounded text-xs opacity-70">
               {channelIcon}
@@ -209,13 +209,13 @@ const ConversationBubble = ({ message }) => {
             <span className="font-mono">{channelLabel}</span>
           </div>
           {noteBadge && (
-            <span className="px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-[9px] font-mono tracking-normal">
+            <span className="px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-[9px] font-mono tracking-normal ml-2">
               {noteBadge}
             </span>
           )}
         </div>
         <div
-          className={`text-sm leading-relaxed ${textColor} space-y-3 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-dt-accent [&_strong]:text-white`}
+          className={`text-sm leading-relaxed ${textColor} ${isCustomer ? 'text-left' : 'text-right'} space-y-3 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-dt-accent [&_strong]:text-white`}
           dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
         />
 

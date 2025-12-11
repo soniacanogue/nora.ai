@@ -21,6 +21,11 @@ export const agentSchema = z.object({
   promptBase: z
     .string()
     .min(20, "El prompt base debe tener al menos 20 caracteres."),
+  modelo: z.string().min(1, "El modelo es requerido."),
+  temperatura: z.coerce
+    .number()
+    .min(0, "La temperatura debe ser como mínimo 0.")
+    .max(1, "La temperatura debe ser como máximo 1."),
   umbralConfianza: z.coerce // coerce convierte el string del input a número
     .number()
     .min(0, "El umbral debe ser como mínimo 0.")

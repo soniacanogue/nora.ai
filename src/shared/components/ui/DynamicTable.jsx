@@ -5,10 +5,6 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
-import {
-  StaggerContainer,
-  StaggerItem,
-} from "@/shared/components/ui/StaggerContainer";
 
 const DynamicTable = ({
   columns,
@@ -118,7 +114,7 @@ const DynamicTable = ({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase ${col.sortable ? "cursor-pointer hover:text-dt-foreground transition-colors" : ""} ${col.headerClassName || ""}`}
+                  className={`px-4 py-3 text-left text-xs font-semibold text-dt-subtle uppercase ${col.sortable ? "cursor-pointer hover:text-dt-foreground transition-colors" : ""} ${col.headerClassName || ""} ${col.key === "actions" ? "border-l border-dt-border pl-6" : ""}`}
                   onClick={() => col.sortable && onSort && onSort(col.key)}
                 >
                   {col.label}
@@ -127,28 +123,23 @@ const DynamicTable = ({
               ))}
             </tr>
           </thead>
-          <StaggerContainer
-            as="tbody"
-            className="divide-y divide-dt-border"
-            key={`${effectivePage}-${data.length}`} // Force re-render on page or data change (use effective page)
-          >
+          <tbody className="divide-y divide-dt-border">
             {currentData.map((item, index) => (
-              <StaggerItem
-                as="tr"
+              <tr
                 key={item.id || index}
                 className="group relative hover:bg-dt-background/50 transition-colors"
               >
                 {columns.map((col) => (
                   <td
                     key={`${item.id || index}-${col.key}`}
-                    className={`px-4 py-3 text-sm text-dt-foreground ${col.className || ""}`}
+                    className={`px-4 py-3 text-sm text-dt-foreground ${col.className || ""} ${col.key === "actions" ? "border-l border-dt-border pl-6" : ""}`}
                   >
                     {col.render ? col.render(item) : item[col.key]}
                   </td>
                 ))}
-              </StaggerItem>
+              </tr>
             ))}
-          </StaggerContainer>
+          </tbody>
         </table>
       </div>
 

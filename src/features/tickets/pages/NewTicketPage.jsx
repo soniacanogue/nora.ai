@@ -45,7 +45,6 @@ const NewTicketPage = () => {
           return {
             nombreArchivo: files[idx].name,
             urlAlmacenamiento: url || null,
-            storageId: id,
             tipoMime: files[idx].type,
             tamano: files[idx].size,
           };
@@ -53,11 +52,11 @@ const NewTicketPage = () => {
       }
 
       const payload = {
-        canal: "web",
+        canal: "formulario_web",
         prioridad: "media",
         asunto: data.subject,
         mensajeInicial: data.message,
-        emailCliente: data.email,
+        correoCliente: data.email,
         nombreCliente: data.name,
         ordenId: data.orderId || null,
         archivos: uploadedFilesMeta,

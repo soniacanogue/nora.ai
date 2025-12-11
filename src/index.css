@@ -28,6 +28,10 @@
 }
 
 @layer base {
+  html {
+    zoom: 0.8;
+  }
+
   body {
     @apply bg-dt-background text-dt-foreground antialiased font-sans;
   }

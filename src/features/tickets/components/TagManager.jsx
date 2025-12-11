@@ -30,7 +30,11 @@ const TagManager = ({ ticketId, currentTags = [], suggestedTags = [] }) => {
 
   // Filter available tags that are not already on the ticket
   const availableTags = useMemo(() => {
-    return allTags.filter((tag) => !currentTagNames.includes(tag.nombre));
+    if (!Array.isArray(allTags)) return [];
+    return allTags.filter((tag) => {
+      const tagName = tag.nombre || tag.name;
+      return !currentTagNames.includes(tagName);
+    });
   }, [allTags, currentTagNames]);
 
   const handleAddTag = () => {
@@ -137,8 +141,8 @@ const TagManager = ({ ticketId, currentTags = [], suggestedTags = [] }) => {
             >
               <option value="">-- Seleccionar etiqueta existente --</option>
               {availableTags.map((tag) => (
-                <option key={tag.id} value={tag.nombre}>
-                  {tag.nombre}
+                <option key={tag.id} value={tag.nombre || tag.name}>
+                  {tag.nombre || tag.name}
                 </option>
               ))}
             </select>
