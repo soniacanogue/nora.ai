@@ -1,63 +1,65 @@
-// src/features/admin/templates/TemplateListPage.jsx
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaArrowUp, FaArrowDown } from "react-icons/fa";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-
 import { useTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate } from "./hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 import Button from "@/shared/components/ui/Button";
 import DynamicTable from "@/shared/components/ui/DynamicTable";
 import EmptyState from "@/shared/components/ui/EmptyState";
+import ErrorState from "@/shared/components/ui/ErrorState";
 import PageHeader from "@/shared/components/layout/PageHeader";
-import { FiFileText } from "react-icons/fi";
+import FilterPanel from "@/shared/components/ui/FilterPanel";
+import { FiFileText, FiPlus, FiFilter, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
 
 export function TemplateListPage() {
-  const navigate = useNavigate();
-  const [sortConfig, setSortConfig] = useState({ key: "nombre", order: "asc" });
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const pageParam = Number(searchParams.get("page") || 1);
+  const limitParam = Number(searchParams.get("limit") || 25);
+  const sortBy = searchParams.get("sortBy") || "nombre";
+  const sortOrder = searchParams.get("sortOrder") || "asc";
+
+  const sortConfig = { key: sortBy, order: sortOrder };
 
   const { data: templates, isLoading, error } = useTemplates();
   const createTemplateMutation = useCreateTemplate();
   const updateTemplateMutation = useUpdateTemplate();
   const deleteTemplateMutation = useDeleteTemplate();
 
-  const sortedTemplates = useMemo(() => {
-    if (!templates) return [];
-    let result = [...templates];
-    if (sortConfig.key) {
-      result.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
-        // Handle case-insensitive string comparison
-        if (typeof aValue === "string" && typeof bValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-        if (aValue < bValue) return sortConfig.order === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.order === "asc" ? 1 : -1;
-        return 0;
+  const handleSort = (key) => {
+    const newOrder = sortBy === key && sortOrder === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortBy", key);
+    params.set("sortOrder", newOrder);
+    setSearchParams(params);
+  };
+
+  const filterConfig = useMemo(() => [], []);
+
+  const handleFilterChange = (key, value) => {
+    // Ready for future filters
+  };
+
+  const filteredTemplates = useMemo(() => {
+    let result = templates || [];
+
+    // Filter by search
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      result = result.filter((template) => {
+        const nombre = (template.nombre || "").toString().toLowerCase();
+        const asunto = (template.plantillaAsunto || "").toString().toLowerCase();
+        const cuerpo = (template.plantillaCuerpo || "").toString().toLowerCase();
+        return nombre.includes(search) || asunto.includes(search) || cuerpo.includes(search);
       });
     }
+
     return result;
-  }, [templates, sortConfig]);
-
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
-      key,
-      order: prev.key === key && prev.order === "asc" ? "desc" : "asc",
-    }));
-  };
-
-  const getSortIcon = (key) => {
-    if (sortConfig.key !== key) return null;
-    return sortConfig.order === "asc" ? (
-      <FaArrowUp className="inline ml-1" />
-    ) : (
-      <FaArrowDown className="inline ml-1" />
-    );
-  };
+  }, [templates, searchTerm]);
 
   const handleDelete = (id) => {
     if (
@@ -71,8 +73,41 @@ export function TemplateListPage() {
   };
 
   const columns = useMemo(() => [
-    { key: "nombre", label: "Nombre", sortable: true, className: "text-dt-foreground" },
-    { key: "plantillaAsunto", label: "Asunto", sortable: true, className: "text-dt-subtle truncate max-w-md" },
+    { 
+      key: "nombre", 
+      label: "Nombre", 
+      sortable: true, 
+      className: "text-dt-foreground font-medium",
+      render: (template) => template.nombre || "—",
+    },
+    { 
+      key: "plantillaAsunto", 
+      label: "Asunto", 
+      sortable: true, 
+      className: "text-dt-subtle",
+      render: (template) => (
+        <div className="truncate max-w-md" title={template.plantillaAsunto}>
+          {template.plantillaAsunto || "—"}
+        </div>
+      ),
+    },
+    {
+      key: "plantillaCuerpo",
+      label: "Vista Previa",
+      className: "text-dt-subtle text-sm",
+      render: (template) => (
+        <div className="truncate max-w-xs" title={template.plantillaCuerpo}>
+          {template.plantillaCuerpo ? template.plantillaCuerpo.substring(0, 50) + "..." : "—"}
+        </div>
+      ),
+    },
+    {
+      key: "creadoEn",
+      label: "Creado",
+      sortable: true,
+      className: "text-dt-subtle font-mono text-xs",
+      render: (template) => new Date(template?.creadoEn || template?.createdAt || 0).toLocaleDateString(),
+    },
     {
       key: "actions",
       label: "Acciones",
@@ -80,16 +115,25 @@ export function TemplateListPage() {
       className: "text-right",
       render: (template) => (
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setEditingTemplate(template)}>
-            Editar
-          </Button>
-          <Button variant="danger" size="sm" onClick={() => handleDelete(template.id)} disabled={deleteTemplateMutation.isLoading}>
-            Eliminar
-          </Button>
+          <button
+            onClick={() => setEditingTemplate(template)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title="Editar"
+          >
+            <FiEdit2 size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(template.id)}
+            className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
+            title="Eliminar"
+            disabled={deleteTemplateMutation.isLoading}
+          >
+            <FiTrash2 size={16} />
+          </button>
         </div>
       ),
     },
-  ], [navigate, deleteTemplateMutation.isLoading]);
+  ], [deleteTemplateMutation.isLoading, handleDelete]);
 
   const getTemplateFormConfig = (isEditing = false) => ({
     fields: {
@@ -156,43 +200,108 @@ export function TemplateListPage() {
     },
   });
 
-  if (isLoading) return <div>Cargando plantillas...</div>;
-  if (error) return <div className="text-red-500">Error: {error.message}</div>;
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          message="Error al cargar las plantillas"
+          details={error?.message}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
       <PageHeader
         icon={FiFileText}
         title="Gestión de Plantillas"
-        description={"Administra plantillas de correo y respuestas"}
-        action={{ label: "Crear Plantilla", onClick: () => setIsModalOpen(true), variant: "secondary" }}
-      />
+        description="Administra plantillas de correo y respuestas"
+      >
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="secondary"
+            icon={FiFilter}
+          >
+            Filtros
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)} variant="primary" icon={FiPlus}>
+            Crear Plantilla
+          </Button>
+        </div>
+      </PageHeader>
 
-      <div className="bg-dt-card border border-dt-border rounded-lg overflow-hidden">
-        <DynamicTable
-          columns={columns}
-          data={sortedTemplates}
-          sortConfig={sortConfig}
-          onSort={handleSort}
-          isLoading={isLoading}
-          emptyState={
-            <EmptyState
-              title="No hay plantillas"
-              description="Crea tu primera plantilla para comenzar"
-              action={{ label: "Crear Plantilla", onClick: () => setIsModalOpen(true) }}
-            />
-          }
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
+          <input
+            type="text"
+            placeholder="Buscar plantillas por nombre, asunto o contenido..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Advanced Filters */}
+        <FilterPanel
+          open={showFilters}
+          config={filterConfig}
+          values={{}}
+          onChange={handleFilterChange}
         />
       </div>
 
-      <DynamicFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Crear Nueva Plantilla"
-        config={getTemplateFormConfig(false)}
+      {/* Templates Table */}
+      <DynamicTable
+        columns={columns}
+        data={filteredTemplates}
+        sortConfig={sortConfig}
+        onSort={handleSort}
+        isLoading={isLoading}
+        page={pageParam}
+        itemsPerPage={limitParam}
+        onPageChange={(newPage) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", String(newPage));
+          setSearchParams(params);
+        }}
+        onItemsPerPageChange={(newLimit) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("limit", String(newLimit));
+          params.set("page", "1");
+          setSearchParams(params);
+        }}
+        emptyState={
+          <EmptyState
+            icon={FiFileText}
+            title="No hay plantillas"
+            description={
+              searchTerm
+                ? "No se encontraron plantillas con los filtros aplicados"
+                : "Crea tu primera plantilla para comenzar"
+            }
+            action={!searchTerm ? { label: "Crear Plantilla", onClick: () => setIsModalOpen(true) } : undefined}
+          />
+        }
       />
 
-      {/* Modal para editar plantilla */}
+      {/* Create Modal */}
+      {isModalOpen && (
+        <DynamicFormModal
+          title="Crear Nueva Plantilla"
+          description="Configura una nueva plantilla de correo"
+          config={getTemplateFormConfig(false)}
+          onClose={() => setIsModalOpen(false)}
+          isLoading={createTemplateMutation.isPending}
+        />
+      )}
+
+      {/* Edit Modal */}
       {editingTemplate && (
         <DynamicFormModal
           title="Editar Plantilla"

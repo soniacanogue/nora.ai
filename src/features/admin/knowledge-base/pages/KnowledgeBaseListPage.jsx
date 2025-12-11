@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   FiPlus,
   FiSearch,
@@ -7,6 +7,7 @@ import {
   FiEdit2,
   FiTrash2,
   FiFileText,
+  FiFilter,
 } from "react-icons/fi";
 import {
   useKnowledgeBaseDocs,
@@ -15,9 +16,13 @@ import {
   useCreateKnowledgeBaseDoc,
   useKnowledgeBaseCategories,
 } from "../hooks/useKnowledgeBase";
-import SearchInput from "@/shared/components/ui/SearchInput";
-import Select from "@/shared/components/ui/Select";
+import DynamicTable from "@/shared/components/ui/DynamicTable";
+import Button from "@/shared/components/ui/Button";
+import Badge from "@/shared/components/ui/Badge";
 import PageHeader from "@/shared/components/layout/PageHeader";
+import FilterPanel from "@/shared/components/ui/FilterPanel";
+import EmptyState from "@/shared/components/ui/EmptyState";
+import ErrorState from "@/shared/components/ui/ErrorState";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
 
 // TODO: UC-14 - Knowledge Base Management UI
@@ -42,21 +47,28 @@ const CATEGORY_COLORS = {
 
 export const KnowledgeBaseListPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [page, setPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const PAGE_SIZE = 20;
+
+  const pageParam = Number(searchParams.get("page") || 1);
+  const limitParam = Number(searchParams.get("limit") || 25);
+  const sortBy = searchParams.get("sortBy") || "creadoEn";
+  const sortOrder = searchParams.get("sortOrder") || "desc";
+
+  const sortConfig = { key: sortBy, order: sortOrder };
 
   const filters = useMemo(
     () => ({
       search: searchTerm.trim() || undefined,
       category: categoryFilter || undefined,
-      page,
-      limit: PAGE_SIZE,
+      page: pageParam,
+      limit: limitParam,
     }),
-    [searchTerm, categoryFilter, page],
+    [searchTerm, categoryFilter, pageParam, limitParam],
   );
 
   const {
@@ -70,24 +82,19 @@ export const KnowledgeBaseListPage = () => {
     useKnowledgeBaseCategories();
 
   const documents = listData?.documents || [];
-  const pagination = listData?.pagination || {
-    pagina: page,
-    limite: PAGE_SIZE,
-    total: documents.length,
-  };
-
-  const currentPage = pagination.pagina || page;
-  const totalDocuments = pagination.total ?? documents.length;
-  const totalPages = Math.max(
-    1,
-    Math.ceil((pagination.total || documents.length || 1) / (pagination.limite || PAGE_SIZE)),
-  );
-  const showingStart = totalDocuments === 0 ? 0 : (currentPage - 1) * (pagination.limite || PAGE_SIZE) + 1;
-  const showingEnd = totalDocuments === 0 ? 0 : showingStart + documents.length - 1;
+  const pagination = listData?.pagination || {};
 
   const deleteDocMutation = useDeleteKnowledgeBaseDoc();
   const updateDocMutation = useUpdateKnowledgeBaseDoc();
   const createDocMutation = useCreateKnowledgeBaseDoc();
+
+  const handleSort = (key) => {
+    const newOrder = sortBy === key && sortOrder === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortBy", key);
+    params.set("sortOrder", newOrder);
+    setSearchParams(params);
+  };
 
   const normalizedCategories = useMemo(() => {
     if (Array.isArray(categoryOptions) && categoryOptions.length > 0) {
@@ -95,6 +102,122 @@ export const KnowledgeBaseListPage = () => {
     }
     return Object.keys(CATEGORY_LABELS);
   }, [categoryOptions]);
+
+  const filterConfig = useMemo(() => [
+    {
+      key: "categoryFilter",
+      type: "select",
+      label: "Categoría",
+      options: [
+        { value: "", label: "Todas las categorías" },
+        ...normalizedCategories.map((category) => ({
+          value: category,
+          label: CATEGORY_LABELS[category] || category,
+        })),
+      ],
+    },
+  ], [normalizedCategories]);
+
+  const handleFilterChange = (key, value) => {
+    if (key === "categoryFilter") setCategoryFilter(value);
+  };
+
+  const filteredDocuments = useMemo(() => {
+    let result = documents;
+
+    // Filter by search
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      result = result.filter((doc) => {
+        const titulo = (doc.titulo || "").toString().toLowerCase();
+        const contenido = (doc.contenido || "").toString().toLowerCase();
+        return titulo.includes(search) || contenido.includes(search);
+      });
+    }
+
+    // Filter by category
+    if (categoryFilter) {
+      result = result.filter((doc) => doc.categoria === categoryFilter);
+    }
+
+    return result;
+  }, [documents, searchTerm, categoryFilter]);
+
+  const getCategoryBadgeVariant = (categoria) => {
+    switch (categoria) {
+      case "FAQ":
+        return "info";
+      case "POLITICA":
+        return "accent";
+      case "PROCEDIMIENTO":
+        return "success";
+      case "GUIA":
+        return "warning";
+      default:
+        return "neutral";
+    }
+  };
+
+  const columns = useMemo(() => [
+    {
+      key: "pregunta",
+      label: "Pregunta/Título",
+      sortable: true,
+      className: "text-dt-foreground font-medium",
+      render: (doc) => doc.pregunta || doc.titulo || "—",
+    },
+    {
+      key: "categoria",
+      label: "Categoría",
+      sortable: true,
+      render: (doc) => (
+        <Badge variant={getCategoryBadgeVariant(doc.categoria)}>
+          {CATEGORY_LABELS[doc.categoria] || doc.categoria || "—"}
+        </Badge>
+      ),
+    },
+    {
+      key: "respuesta",
+      label: "Respuesta/Contenido",
+      className: "text-dt-subtle text-sm",
+      render: (doc) => (
+        <div className="truncate max-w-md" title={doc.respuesta || doc.contenido}>
+          {doc.respuesta || doc.contenido || "—"}
+        </div>
+      ),
+    },
+    {
+      key: "creadoEn",
+      label: "Creado",
+      sortable: true,
+      className: "text-dt-subtle font-mono text-xs",
+      render: (doc) => new Date(doc?.creadoEn || doc?.createdAt || 0).toLocaleDateString(),
+    },
+    {
+      key: "actions",
+      label: "Acciones",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (doc) => (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => handleEdit(doc)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title="Editar"
+          >
+            <FiEdit2 size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(doc.id)}
+            className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
+            title="Eliminar"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ], [handleDelete, handleEdit, getCategoryBadgeVariant]);
 
   const handleDelete = async (id) => {
     if (
@@ -112,24 +235,7 @@ export const KnowledgeBaseListPage = () => {
     setIsCreateModalOpen(true);
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-    if (page !== 1) {
-      setPage(1);
-    }
-  };
 
-  const handleCategoryChange = (event) => {
-    setCategoryFilter(event.target.value);
-    if (page !== 1) {
-      setPage(1);
-    }
-  };
-
-  const handlePageChange = (nextPage) => {
-    setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   // Form configuration for editing documents
   const formCategoryOptions = useMemo(() => {
@@ -303,147 +409,81 @@ export const KnowledgeBaseListPage = () => {
       {/* Header */}
       <PageHeader
         icon={FiBook}
-        title="Base de Conocimiento"
+        title="Gestión de Base de Conocimiento"
         description="Gestiona documentos, FAQs y políticas para la IA"
-        action={{ label: "Nuevo Documento", onClick: handleCreate, icon: FiPlus }}
-      />
+      >
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="secondary"
+            icon={FiFilter}
+          >
+            Filtros
+          </Button>
+          <Button onClick={handleCreate} variant="primary" icon={FiPlus}>
+            Nuevo Documento
+          </Button>
+        </div>
+      </PageHeader>
 
-      {/* Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <SearchInput
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
+          <input
+            type="text"
+            placeholder="Buscar documentos por título o contenido..."
             value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Buscar documentos..."
-            className="flex-1"
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <Select
-          value={categoryFilter}
-          onChange={handleCategoryChange}
-          placeholder="Todas las categorías"
-          options={[{ value: "", label: "Todas las categorías" }, ...normalizedCategories.map((category) => ({ value: category, label: CATEGORY_LABELS[category] || category }))]}
-          disabled={isLoadingCategories}
+
+        {/* Advanced Filters */}
+        <FilterPanel
+          open={showFilters}
+          config={filterConfig}
+          values={{ categoryFilter }}
+          onChange={handleFilterChange}
         />
       </div>
 
-      {isFetching && !isLoading && (
-        <div className="text-xs text-dt-subtle font-mono">Actualizando resultados...</div>
-      )}
-
-      {/* Documents List */}
-      {documents.length === 0 ? (
-        <div className="text-center py-12 bg-dt-card rounded-lg border border-dt-border">
-          <FiFileText className="text-5xl text-dt-subtle mx-auto mb-4" />
-          <p className="text-dt-subtle mb-2">
-            No hay documentos en la base de conocimiento
-          </p>
-          <button
-            onClick={handleCreate}
-            className="text-dt-accent hover:underline text-sm"
-          >
-            Crear el primer documento
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {documents.map((doc) => (
-            <div
-              key={doc.id}
-              className="bg-dt-card border border-dt-border rounded-lg p-6 hover:border-dt-accent/50 transition-colors"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-dt-foreground">
-                      {doc.titulo}
-                    </h3>
-                    <span
-                      className={`px-2 py-1 text-xs rounded border ${
-                        CATEGORY_COLORS[doc.categoria] || CATEGORY_COLORS.OTRO
-                      }`}
-                    >
-                      {CATEGORY_LABELS[doc.categoria] || doc.categoria}
-                    </span>
-                  </div>
-                  <p className="text-dt-subtle text-sm mb-3 line-clamp-2">
-                    {doc.contenido}
-                  </p>
-                  {doc.etiquetas && doc.etiquetas.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {doc.etiquetas.map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 text-xs bg-dt-background text-dt-subtle rounded"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 ml-4">
-                  <button
-                    onClick={() => handleEdit(doc)}
-                    className="p-2 text-dt-subtle hover:text-dt-accent hover:bg-dt-accent/10 rounded transition-colors"
-                    title="Editar"
-                  >
-                    <FiEdit2 />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(doc.id)}
-                    className="p-2 text-dt-subtle hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
-                    title="Eliminar"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-dt-border flex items-center gap-4 text-xs text-dt-subtle">
-                <span>
-                  Creado: {new Date(doc.creadoEn).toLocaleDateString()}
-                </span>
-                {doc.actualizadoEn && (
-                  <span>
-                    Actualizado:{" "}
-                    {new Date(doc.actualizadoEn).toLocaleDateString()}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-t border-dt-border pt-4 mt-6">
-            <p className="text-sm text-dt-subtle">
-              {totalDocuments === 0
-                ? "Sin resultados"
-                : `Mostrando ${showingStart} - ${showingEnd} de ${totalDocuments} documentos`}
-            </p>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage <= 1}
-                className="px-3 py-1 border border-dt-border rounded-lg text-sm text-dt-foreground disabled:opacity-40"
-              >
-                Anterior
-              </button>
-              <span className="text-sm text-dt-subtle font-mono">
-                Página {currentPage} de {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  handlePageChange(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage >= totalPages}
-                className="px-3 py-1 border border-dt-border rounded-lg text-sm text-dt-foreground disabled:opacity-40"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Documents Table */}
+      <DynamicTable
+        columns={columns}
+        data={filteredDocuments}
+        sortConfig={sortConfig}
+        onSort={handleSort}
+        isLoading={isLoading}
+        page={pageParam}
+        itemsPerPage={limitParam}
+        onPageChange={(newPage) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", String(newPage));
+          setSearchParams(params);
+        }}
+        onItemsPerPageChange={(newLimit) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("limit", String(newLimit));
+          params.set("page", "1");
+          setSearchParams(params);
+        }}
+        totalPages={pagination?.totalPages}
+        totalItems={pagination?.total}
+        emptyState={
+          <EmptyState
+            icon={FiBook}
+            title="No hay documentos"
+            description={
+              searchTerm || categoryFilter
+                ? "No se encontraron documentos con los filtros aplicados"
+                : "Crea tu primer documento para comenzar"
+            }
+            action={!searchTerm && !categoryFilter ? { label: "Nuevo Documento", onClick: handleCreate } : undefined}
+          />
+        }
+      />
 
       {/* Create Modal */}
       {isCreateModalOpen && (

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   FiTag,
   FiPlus,
@@ -13,15 +14,13 @@ import {
 import toast from "react-hot-toast";
 import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from "../hooks";
 import DynamicFormModal from "@/shared/components/ui/DynamicFormModal";
+import DynamicTable from "@/shared/components/ui/DynamicTable";
 import Button from "@/shared/components/ui/Button";
 import EmptyState from "@/shared/components/ui/EmptyState";
 import ErrorState from "@/shared/components/ui/ErrorState";
 import Badge from "@/shared/components/ui/Badge";
-import SearchInput from "@/shared/components/ui/SearchInput";
-import Select from "@/shared/components/ui/Select";
 import PageHeader from "@/shared/components/layout/PageHeader";
-import FilterBar from "@/shared/components/ui/FilterBar";
-import SkeletonList from "@/shared/components/ui/SkeletonList";
+import FilterPanel from "@/shared/components/ui/FilterPanel";
 import { formatDistanceToNow } from "@/shared/utils/formatters";
 
 /**
@@ -29,16 +28,33 @@ import { formatDistanceToNow } from "@/shared/utils/formatters";
  * Full CRUD implementation for managing master tags
  */
 export const TagsListPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTag, setEditingTag] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [usageFilter, setUsageFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("");
+
+  const pageParam = Number(searchParams.get("page") || 1);
+  const limitParam = Number(searchParams.get("limit") || 25);
+  const sortBy = searchParams.get("sortBy") || "nombre";
+  const sortOrder = searchParams.get("sortOrder") || "asc";
+
+  const sortConfig = { key: sortBy, order: sortOrder };
 
   const { data: tags = [], isLoading, error } = useTags();
   const createTagMutation = useCreateTag();
   const updateTagMutation = useUpdateTag();
   const deleteTagMutation = useDeleteTag();
+
+  const handleSort = (key) => {
+    const newOrder = sortBy === key && sortOrder === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortBy", key);
+    params.set("sortOrder", newOrder);
+    setSearchParams(params);
+  };
 
   const availableCategories = useMemo(() => {
     const categories = new Set();
@@ -67,6 +83,35 @@ export const TagsListPage = () => {
     } catch (error) {
       return "Sin registro";
     }
+  };
+
+  const filterConfig = useMemo(() => [
+    {
+      key: "usageFilter",
+      type: "select",
+      label: "Nivel de uso",
+      options: [
+        { value: "all", label: "Todos los niveles" },
+        { value: "high", label: "Alto uso (50+)" },
+        { value: "medium", label: "Medio (10-49)" },
+        { value: "low", label: "Bajo (<10)" },
+        { value: "unused", label: "Sin uso" },
+      ],
+    },
+    {
+      key: "categoryFilter",
+      type: "select",
+      label: "Categoría",
+      options: [
+        { value: "", label: "Todas las categorías" },
+        ...availableCategories.map((category) => ({ value: category, label: category })),
+      ],
+    },
+  ], [availableCategories]);
+
+  const handleFilterChange = (key, value) => {
+    if (key === "usageFilter") setUsageFilter(value);
+    else if (key === "categoryFilter") setCategoryFilter(value);
   };
 
   const filteredTags = useMemo(() => {
@@ -100,6 +145,92 @@ export const TagsListPage = () => {
       return matchesSearch && matchesCategory && matchesUsage;
     });
   }, [tags, searchTerm, usageFilter, categoryFilter]);
+
+  const columns = useMemo(() => [
+    {
+      key: "nombre",
+      label: "Nombre",
+      sortable: true,
+      render: (tag) => (
+        <div className="flex items-center gap-2">
+          <div
+            className="w-4 h-4 rounded-full"
+            style={{ backgroundColor: tag.color }}
+          ></div>
+          <span className="font-medium text-dt-foreground">{tag.nombre || "—"}</span>
+        </div>
+      ),
+    },
+    {
+      key: "descripcion",
+      label: "Descripción",
+      sortable: true,
+      className: "text-dt-subtle text-sm",
+      render: (tag) => (
+        <div className="truncate max-w-md" title={tag.descripcion}>
+          {tag.descripcion || "—"}
+        </div>
+      ),
+    },
+    {
+      key: "categoria",
+      label: "Categoría",
+      render: (tag) => tag.categoria ? (
+        <Badge variant="neutral">{tag.categoria}</Badge>
+      ) : "—",
+    },
+    {
+      key: "uso",
+      label: "Uso",
+      render: (tag) => {
+        const usageCount = getUsageCount(tag);
+        const usageVariant = getUsageVariant(usageCount);
+        return (
+          <Badge variant={usageVariant} icon={FiTrendingUp}>
+            {usageCount} {usageCount === 1 ? "ticket" : "tickets"}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "ultimaActividad",
+      label: "Último uso",
+      className: "text-dt-subtle text-xs",
+      render: (tag) => {
+        const lastUsage = getLastUsageLabel(tag);
+        return (
+          <div className="flex items-center gap-1">
+            <FiClock size={12} />
+            {lastUsage}
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      label: "Acciones",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (tag) => (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => setEditingTag(tag)}
+            className="p-2 text-dt-subtle hover:text-dt-accent transition-colors"
+            title="Editar"
+          >
+            <FiEdit2 size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(tag)}
+            className="p-2 text-dt-subtle hover:text-red-500 transition-colors"
+            title="Eliminar"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ], [getUsageCount, getUsageVariant, getLastUsageLabel, handleDelete]);
 
   const handleCreate = (formData) => {
     createTagMutation.mutate(formData, {
@@ -210,137 +341,77 @@ export const TagsListPage = () => {
         icon={FiTag}
         title="Gestión de Etiquetas"
         description="Administra etiquetas maestras para categorizar tickets"
-        action={{ label: "Nueva Etiqueta", onClick: () => setIsCreateModalOpen(true), icon: FiPlus }}
-      />
-
-      {/* Search Bar */}
-      <SearchInput
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Buscar etiquetas..."
-      />
-
-      {/* Advanced Filters */}
-      <FilterBar>
-        <Select
-          value={usageFilter}
-          onChange={(event) => setUsageFilter(event.target.value)}
-          placeholder="Todos los niveles de uso"
-          options={[
-            { value: "all", label: "Todos los niveles de uso" },
-            { value: "high", label: "Alto uso (50+)" },
-            { value: "medium", label: "Medio (10-49)" },
-            { value: "low", label: "Bajo (<10)" },
-            { value: "unused", label: "Sin uso" },
-          ]}
-        />
-
-        {availableCategories.length > 0 && (
-          <Select
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            placeholder="Todas las categorías"
-            options={[{ value: "", label: "Todas las categorías" }, ...availableCategories.map((category) => ({ value: category, label: category }))]}
-          />
-        )}
-      </FilterBar>
-
-      {/* Tags Grid */}
-      {isLoading ? (
-        <SkeletonList count={6} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" />
-      ) : filteredTags.length === 0 ? (
-        <EmptyState
-          icon={FiTag}
-          title="No hay etiquetas"
-          description={
-            searchTerm
-              ? "No se encontraron etiquetas con ese criterio de búsqueda"
-              : "Crea tu primera etiqueta para comenzar"
-          }
-          action={
-            !searchTerm && {
-              label: "Crear Etiqueta",
-              onClick: () => setIsCreateModalOpen(true),
-            }
-          }
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTags.map((tag) => {
-            const usageCount = getUsageCount(tag);
-            const usageVariant = getUsageVariant(usageCount);
-            const lastUsage = getLastUsageLabel(tag);
-
-            return (
-              <div
-                key={tag.id}
-                className="bg-dt-card border border-dt-border rounded-lg p-4 hover:border-dt-accent/50 transition-colors group"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                    ></div>
-                    <div>
-                      <h3 className="font-semibold text-dt-foreground">
-                        {tag.nombre}
-                      </h3>
-                      {tag.categoria && (
-                        <Badge variant="neutral" className="mt-1">
-                          {tag.categoria}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setEditingTag(tag)}
-                      className="p-1 text-dt-subtle hover:text-dt-accent transition-colors"
-                      title="Editar"
-                    >
-                      <FiEdit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(tag)}
-                      className="p-1 text-dt-subtle hover:text-red-500 transition-colors"
-                      title="Eliminar"
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-                {tag.descripcion && (
-                  <p className="text-sm text-dt-subtle mb-3">{tag.descripcion}</p>
-                )}
-
-                <div className="space-y-2 text-xs text-dt-subtle">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      <FiTrendingUp /> Uso
-                    </span>
-                    <Badge variant={usageVariant}>
-                      {usageCount} {usageCount === 1 ? "ticket" : "tickets"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      <FiClock /> Último uso
-                    </span>
-                    <span className="text-dt-foreground">{lastUsage}</span>
-                  </div>
-                  {usageCount === 0 && (
-                    <div className="flex items-center gap-1 text-amber-400">
-                      <FiAlertTriangle />
-                      <span>Esta etiqueta aún no se usa</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+      >
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant="secondary"
+            icon={FiFilter}
+          >
+            Filtros
+          </Button>
+          <Button onClick={() => setIsCreateModalOpen(true)} variant="primary" icon={FiPlus}>
+            Nueva Etiqueta
+          </Button>
         </div>
-      )}
+      </PageHeader>
+
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dt-subtle" />
+          <input
+            type="text"
+            placeholder="Buscar etiquetas por nombre o descripción..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Advanced Filters */}
+        <FilterPanel
+          open={showFilters}
+          config={filterConfig}
+          values={{ usageFilter, categoryFilter }}
+          onChange={handleFilterChange}
+        />
+      </div>
+
+      {/* Tags Table */}
+      <DynamicTable
+        columns={columns}
+        data={filteredTags}
+        sortConfig={sortConfig}
+        onSort={handleSort}
+        isLoading={isLoading}
+        page={pageParam}
+        itemsPerPage={limitParam}
+        onPageChange={(newPage) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", String(newPage));
+          setSearchParams(params);
+        }}
+        onItemsPerPageChange={(newLimit) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("limit", String(newLimit));
+          params.set("page", "1");
+          setSearchParams(params);
+        }}
+        emptyState={
+          <EmptyState
+            icon={FiTag}
+            title="No hay etiquetas"
+            description={
+              searchTerm || usageFilter !== "all" || categoryFilter
+                ? "No se encontraron etiquetas con los filtros aplicados"
+                : "Crea tu primera etiqueta para comenzar"
+            }
+            action={!searchTerm && usageFilter === "all" && !categoryFilter ? { label: "Nueva Etiqueta", onClick: () => setIsCreateModalOpen(true) } : undefined}
+          />
+        }
+      />
 
       {/* Create Modal */}
       {isCreateModalOpen && (
