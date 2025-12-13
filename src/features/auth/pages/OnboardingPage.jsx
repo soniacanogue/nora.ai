@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/shared/hooks/useAuth";
-import { updateUser as updateUserApi } from "@/features/auth/api/authApi";
+import { usersApi } from "@/features/admin/users/api";
 import { toast } from "react-hot-toast";
 import Input from "@/shared/components/ui/Input";
 import Button from "@/shared/components/ui/Button";
@@ -25,7 +25,7 @@ const OnboardingPage = () => {
     setIsLoading(true);
     try {
       // Update profile with new data (do NOT clear primeraVez here)
-      const updatedUser = await updateUserApi(currentUser.id, {
+      const updatedUser = await usersApi.updateProfile({
         ...formData,
       });
 

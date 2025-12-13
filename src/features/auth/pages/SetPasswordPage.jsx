@@ -5,7 +5,8 @@ import AuthLayout from '../../../shared/components/layout/AuthLayout';
 import Input from '../../../shared/components/ui/Input';
 import Button from '../../../shared/components/ui/Button';
 import { useAuth } from '../../../shared/hooks/useAuth';
-import { changePassword, updateUser as updateUserApi } from '../api/authApi';
+import { changePassword } from '../api/authApi';
+import { usersApi } from '../../admin/users/api';
 
 export default function SetPasswordPage() {
   const { currentUser, updateUser } = useAuth();
@@ -25,7 +26,7 @@ export default function SetPasswordPage() {
       await changePassword(currentUser.id, password);
       // Mark primeraVez = false now that password is set
       try {
-        const updatedUser = await updateUserApi(currentUser.id, { primeraVez: false });
+        const updatedUser = await usersApi.updateProfile({ primeraVez: false });
         // update local cache/state
         updateUser(updatedUser);
       } catch (uerr) {
@@ -33,7 +34,7 @@ export default function SetPasswordPage() {
       }
 
       toast.success('Contraseña establecida correctamente');
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       console.error('changePassword error', err);
       toast.error(err.message || 'No se pudo establecer la contraseña');

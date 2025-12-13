@@ -16,7 +16,7 @@
 
   /* Altura personalizada para el contenedor principal */
   .h-ticket-detail {
-    height: 680px;
+    height: 115vh;
   }
 
   /* Efecto glassmorphism para tema oscuro */
